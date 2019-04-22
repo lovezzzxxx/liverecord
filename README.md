@@ -15,16 +15,14 @@ onedrive自动备份功能需要[OneDrive for Business on Bash](https://github.c
 bilibili录制支持在一个youtube频道有直播时不进行录制，从而简单的排除转播的录制。排除youtube转播功能仅支持bilibili录制。  
 
 ### 方法
-```
-record.sh youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitch|openrec|bilibili|streamlink|m3u8 "频道号码" [清晰度] [loop|once] [监视间隔] ["录像存放目录"] [nobackup|onedrive|baidupan|both] ["排除转播的youtube频道ID"]
-```
+`record.sh youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitch|openrec|bilibili|streamlink|m3u8 "频道号码" [清晰度] [loop|once] [监视间隔] ["录像存放目录"] [nobackup|onedrive|baidupan|both] ["排除转播的youtube频道ID"]`  
 ### 示例
 ```
-record.sh youtube "UCWCc8tO-uUl_7SJXIKJACMw" #录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw
+record.sh youtube "UCWCc8tO-uUl_7SJXIKJACMw"   #录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw
 
-record.sh bilibili "12235923" once loop 30 "record_video/mea_bilibili" both "UCWCc8tO-uUl_7SJXIKJACMw" #录制https://live.bilibili.com/12235923，最高清晰度，在检测到直播并进行一次录制后终止，间隔30秒检测，录像保存于record_video/mea_bilibili文件夹中，录制完成后自动上传到onedrive和百度云相同路径并在上传结束后删除本地录像，在https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw有直播时不进行录制
+record.sh bilibili "12235923" once loop 30 "record_video/mea_bilibili" both "UCWCc8tO-uUl_7SJXIKJACMw"   #录制https://live.bilibili.com/12235923，最高清晰度，在检测到直播并进行一次录制后终止，间隔30秒检测，录像保存于record_video/mea_bilibili文件夹中，录制完成后自动上传到onedrive和百度云相同路径并在上传结束后删除本地录像，在https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw有直播时不进行录制
 
-nohup record.sh twitch "kagura0mea" best loop 30 "record_video/mea" both > mea_twitch.log & #后台录制https://www.twitch.tv/kagura0mea，最高清晰度，循环检测，间隔30秒检测，录像保存于record_video/mea文件夹中，录制完成后自动上传到onedrive和百度云相同路径并在上传完成后删除本地录像，log记录保存于mea_twitch.log文件
+nohup record.sh twitch "kagura0mea" best loop 30 "record_video/mea" both > mea_twitch.log &   #后台录制https://www.twitch.tv/kagura0mea，最高清晰度，循环检测，间隔30秒检测，录像保存于record_video/mea文件夹中，录制完成后自动上传到onedrive和百度云相同路径并在上传完成后删除本地录像，log记录保存于mea_twitch.log文件
  ```
 ### 参数说明
 第一个参数必选，选择录制平台。可选参数为youtube、youtubeffmpeg、twitcast、twitcastffmpeg、twitch、openrec、bilibili、streamlink、m3u8。其中youtubeffmpeg和twitcastffmpeg为使用ffmpeg进行录制。注意twitcastffmpeg无法录制高清流但不需要配置livedl。  
@@ -41,15 +39,12 @@ nohup record.sh twitch "kagura0mea" best loop 30 "record_video/mea" both > mea_t
 自动备份实际是间隔固定时间检测指定文件夹，当文件夹中的文件数量超过指定数量时，按照修改时间将最旧的文件上传到onedrive或者百度云并删除本地文件。 __注意即使上传失败服务器中的录像仍会被删除，请确保上传的稳定性后再选择此功能。__  
 
 ### 方法
-```
-autobackup.sh onedrive|baidupan "本地目录" [保留文件数] [loop|once] [监视间隔] ["onedrive或者百度云目录"]
-```
-
+`autobackup.sh onedrive|baidupan "本地目录" [保留文件数] [loop|once] [监视间隔] ["onedrive或者百度云目录"]`  
 ### 示例
 ```
 autobackup.sh onedrive "record_video/other" #当record_video/other中的文件数量超过6时将修改时间将最旧的文件上传到onedrive的record_video/other文件夹并删除本地文件，间隔1800秒检测一次
-autobackup.sh onedrive "record_video/other" 6 loop 1800 "record_video/other" #同上
-nohup autobackup.sh onedrive "record_video/other" 6 loop 1800 "record_video/other" > backup.log & #后台运行
+autobackup.sh onedrive "record_video/other" 6 loop 1800 "record_video/other" #作用同上
+nohup autobackup.sh onedrive "record_video/other" 6 loop 1800 "record_video/other" > backup.log & #后台运行，作用同上，log记录保存于backup.log文件
 ```
 ### 参数说明
 第一个参数必选，选择上传网盘。可选参数为onedrive、baidupan。  
