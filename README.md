@@ -1,0 +1,2 @@
+# liverecord
+自动录播脚本整合，支持youtube频道、twitcast频道、twitch频道、openrec频道、bilibili直播间、其它streamlink支持的直播网址和ffmpeg支持的m3u8地址
