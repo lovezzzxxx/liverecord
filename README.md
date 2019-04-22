@@ -1,21 +1,27 @@
 # liverecord
 自动录播脚本，自动备份脚本。
+
 感谢[live-stream-recorder](https://github.com/printempw/live-stream-recorder)
 
 
 
 # 环境依赖
 自动录播需要curl，python3，youtube-dl，streamlink，ffmpeg，livedl。
+
 其中livedl为可选，目的是支持twitcast高清录制，请将编译完成的livedl文件放置于用户目录的livedl/文件夹内。如果不希望使用livedl可以选择twitcastffmpeg参数而非twitcast参数进行录制。
 
+
 onedrive自动备份功能需要[OneDrive for Business on Bash](https://github.com/0oVicero0/OneDrive)，在服务器获取授权后即可使用。
+
 百度云自动备份功能需要[BaiduPCS-Go](https://github.com/iikira/BaiduPCS-Go)，在服务器登陆后即可使用。如果上传不稳定建议尝试修改设置为使用https方式上传。
 
 
 
 # 自动录播使用方法
 自动录播支持youtube频道、twitcast频道、twitch频道、openrec频道、bilibili直播间、其它streamlink支持的直播网址和ffmpeg支持的m3u8地址。方法为间隔固定时间检测频道直播状态。
+
 可以选择是否自动备份到onedrive或者百度云，即在一次录制完成后自动开始上传，在上传结束后会服务器中的录像将会被删除。__注意即使上传失败服务器中的录像仍会被删除，请确保上传的稳定性后再选择此功能。其中m3u8录播不支持自动备份。__
+
 bilibili录制支持在一个youtube频道有直播时不进行录制，从而简单的排除转播的录制。
 
 
@@ -32,13 +38,20 @@ nohup record.sh twitch "kagura0mea" best loop 30 "record_video/mea" both > mea_t
 
 ## 参数说明
 第一个参数必选，选择录制平台。可选参数为youtube、youtubeffmpeg、twitcast、twitcastffmpeg、twitch、openrec、bilibili、streamlink、m3u8。其中youtubeffmpeg和twitcastffmpeg为使用ffmpeg进行录制。注意twitcastffmpeg无法录制高清流但不需要配置livedl。
+
 第二个参数必选，选择频道号码。其中youtube、twitcast、twitch、openrec为对应网站个人主页网址中的ID部分，bilibili为直播间号码，streamlink为直播网址，m3u8为直播m3u8文件网址。
 
+
 第三个参数可选，选择清晰度，默认为best。
+
 第四个参数可选，选择是否循环，默认为loop。如果指定为once则会在检测到直播并进行一次录制后终止。
+
 第五个参数可选，选择监视间隔，默认为10秒。
+
 第六个参数可选，选择本地录像存放目录，默认为record_video/other文件夹。
+
 第七个参数可选，选择是否自动备份，默认为nobackup。可选参数为nobackup、onedrive、baidupan、both，其中both指同时上传onedrive和百度云，在一次录制完成后开始上传，上传路径与本地路径相同。
+
 第八个参数可选，选择排除转播的youtube频道ID，默认为noexcept。如果参数不为noexcept则作为youtube频道ID，在相应youtube频道有直播时不进行bilibili的录制。注意仅支持bilibili录制前排除一个youtube频道。
 
 
@@ -59,9 +72,14 @@ nohup autobackup.sh onedrive "record_video/other" 6 loop 1800 "record_video/othe
 
 ## 参数说明
 第一个参数必选，选择上传网盘。可选参数为onedrive、baidupan。
+
 第二个参数必选，选择需要监视的本地目录。
 
+
 第三个参数可选，选择保留文件数，默认为6。
+
 第四个参数可选，选择是否循环，默认为loop。如果指定为once则会在检测一次后终止。
+
 第五个参数可选，选择监视间隔，默认为1800秒。
+
 第六个参数可选，选择网盘存放目录，默认为record_video/other文件夹。
