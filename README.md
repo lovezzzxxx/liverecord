@@ -1,6 +1,9 @@
 # liverecord
 record.sh包含自动备份功能，在每次录制完成后进行备份。  
 autobackup.sh基于文件夹内的文件数量进行备份，间隔固定时间将超过指定数量的旧文件进行备份。  
+
+__注意如果选择自动备份功能即使上传失败服务器中的录像仍会被删除，请确保上传的稳定性后再选择此功能。__ 如果想使用自动备份但不想删除服务器录像的话请删除请脚本内的所有rm命令（如果问为什么不将删除作为可选主要是懒）  
+
 感谢[live-stream-recorder](https://github.com/printempw/live-stream-recorder)  
 
 # 环境依赖
