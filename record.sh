@@ -203,7 +203,7 @@ if [ "${1}" == "twitch" ]; then
 		done
 		
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-		echo "record twitch.tv/${LIVE_URL} start" #开始录制。使用ts格式防止意外中断损坏文件
+		echo "${LOG_PREFIX} record twitch.tv/${LIVE_URL} start" #开始录制。使用ts格式防止意外中断损坏文件
 		FNAME="twitch_${LIVE_URL}_$(date +"%Y%m%d_%H%M%S").ts"
 		ffmpeg -i "$M3U8_URL" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		
