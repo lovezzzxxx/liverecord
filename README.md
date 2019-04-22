@@ -1,5 +1,6 @@
 # liverecord
-自动录播脚本，自动备份脚本。  
+record.sh包含自动备份功能，在每次录制完成后进行备份。
+autobackup.sh基于文件夹内的文件数量进行备份，间隔固定时间将超过指定数量的旧文件进行备份。
 感谢[live-stream-recorder](https://github.com/printempw/live-stream-recorder)  
 
 # 环境依赖
