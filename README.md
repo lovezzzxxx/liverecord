@@ -14,7 +14,7 @@ onedrive自动备份功能需要[OneDrive for Business on Bash](https://github.c
 # 自动录播使用方法
 自动录播支持youtube频道、twitcast频道、twitch频道、openrec频道、bilibili直播间、其它streamlink支持的直播网址和ffmpeg支持的m3u8地址。方法为间隔固定时间检测频道直播状态。  
 支持按照录制分段， __注意分段时可能会导致十秒左右的视频缺失__ 。  
-可以选择是否自动备份到onedrive或者百度云。自动备份功能不支持m3u8录制。  
+可以选择是否自动备份到onedrive或者百度云。 
 bilibili录制支持在频道有直播时不进行录制，从而简单的排除转播的录制。排除youtube转播功能仅支持bilibili录制。  
 
 ### 方法
@@ -35,7 +35,7 @@ nohup record.sh bilibili "12235923" best 7200 30 "record_video/mea_bilibili" bot
 第四个参数可选，选择是否循环或者录制分段时间，默认为loop。如果指定为once则会在检测到直播并进行一次录制后终止，如果指定为数字则会在录制进行相应秒数时分段，使用视频分段功能时为loop模式。 __注意分段时可能会导致十秒左右的视频缺失__ 。  
 第五个参数可选，选择监视间隔，默认为10秒。  
 第六个参数可选，选择本地录像存放目录，默认为record_video/other文件夹。  
-第七个参数可选，选择是否自动备份，默认为nobackup。可选参数为nobackup、onedrive、baidupan、both、onedrivenot、baidupannot、bothnot、onedrivedel、baidupandel、bothdel。其中onedrive、baidupan、both分别指上传onedrive、上传百度云、同时上传，在一次录制完成后开始上传，上传路径与本地路径相同，如果上传成功则删除本地文件，上传失败将会保留本地文件。带有keep的参数即使上传成功也会保留本地文件。带有del的参数即使上传失败也会删除本地文件。自动备份功能不支持m3u8录制。  
+第七个参数可选，选择是否自动备份，默认为nobackup。可选参数为nobackup、onedrive、baidupan、both、onedrivenot、baidupannot、bothnot、onedrivedel、baidupandel、bothdel。其中onedrive、baidupan、both分别指上传onedrive、上传百度云、同时上传，在一次录制完成后开始上传，上传路径与本地路径相同，如果上传成功则删除本地文件，上传失败将会保留本地文件。带有keep的参数即使上传成功也会保留本地文件。带有del的参数即使上传失败也会删除本地文件。
 第八到十二个参数可选，默认为noexcept。按照顺序分别为选择排除转播的youtube频道号码、排除转播的twitcast频道号码、排除转播的twitch频道号码、noexcept|排除转播的openrec频道号码、排除转播的streamlink支持的频道网址，相应频道正在直播时不进行录制。排除转播功能仅支持bilibili录制。  
 
 # 自动备份使用方法
