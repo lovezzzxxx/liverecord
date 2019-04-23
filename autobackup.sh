@@ -1,71 +1,66 @@
 #!/bin/bash
 
 if [[ ! -n "${1}" ]]; then
-	echo "${0} onedrive|baidupan \"±æµÿƒø¬º\" [6|∆‰À˚±£¡ÙŒƒº˛ ˝] [loop|once] [1800|∆‰À˚º‡ ”º‰∏Ù] [\"record_video/other|onedriveªÚbaidupanƒø¬º|/\"]"
-	echo " æ¿˝£∫${0} onedrive \"record_video/other\" 6 loop 1800 \"record_video/other\""
+	echo "${0} onedrive|baidupan|both|onedrivenotdel|baidupannotdel|bothnotdel \"Êú¨Âú∞ÁõÆÂΩï\" [6|ÂÖ∂‰ªñ‰øùÁïôÊñá‰ª∂Êï∞] [loop|once] [1800|ÂÖ∂‰ªñÁõëËßÜÈó¥Èöî] [\"record_video/other|onedriveÊàñbaidupanÁõÆÂΩï|/\"]"
+	echo "Á§∫‰æãÔºö${0} onedrive \"record_video/other\" 6 loop 1800 \"record_video/other\""
 	exit 1
 fi
 
-DIR_LOCAL="${2}" #±æµÿƒø¬º
-FILENUMBER="${3:-6}" #±£¡ÙŒƒº˛ ˝
-LOOP="${4:-loop}" # «∑Ò—≠ª∑
-INTERVAL="${5:-1800}" #º‡ ”º‰∏Ù
-DIR_CLOUD="${6:-record_video/other}" #onedriveªÚbaidupanƒø¬º
+
+
+DIR_LOCAL="${2}" #Êú¨Âú∞ÁõÆÂΩï
+FILENUMBER="${3:-6}" #‰øùÁïôÊñá‰ª∂Êï∞
+LOOP="${4:-loop}" #ÊòØÂê¶Âæ™ÁéØ
+INTERVAL="${5:-1800}" #ÁõëËßÜÈó¥Èöî
+DIR_CLOUD="${6:-record_video/other}" #onedriveÊàñbaidupanÁõÆÂΩï
+
 DIR_ONEDRIVE=${DIR_CLOUD}
 DIR_BAIDUPAN=${DIR_CLOUD}
 
-if [ "${1}" == "onedrive" ]; then
-	while true; do
-		count=0;
-		eval ls -tl "record" 2>/dev/null | awk '/^-/{print $NF}' | while read ONEFILE ; do #∏˘æ›–ﬁ∏ƒ ±º‰≈–∂œŒƒº˛–¬æ…
-			let count++
-			if [ ${count} -gt ${FILENUMBER} ]; then
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-				echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${ONEFILE} start" #ø™ º…œ¥´
-				onedrive -s -f "${DIR_ONEDRIVE}" "${DIR_LOCAL}/${ONEFILE}"
-				
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-				echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${ONEFILE} stopped. remove ${DIR_LOCAL}/${ONEFILE}" #…æ≥˝Œƒº˛
-				rm -f "${DIR_LOCAL}/${ONEFILE}"
-				
-			else
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-				echo "${LOG_PREFIX} keep file $count ${DIR_LOCAL}/${ONEFILE}" #±£¡ÙŒƒº˛
-			fi
-		done
-		
-		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-		echo "${LOG_PREFIX} backup done. retry after ${INTERVAL} seconds..."
-		[[ "${LOOP}" == "once" ]] && break
-		
-		sleep ${INTERVAL}
-	done
-fi
 
-if [ "${1}" == "baidupan" ]; then
-	while true; do
-		count=0;
-		eval ls -t ${DIR_LOCAL} 2>/dev/null | while read ONEFILE ; do #∏˘æ›–ﬁ∏ƒ ±º‰≈–∂œŒƒº˛–¬æ…
-			let count++
-			if [ ${count} -gt ${FILENUMBER} ]; then
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-				echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${ONEFILE} start" #ø™ º…œ¥´
-				BaiduPCS-Go upload "${DIR_LOCAL}/${ONEFILE}" "${DIR_BAIDUPAN}" > /dev/null
-				
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-				echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${ONEFILE} stopped. remove ${DIR_LOCAL}/${ONEFILE}" #…æ≥˝Œƒº˛
-				rm -f "${DIR_LOCAL}/${ONEFILE}"
-				
-			else
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-				echo "${LOG_PREFIX} keep file $count ${DIR_LOCAL}/${ONEFILE}" #±£¡ÙŒƒº˛
+
+while true; do
+	count=0;
+	eval ls -tl "record" | awk '/^-/{print $NF}' | while read ONEFILE ; do #Ê†πÊçÆ‰øÆÊîπÊó∂Èó¥Âà§Êñ≠Êñá‰ª∂Êñ∞Êóß
+		let count++
+		if [ ${count} -gt ${FILENUMBER} ]; then
+			ERRFLAG_ONEDRIVE=0
+			ERRFLAG_BAIDUPAN=0
+			if [[ "${BACKUP}" == "onedrive"* ]]; then #‰∏ä‰º†onedrive
+				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} start"
+				onedrive -s -f "${DIR_ONEDRIVE}" "${DIR_LOCAL}/${ONEFILE}" ; ERRFLAG_ONEDRIVE=$(( ${ERRFLAG_ONEDRIVE}+$? ))
+				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} stopped"
+				if [[ ${ERRFLAG_ONEDRIVE} != 0 ]]; then echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} error"; fi
+				if [[ ${ERRFLAG_ONEDRIVE} == 0 && "${BACKUP}" == "onedrive" ]]; then echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${ONEFILE}" ; rm -f "${DIR_LOCAL}/${ONEFILE}" ; rm -f "${DIR_LOCAL}/${ONEFILE}.log"; fi
 			fi
-		done
-		
-		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-		echo "${LOG_PREFIX} backup done. retry after ${INTERVAL} seconds..."
-		[[ "${LOOP}" == "once" ]] && break
-		
-		sleep ${INTERVAL}
+			if [[ "${BACKUP}" == "baidupan"* ]]; then #‰∏ä‰º†baidupan
+				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} start"
+				BaiduPCS-Go upload "${DIR_LOCAL}/${ONEFILE}" "${DIR_BAIDUPAN}" > /dev/null ; ERRFLAG_BAIDUPAN=$(( ${ERRFLAG_BAIDUPAN}+$? ))
+				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} stopped"
+				if [[ ${ERRFLAG_BAIDUPAN} != 0 ]]; then echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} error"; fi
+				if [[ ${ERRFLAG_BAIDUPAN} == 0 && "${BACKUP}" == "baidupan" ]]; then echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${ONEFILE}" ; rm -f "${DIR_LOCAL}/${ONEFILE}" ; rm -f "${DIR_LOCAL}/${ONEFILE}.log"; fi
+			fi
+			if [[ "${BACKUP}" == "both"* ]]; then
+				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} start"
+				onedrive -s -f "${DIR_ONEDRIVE}" "${DIR_LOCAL}/${ONEFILE}" ; ERRFLAG_ONEDRIVE=$(( ${ERRFLAG_ONEDRIVE}+$? ))
+				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} stopped"
+				if [[ ${ERRFLAG_ONEDRIVE} != 0 ]]; then echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} error"; fi
+				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} start"
+				BaiduPCS-Go upload "${DIR_LOCAL}/${ONEFILE}" "${DIR_BAIDUPAN}" > /dev/null ; ERRFLAG_BAIDUPAN=$(( ${ERRFLAG_BAIDUPAN}+$? ))
+				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} stopped"
+				if [[ ${ERRFLAG_BAIDUPAN} != 0 ]]; then echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} error"; fi
+				if [[ ${ERRFLAG_ONEDRIVE} == 0 && ${ERRFLAG_BAIDUPAN} == 0 && "${BACKUP}" == "both" ]]; then echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD}" ; rm -f "${DIR_LOCAL}/${ONEFILE}" ; rm -f "${DIR_LOCAL}/${ONEFILE}.log"; fi) &
+			fi
+			
+		else
+			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+			echo "${LOG_PREFIX} keep file $count ${DIR_LOCAL}/${ONEFILE}" #‰øùÁïôÊñá‰ª∂
+		fi
 	done
-fi
+	
+	LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+	echo "${LOG_PREFIX} backup done. retry after ${INTERVAL} seconds..."
+	[[ "${LOOP}" == "once" ]] && break
+	
+	sleep ${INTERVAL}
+done
