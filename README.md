@@ -18,7 +18,7 @@ onedrive自动备份功能需要[OneDrive for Business on Bash](https://github.c
 bilibili录制支持在频道有直播时不进行录制，从而简单的排除转播的录制。排除youtube转播功能仅支持bilibili录制。  
 
 ### 方法
-`record.sh youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitch|openrec|bilibili|streamlink|m3u8" "频道号码" [best|其他清晰度] [loop|once|视频分段时间] [10|其他监视间隔] ["record_video/other|其他本地目录"] [nobackup|onedrive|baidupan|both|onedrivekeep|baidupankeep|bothkeep|onedrivedel|baidupandel|bothdel] ["noexcept|排除转播的youtube频道号码"] ["noexcept|排除转播的twitcast频道号码"] ["noexcept|排除转播的twitch频道号码"] ["noexcept|排除转播的openrec频道号码"] ["noexcept|排除转播的streamlink支持的频道网址"]`  
+`record.sh youtube|twitcast|twitcastffmpeg|twitch|openrec|bilibili|streamlink|m3u8" "频道号码" [best|其他清晰度] [loop|once|视频分段时间] [10|其他监视间隔] ["record_video/other|其他本地目录"] [nobackup|onedrive|baidupan|both|onedrivekeep|baidupankeep|bothkeep|onedrivedel|baidupandel|bothdel] ["noexcept|排除转播的youtube频道号码"] ["noexcept|排除转播的twitcast频道号码"] ["noexcept|排除转播的twitch频道号码"] ["noexcept|排除转播的openrec频道号码"] ["noexcept|排除转播的streamlink支持的频道网址"]`  
 ### 示例
 ```
 record.sh youtube "UCWCc8tO-uUl_7SJXIKJACMw"   #录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw
@@ -28,7 +28,7 @@ record.sh bilibili "12235923" once loop 30 "record_video/mea_bilibili" both "UCW
 nohup record.sh bilibili "12235923" best 7200 30 "record_video/mea_bilibili" bothkeep "UCWCc8tO-uUl_7SJXIKJACMw" "kaguramea" "kagura0mea" "KaguraMea" > mea_bilibili.log &   #后台录制https://www.twitch.tv/kagura0mea，最高清晰度，循环检测并在录制进行7200秒时分段，间隔30秒检测，录像保存于record_video/mea文件夹中，录制完成后自动上传到onedrive和百度云相同路径并在上传完成后保留本地录像，log记录保存于mea_bilibili.log文件
  ```
 ### 参数说明
-第一个参数必选，选择录制平台。可选参数为youtube、youtubeffmpeg、twitcast、twitcastffmpeg、twitch、openrec、bilibili、streamlink、m3u8。其中youtubeffmpeg和twitcastffmpeg为使用ffmpeg进行录制。注意twitcastffmpeg无法录制高清流但不需要配置livedl。  
+第一个参数必选，选择录制平台。可选参数为youtube、twitcast、twitcastffmpeg、twitch、openrec、bilibili、streamlink、m3u8。其中twitcastffmpeg为使用ffmpeg进行录制，无法录制高清流但不需要配置livedl。  
 第二个参数必选，选择频道号码。其中youtube、twitcast、twitch、openrec为对应网站个人主页网址中的ID部分，bilibili为直播间号码，streamlink为直播网址，m3u8为直播m3u8文件网址。  
 
 第三个参数可选，选择清晰度，默认为best。  
@@ -42,7 +42,7 @@ nohup record.sh bilibili "12235923" best 7200 30 "record_video/mea_bilibili" bot
 自动备份实际是间隔固定时间检测指定文件夹，当文件夹中的文件数量超过指定数量时，按照修改时间将最旧的文件上传到onedrive或者百度云并删除本地文件。  
 
 ### 方法
-`autobackup.sh nobackup|onedrive|baidupan|both|onedrivekeep|baidupankeep|bothkeep|onedrivedel|baidupandel|bothdel "本地目录" [保留文件数] [loop|once] [监视间隔] ["onedrive或者百度云目录"]`  
+`autobackup.sh onedrive|baidupan|both|onedrivekeep|baidupankeep|bothkeep|onedrivedel|baidupandel|bothdel "本地目录" [保留文件数] [loop|once] [监视间隔] ["onedrive或者百度云目录"]`  
 ### 示例
 ```
 autobackup.sh onedrive "record_video/other" #当record_video/other中的文件数量超过6时将修改时间将最旧的文件上传到onedrive的record_video/other文件夹并删除本地文件，间隔1800秒检测一次
