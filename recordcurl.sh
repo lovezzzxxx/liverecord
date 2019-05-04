@@ -55,7 +55,7 @@ while true; do
 		if [[ "${1}" == "youtube" || "${1}" == "youtubeffmmpeg" ]]; then
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			echo "${LOG_PREFIX} metadata ${FULL_URL}" #检测直播。注意youtube检测和bilibili中的youtube检测的具体文字可能随着地区而改变。
-			curl -s "${FULL_URL}" | grep -q "<strong class=\"watch-time-text metadata-updateable-date-text\">Started streaming" && METADATA=$(youtube-dl --get-id --get-title --get-description --no-playlist --playlist-items 1 --match-filter is_live "${FULL_URL}" 2>/dev/null) && break
+			curl -s "${FULL_URL}" | grep -q "<strong class=\"watch-time-text metadata-updateable-date-text\">Started streaming" && break
 		fi
 		if [[ "${1}" == "twitcast" || "${1}" == "twitcastffmpeg" ]]; then
 			echo "${LOG_PREFIX} metadata ${FULL_URL}"
@@ -108,9 +108,7 @@ while true; do
 			fi
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			echo "${LOG_PREFIX} metadata ${FULL_URL}"
-			STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}")
-			(echo "${STREAM_URL}" | grep -q ".m3u8") && break
-			(echo "${STREAM_URL}" | grep -q ".flv") && break
+			curl -s "https://api.live.bilibili.com/room/v1/Room/get_info?room_id=${PART_URL}&from=room" | grep -q '\"live_status\"\:1' && STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}") && break
 		fi
 		
 		if [[ "${1}" == "streamlink" ]]; then
@@ -131,8 +129,8 @@ while true; do
 	
 	
 	
-	if [[ "${1}" == "youtube" ]]; then ID=$(echo "${METADATA}" | sed -n '2p') ; FNAME="youtube_${PART_URL}_$(date +"%Y%m%d_%H%M%S")_${ID}.ts" ; echo "${METADATA}" > "${DIR_LOCAL}/${FNAME}.log"; fi
-	if [[ "${1}" == "youtubeffmmpeg" ]]; then STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}") ; ID=$(echo "${METADATA}" | sed -n '2p') ; FNAME="youtube_${PART_URL}_$(date +"%Y%m%d_%H%M%S")_${ID}.ts" ; echo "${METADATA}" > "${DIR_LOCAL}/${FNAME}.log"; fi
+	if [[ "${1}" == "youtube" ]]; then METADATA=$(youtube-dl --get-id --get-title --get-description --no-playlist --playlist-items 1 --match-filter is_live "${FULL_URL}" 2>/dev/null) ; ID=$(echo "${METADATA}" | sed -n '2p') ; FNAME="youtube_${PART_URL}_$(date +"%Y%m%d_%H%M%S")_${ID}.ts" ; echo "${METADATA}" > "${DIR_LOCAL}/${FNAME}.log"; fi
+	if [[ "${1}" == "youtubeffmmpeg" ]]; then STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}") ; METADATA=$(youtube-dl --get-id --get-title --get-description --no-playlist --playlist-items 1 --match-filter is_live "${FULL_URL}" 2>/dev/null) ; ID=$(echo "${METADATA}" | sed -n '2p') ; FNAME="youtube_${PART_URL}_$(date +"%Y%m%d_%H%M%S")_${ID}.ts" ; echo "${METADATA}" > "${DIR_LOCAL}/${FNAME}.log"; fi
 	if [[ "${1}" == "twitcast" ]]; then DLNAME=$(curl -s "https://twitcasting.tv/streamserver.php?target=${PART_URL}&mode=client" | grep -o '"id":[0-9]*,') ; DLNAME="${PART_URL}_${DLNAME:5:-1}.ts" ; DLNAME="${DLNAME/:/：}" ; FNAME="twitcast_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts" ; FNAME="${FNAME/:/：}"; fi
 	if [[ "${1}" == "twitcastffmpeg" ]]; then STREAM_URL="http://twitcasting.tv/${PART_URL}/metastream.m3u8?video=1" ; FNAME="twitcast_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "twitch" ]]; then FNAME="twitch_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
