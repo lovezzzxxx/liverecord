@@ -110,9 +110,7 @@ while true; do
 			fi
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			echo "${LOG_PREFIX} metadata ${FULL_URL}"
-			STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}")
-			(echo "${STREAM_URL}" | grep -q ".m3u8") && break
-			(echo "${STREAM_URL}" | grep -q ".flv") && break
+			curl -s "https://api.live.bilibili.com/room/v1/Room/get_info?room_id=${PART_URL}&from=room" | grep -q '\"live_status\"\:1' && break
 		fi
 		
 		if [[ "${1}" == "streamlink" ]]; then
@@ -139,7 +137,7 @@ while true; do
 	if [[ "${1}" == "twitcastffmpeg" ]]; then STREAM_URL="http://twitcasting.tv/${PART_URL}/metastream.m3u8?video=1" ; FNAME="twitcast_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "twitch" ]]; then FNAME="twitch_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "openrec" ]]; then STREAM_URL=$(streamlink --stream-url "${LIVE_URL}" "${FORMAT}") ; FNAME="openrec_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
-	if [[ "${1}" == "bilibili" ]]; then FNAME="bilibili_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
+	if [[ "${1}" == "bilibili" ]]; then STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}") ; FNAME="bilibili_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "streamlink" ]]; then FNAME="stream_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "m3u8" ]]; then STREAM_URL="${FULL_URL}" ; FNAME="m3u8_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	
