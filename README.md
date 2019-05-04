@@ -1,8 +1,9 @@
 # liverecord
 record.sh包含自动备份功能，在每次录制完成后进行备份。  
+recordcurl.sh主要功能同上，改为使用简单解析网页的方式完成直播状态检测以减少系统占用（仅提供另一种方式，并非必要）。 __注意脚本中检测的语言为en_US，如果使用其他地区的语言需要修改检测文字__ 。  
 autobackup.sh基于文件夹内的文件数量进行备份，间隔固定时间将超过指定数量的旧文件进行备份（仅提供另一种备份方式，并非必要）。  
 
-感谢[live-stream-recorder](https://github.com/printempw/live-stream-recorder)  
+感谢[live-stream-recorder](https://github.com/printempw/live-stream-recorder)、[GiGaFotress/Vtuber-recorder](https://github.com/GiGaFotress/Vtuber-recorder)。  
 
 # 环境依赖
 自动录播需要curl，python3，youtube-dl，streamlink，ffmpeg，livedl。  
@@ -18,7 +19,7 @@ onedrive自动备份功能需要[OneDrive for Business on Bash](https://github.c
 bilibili录制支持在频道有直播时不进行录制，从而简单的排除转播的录制。排除youtube转播功能仅支持bilibili录制。  
 
 ### 方法
-`record.sh youtube|twitcast|twitcastffmpeg|twitch|openrec|bilibili|streamlink|m3u8" "频道号码" [best|其他清晰度] [loop|once|视频分段时间] [10|其他监视间隔] ["record_video/other|其他本地目录"] [nobackup|onedrive|baidupan|both|onedrivekeep|baidupankeep|bothkeep|onedrivedel|baidupandel|bothdel] ["noexcept|排除转播的youtube频道号码"] ["noexcept|排除转播的twitcast频道号码"] ["noexcept|排除转播的twitch频道号码"] ["noexcept|排除转播的openrec频道号码"] ["noexcept|排除转播的streamlink支持的频道网址"]`  
+`record.sh youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitch|openrec|bilibili|streamlink|m3u8" "频道号码" [best|其他清晰度] [loop|once|视频分段时间] [10|其他监视间隔] ["record_video/other|其他本地目录"] [nobackup|onedrive|baidupan|both|onedrivekeep|baidupankeep|bothkeep|onedrivedel|baidupandel|bothdel] ["noexcept|排除转播的youtube频道号码"] ["noexcept|排除转播的twitcast频道号码"] ["noexcept|排除转播的twitch频道号码"] ["noexcept|排除转播的openrec频道号码"] ["noexcept|排除转播的streamlink支持的频道网址"]`  
 ### 示例
 ```
 record.sh youtube "UCWCc8tO-uUl_7SJXIKJACMw"   #录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw
@@ -28,7 +29,7 @@ record.sh bilibili "12235923" once loop 30 "record_video/mea_bilibili" both "UCW
 nohup record.sh bilibili "12235923" best 7200 30 "record_video/mea_bilibili" bothkeep "UCWCc8tO-uUl_7SJXIKJACMw" "kaguramea" "kagura0mea" "KaguraMea" > mea_bilibili.log &   #后台录制https://www.twitch.tv/kagura0mea，最高清晰度，循环检测并在录制进行7200秒时分段，间隔30秒检测，录像保存于record_video/mea文件夹中，录制完成后自动上传到onedrive和百度云相同路径并在上传完成后保留本地录像，log记录保存于mea_bilibili.log文件
  ```
 ### 参数说明
-第一个参数必选，选择录制平台。可选参数为youtube、twitcast、twitcastffmpeg、twitch、openrec、bilibili、streamlink、m3u8。其中twitcastffmpeg为使用ffmpeg进行录制，无法录制高清流但不需要配置livedl。  
+第一个参数必选，选择录制平台。可选参数为youtube、youtubeffmpeg、twitcast、twitcastffmpeg、twitch、openrec、bilibili、streamlink、m3u8。其中youtubeffmpeg与twitcastffmpeg为使用ffmpeg进行录制，无法录制高清流但不需要配置livedl。  
 第二个参数必选，选择频道号码。其中youtube、twitcast、twitch、openrec为对应网站个人主页网址中的ID部分，bilibili为直播间号码，streamlink为直播网址，m3u8为直播m3u8文件网址。  
 
 第三个参数可选，选择清晰度，默认为best。  
