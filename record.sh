@@ -201,7 +201,7 @@ while true; do
 		(LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} and log start" ; \
 		onedrive -s -f "${DIR_ONEDRIVE}" "${DIR_LOCAL}/${FNAME}" ; ERRFLAG_ONEDRIVE=$(( ${ERRFLAG_ONEDRIVE}+$? )) ; onedrive -s -f "${DIR_ONEDRIVE}" "${DIR_LOCAL}/${FNAME}.log" ; ERRFLAG_ONEDRIVE=$(( ${ERRFLAG_ONEDRIVE}+$? )) ; \
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} and log stopped" ; \
-		if [[ ${ERRFLAG_ONEDRIVE} != 0 ]]; then echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} and log error" ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} and log error" > "${DIR_LOCAL}/${FNAME}.onedriveerror.log"; fi ; \
+		if [[ ${ERRFLAG_ONEDRIVE} != 0 ]]; then echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} and log error=${ERRFLAG_ONEDRIVE}" ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} and log error=${ERRFLAG_ONEDRIVE}" > "${DIR_LOCAL}/${FNAME}.onedriveerror.log"; fi ; \
 		if [[ ${ERRFLAG_ONEDRIVE} == 0 && "${BACKUP}" == "onedrive" ]]; then echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${FNAME} and log" ; rm -f "${DIR_LOCAL}/${FNAME}" ; rm -f "${DIR_LOCAL}/${FNAME}.log"; fi ; \
 		if [[ "${BACKUP}" == "onedrivedel" ]]; then echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${FNAME} and log" ; rm -f "${DIR_LOCAL}/${FNAME}" ; rm -f "${DIR_LOCAL}/${FNAME}.log"; fi) &
 	fi
@@ -209,7 +209,7 @@ while true; do
 		(LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} and log start" ; \
 		BaiduPCS-Go upload "${DIR_LOCAL}/${FNAME}" "${DIR_BAIDUPAN}" > /dev/null ; ERRFLAG_BAIDUPAN=$(( ${ERRFLAG_BAIDUPAN}+$? )) ; BaiduPCS-Go upload "${DIR_LOCAL}/${FNAME}.log" "${DIR_BAIDUPAN}" > /dev/null ; ERRFLAG_BAIDUPAN=$(( ${ERRFLAG_BAIDUPAN}+$? )) ; \
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} and log stopped" ; \
-		if [[ ${ERRFLAG_BAIDUPAN} != 0 ]]; then echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} and log error" ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} and log error" > "${DIR_LOCAL}/${FNAME}.baidupanerror.log"; fi ; \
+		if [[ ${ERRFLAG_BAIDUPAN} != 0 ]]; then echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} and log error=${ERRFLAG_BAIDUPAN}" ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} and log error=${ERRFLAG_BAIDUPAN}" > "${DIR_LOCAL}/${FNAME}.baidupanerror.log"; fi ; \
 		if [[ ${ERRFLAG_BAIDUPAN} == 0 && "${BACKUP}" == "baidupan" ]]; then echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${FNAME} and log" ; rm -f "${DIR_LOCAL}/${FNAME}" ; rm -f "${DIR_LOCAL}/${FNAME}.log"; fi ; \
 		if [[ "${BACKUP}" == "baidupandel" ]]; then echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${FNAME} and log" ; rm -f "${DIR_LOCAL}/${FNAME}" ; rm -f "${DIR_LOCAL}/${FNAME}.log"; fi) &
 	fi
@@ -217,11 +217,11 @@ while true; do
 		(LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} and log start" ; \
 		onedrive -s -f "${DIR_ONEDRIVE}" "${DIR_LOCAL}/${FNAME}" ; ERRFLAG_ONEDRIVE=$(( ${ERRFLAG_ONEDRIVE}+$? )) ; onedrive -s -f "${DIR_ONEDRIVE}" "${DIR_LOCAL}/${FNAME}.log" ; ERRFLAG_ONEDRIVE=$(( ${ERRFLAG_ONEDRIVE}+$? )) ; \
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} and log stopped" ; \
-		if [[ ${ERRFLAG_ONEDRIVE} != 0 ]]; then echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} and log error" ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} and log error" > "${DIR_LOCAL}/${FNAME}.onedriveerror.log"; fi ; \
+		if [[ ${ERRFLAG_ONEDRIVE} != 0 ]]; then echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} and log error=${ERRFLAG_ONEDRIVE}" ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} and log error=${ERRFLAG_ONEDRIVE}" > "${DIR_LOCAL}/${FNAME}.onedriveerror.log"; fi ; \
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} and log start" ; \
 		BaiduPCS-Go upload "${DIR_LOCAL}/${FNAME}" "${DIR_BAIDUPAN}" > /dev/null ; ERRFLAG_BAIDUPAN=$(( ${ERRFLAG_BAIDUPAN}+$? )) ; BaiduPCS-Go upload "${DIR_LOCAL}/${FNAME}.log" "${DIR_BAIDUPAN}" > /dev/null ; ERRFLAG_BAIDUPAN=$(( ${ERRFLAG_BAIDUPAN}+$? )) ; \
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} and log stopped" ; \
-		if [[ ${ERRFLAG_BAIDUPAN} != 0 ]]; then echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} and log error" ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} and log error" > "${DIR_LOCAL}/${FNAME}.baidupanerror.log"; fi ; \
+		if [[ ${ERRFLAG_BAIDUPAN} != 0 ]]; then echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} and log error=${ERRFLAG_BAIDUPAN}" ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} and log error=${ERRFLAG_BAIDUPAN}" > "${DIR_LOCAL}/${FNAME}.baidupanerror.log"; fi ; \
 		if [[ ${ERRFLAG_ONEDRIVE} == 0 && ${ERRFLAG_BAIDUPAN} == 0 && "${BACKUP}" == "both" ]]; then echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${FNAME} and log" ; rm -f "${DIR_LOCAL}/${FNAME}" ; rm -f "${DIR_LOCAL}/${FNAME}.log"; fi ; \
 		if [[ "${BACKUP}" == "bothdel" ]]; then echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${FNAME} and log" ; rm -f "${DIR_LOCAL}/${FNAME}" ; rm -f "${DIR_LOCAL}/${FNAME}.log"; fi) &
 	fi
