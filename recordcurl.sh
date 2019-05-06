@@ -55,12 +55,11 @@ while true; do
 		if [[ "${1}" == "youtube" || "${1}" == "youtubeffmmpeg" ]]; then
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			echo "${LOG_PREFIX} metadata ${FULL_URL}" #检测直播。注意youtube检测和bilibili中的youtube检测的具体文字可能随着地区而改变。
-			curl -s "${FULL_URL}" | grep -q "<strong class=\"watch-time-text metadata-updateable-date-text\">Started streaming" && break
+			(curl -s "${FULL_URL}" | grep -q "<strong class=\"watch-time-text metadata-updateable-date-text\">Started streaming") && break
 		fi
 		if [[ "${1}" == "twitcast" || "${1}" == "twitcastffmpeg" ]]; then
 			echo "${LOG_PREFIX} metadata ${FULL_URL}"
-			STREAM_API="https://twitcasting.tv/streamserver.php?target=${PART_URL}&mode=client"
-			(curl -s "$STREAM_API" | grep -q '"live":true') && break
+			(curl -s "https://twitcasting.tv/streamserver.php?target=${PART_URL}&mode=client" | grep -q '"live":true') && break
 		fi
 		if [[ "${1}" == "twitch" ]]; then
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
@@ -79,13 +78,12 @@ while true; do
 			if [[ "${EXCEPT_YOUTUBE_PART_URL}" != "noexcept" ]]; then
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 				echo "${LOG_PREFIX} metadata ${EXCEPT_YOUTUBE_FULL_URL}" #检测排除直播
-				curl -s "${FULL_URL}" | grep -q "<strong class=\"watch-time-text metadata-updateable-date-text\">Started streaming" && echo "${LOG_PREFIX} ${EXCEPT_YOUTUBE_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+				(curl -s "${FULL_URL}" | grep -q "<strong class=\"watch-time-text metadata-updateable-date-text\">Started streaming") && echo "${LOG_PREFIX} ${EXCEPT_YOUTUBE_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
 			fi
 			if [[ "${EXCEPT_TWITCAST_PART_URL}" != "noexcept" ]]; then
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 				echo "${LOG_PREFIX} metadata ${EXCEPT_TWITCAST_FULL_URL}"
-				STREAM_API="https://twitcasting.tv/streamserver.php?target=${EXCEPT_TWITCAST_PART_URL}&mode=client"
-				(curl -s "${STREAM_API}" | grep -q '"live":true') && echo "${LOG_PREFIX} ${EXCEPT_TWITCAST_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+				(curl -s "https://twitcasting.tv/streamserver.php?target=${EXCEPT_TWITCAST_PART_URL}&mode=client" | grep -q '"live":true') && echo "${LOG_PREFIX} ${EXCEPT_TWITCAST_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
 			fi
 			if [[ "${EXCEPT_TWITCH_PART_URL}" != "noexcept" ]]; then
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
@@ -108,7 +106,7 @@ while true; do
 			fi
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			echo "${LOG_PREFIX} metadata ${FULL_URL}"
-			curl -s "https://api.live.bilibili.com/room/v1/Room/get_info?room_id=${PART_URL}&from=room" | grep -q '\"live_status\"\:1' && STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}") && break
+			(curl -s "https://api.live.bilibili.com/room/v1/Room/get_info?room_id=${PART_URL}&from=room" | grep -q '\"live_status\"\:1') && STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}") && break
 		fi
 		
 		if [[ "${1}" == "streamlink" ]]; then
