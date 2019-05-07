@@ -55,7 +55,7 @@ while true; do
 		if [[ "${1}" == "youtube" || "${1}" == "youtubeffmmpeg" ]]; then
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			echo "${LOG_PREFIX} metadata ${FULL_URL}" #检测直播。注意youtube检测和bilibili中的youtube检测的具体文字可能随着地区而改变。
-			(curl -s "https://www.youtube.com/channel/${PART_URL}" | grep -q "<span class=\"yt-badge  yt-badge-live\" >Live now") && break
+			(curl -s "${FULL_URL}" | grep -q "<strong class=\"watch-time-text metadata-updateable-date-text\">Started streaming") && break
 		fi
 		if [[ "${1}" == "twitcast" || "${1}" == "twitcastffmpeg" ]]; then
 			echo "${LOG_PREFIX} metadata ${FULL_URL}"
@@ -78,7 +78,7 @@ while true; do
 			if [[ "${EXCEPT_YOUTUBE_PART_URL}" != "noexcept" ]]; then
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 				echo "${LOG_PREFIX} metadata ${EXCEPT_YOUTUBE_FULL_URL}" #检测排除直播
-				(curl -s "https://www.youtube.com/channel/${PART_URL}" | grep -q "<span class=\"yt-badge  yt-badge-live\" >Live now") && echo "${LOG_PREFIX} ${EXCEPT_YOUTUBE_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+				(curl -s "${FULL_URL}" | grep -q "<strong class=\"watch-time-text metadata-updateable-date-text\">Started streaming") && echo "${LOG_PREFIX} ${EXCEPT_YOUTUBE_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
 			fi
 			if [[ "${EXCEPT_TWITCAST_PART_URL}" != "noexcept" ]]; then
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
