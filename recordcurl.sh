@@ -55,7 +55,7 @@ while true; do
 		if [[ "${1}" == "youtube" || "${1}" == "youtubeffmmpeg" ]]; then
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			echo "${LOG_PREFIX} metadata ${FULL_URL}" #检测直播。注意youtube检测和bilibili中的youtube检测的具体文字可能随着地区而改变。
-			(curl -s "${FULL_URL}" | grep -q "<strong class=\"watch-time-text metadata-updateable-date-text\">Started streaming") && break
+			(curl -s "https://www.youtube.com/channel/${PART_URL}" | grep -q "<span class=\"yt-badge  yt-badge-live\" >Live now</span>") && break
 		fi
 		if [[ "${1}" == "twitcast" || "${1}" == "twitcastffmpeg" ]]; then
 			echo "${LOG_PREFIX} metadata ${FULL_URL}"
@@ -75,38 +75,41 @@ while true; do
 		fi
 		
 		if [[ "${1}" == "bilibili" ]]; then
-			if [[ "${EXCEPT_YOUTUBE_PART_URL}" != "noexcept" ]]; then
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-				echo "${LOG_PREFIX} metadata ${EXCEPT_YOUTUBE_FULL_URL}" #检测排除直播
-				(curl -s "${FULL_URL}" | grep -q "<strong class=\"watch-time-text metadata-updateable-date-text\">Started streaming") && echo "${LOG_PREFIX} ${EXCEPT_YOUTUBE_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
-			fi
-			if [[ "${EXCEPT_TWITCAST_PART_URL}" != "noexcept" ]]; then
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-				echo "${LOG_PREFIX} metadata ${EXCEPT_TWITCAST_FULL_URL}"
-				(curl -s "https://twitcasting.tv/streamserver.php?target=${EXCEPT_TWITCAST_PART_URL}&mode=client" | grep -q '"live":true') && echo "${LOG_PREFIX} ${EXCEPT_TWITCAST_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
-			fi
-			if [[ "${EXCEPT_TWITCH_PART_URL}" != "noexcept" ]]; then
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-				echo "${LOG_PREFIX} metadata ${EXCEPT_TWITCH_FULL_URL}"
-				STREAM_URL=$(streamlink --stream-url "twitch.tv/${EXCEPT_TWITCH_PART_URL}" "${FORMAT}")
-				(echo "${STREAM_URL}" | grep -q ".m3u8") && echo "${LOG_PREFIX} ${EXCEPT_TWITCH_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
-			fi
-			if [[ "${EXCEPT_OPENREC_PART_URL}" != "noexcept" ]]; then
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-				echo "${LOG_PREFIX} metadata ${EXCEPT_OPENREC_FULL_URL}"
-				LIVE_URL=$(curl -s "https://www.openrec.tv/user/${EXCEPT_OPENREC_PART_URL}" | grep -Eoi "href=\"https://www.openrec.tv/live/(.+)\" class" | head -n 1 | cut -d '"' -f 2)
-				[[ -n "${LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_OPENREC_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
-			fi
-			if [[ "${EXCEPT_STREAM_PART_URL}" != "noexcept" ]]; then
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-				echo "${LOG_PREFIX} metadata ${EXCEPT_STREAM_FULL_URL}"
-				STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}")
-				(echo "${STREAM_URL}" | grep -q ".m3u8") && echo "${LOG_PREFIX} ${EXCEPT_STREAM_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
-				(echo "${STREAM_URL}" | grep -q ".flv") && echo "${LOG_PREFIX} ${EXCEPT_STREAM_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue		
-			fi
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			echo "${LOG_PREFIX} metadata ${FULL_URL}"
-			(curl -s "https://api.live.bilibili.com/room/v1/Room/get_info?room_id=${PART_URL}&from=room" | grep -q '\"live_status\"\:1') && STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}") && break
+			LIVE_STATUS=$(curl -s "https://api.live.bilibili.com/room/v1/Room/get_info?room_id=${PART_URL}&from=room" | grep -q '\"live_status\"\:1')
+			if [[ -n "${LIVE_STATUS}" ]]; then
+				if [[ "${EXCEPT_YOUTUBE_PART_URL}" != "noexcept" ]]; then
+					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+					echo "${LOG_PREFIX} metadata ${EXCEPT_YOUTUBE_FULL_URL}" #检测排除直播
+					(curl -s "https://www.youtube.com/channel/${PART_URL}" | grep -q "<span class=\"yt-badge  yt-badge-live\" >Live now</span>") && echo "${LOG_PREFIX} ${EXCEPT_YOUTUBE_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+				fi
+				if [[ "${EXCEPT_TWITCAST_PART_URL}" != "noexcept" ]]; then
+					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+					echo "${LOG_PREFIX} metadata ${EXCEPT_TWITCAST_FULL_URL}"
+					(curl -s "https://twitcasting.tv/streamserver.php?target=${EXCEPT_TWITCAST_PART_URL}&mode=client" | grep -q '"live":true') && echo "${LOG_PREFIX} ${EXCEPT_TWITCAST_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+				fi
+				if [[ "${EXCEPT_TWITCH_PART_URL}" != "noexcept" ]]; then
+					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+					echo "${LOG_PREFIX} metadata ${EXCEPT_TWITCH_FULL_URL}"
+					STREAM_URL=$(streamlink --stream-url "twitch.tv/${EXCEPT_TWITCH_PART_URL}" "${FORMAT}")
+					(echo "${STREAM_URL}" | grep -q ".m3u8") && echo "${LOG_PREFIX} ${EXCEPT_TWITCH_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+				fi
+				if [[ "${EXCEPT_OPENREC_PART_URL}" != "noexcept" ]]; then
+					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+					echo "${LOG_PREFIX} metadata ${EXCEPT_OPENREC_FULL_URL}"
+					LIVE_URL=$(curl -s "https://www.openrec.tv/user/${EXCEPT_OPENREC_PART_URL}" | grep -Eoi "href=\"https://www.openrec.tv/live/(.+)\" class" | head -n 1 | cut -d '"' -f 2)
+					[[ -n "${LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_OPENREC_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+				fi
+				if [[ "${EXCEPT_STREAM_PART_URL}" != "noexcept" ]]; then
+					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+					echo "${LOG_PREFIX} metadata ${EXCEPT_STREAM_FULL_URL}"
+					STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}")
+					(echo "${STREAM_URL}" | grep -q ".m3u8") && echo "${LOG_PREFIX} ${EXCEPT_STREAM_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+					(echo "${STREAM_URL}" | grep -q ".flv") && echo "${LOG_PREFIX} ${EXCEPT_STREAM_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue		
+				fi
+				break
+			fi
 		fi
 		
 		if [[ "${1}" == "streamlink" ]]; then
