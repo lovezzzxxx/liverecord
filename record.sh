@@ -76,39 +76,42 @@ while true; do
 		fi
 		
 		if [[ "${1}" == "bilibili" ]]; then
-			if [[ "${EXCEPT_YOUTUBE_PART_URL}" != "noexcept" ]]; then
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-				echo "${LOG_PREFIX} metadata ${EXCEPT_YOUTUBE_FULL_URL}" #检测排除直播
-				METADATA=$(youtube-dl --get-id --get-title --get-description --no-playlist --playlist-items 1 --match-filter is_live "${EXCEPT_YOUTUBE_FULL_URL}" 2>/dev/null)
-				[[ -n "${METADATA}" ]] && echo "${LOG_PREFIX} ${EXCEPT_YOUTUBE_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
-			fi
-			if [[ "${EXCEPT_TWITCAST_PART_URL}" != "noexcept" ]]; then
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-				echo "${LOG_PREFIX} metadata ${EXCEPT_TWITCAST_FULL_URL}"
-				(curl -s "https://twitcasting.tv/streamserver.php?target=${EXCEPT_TWITCAST_PART_URL}&mode=client" | grep -q '"live":true') && echo "${LOG_PREFIX} ${EXCEPT_TWITCAST_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
-			fi
-			if [[ "${EXCEPT_TWITCH_PART_URL}" != "noexcept" ]]; then
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-				echo "${LOG_PREFIX} metadata ${EXCEPT_TWITCH_FULL_URL}"
-				STREAM_URL=$(streamlink --stream-url "twitch.tv/${EXCEPT_TWITCH_PART_URL}" "${FORMAT}")
-				(echo "${STREAM_URL}" | grep -q ".m3u8") && echo "${LOG_PREFIX} ${EXCEPT_TWITCH_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
-			fi
-			if [[ "${EXCEPT_OPENREC_PART_URL}" != "noexcept" ]]; then
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-				echo "${LOG_PREFIX} metadata ${EXCEPT_OPENREC_FULL_URL}"
-				LIVE_URL=$(curl -s "https://www.openrec.tv/user/${EXCEPT_OPENREC_PART_URL}" | grep -Eoi "href=\"https://www.openrec.tv/live/(.+)\" class" | head -n 1 | cut -d '"' -f 2)
-				[[ -n "${LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_OPENREC_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
-			fi
-			if [[ "${EXCEPT_STREAM_PART_URL}" != "noexcept" ]]; then
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-				echo "${LOG_PREFIX} metadata ${EXCEPT_STREAM_FULL_URL}"
-				STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}")
-				(echo "${STREAM_URL}" | grep -q ".m3u8") && echo "${LOG_PREFIX} ${EXCEPT_STREAM_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
-				(echo "${STREAM_URL}" | grep -q ".flv") && echo "${LOG_PREFIX} ${EXCEPT_STREAM_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue		
-			fi
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			echo "${LOG_PREFIX} metadata ${FULL_URL}"
-			(curl -s "https://api.live.bilibili.com/room/v1/Room/get_info?room_id=${PART_URL}&from=room" | grep -q '\"live_status\"\:1') && break
+			LIVE_STATUS=$(curl -s "https://api.live.bilibili.com/room/v1/Room/get_info?room_id=${PART_URL}&from=room" | grep -q '\"live_status\"\:1')
+			if [[ -n "${LIVE_STATUS}" ]]; then
+				if [[ "${EXCEPT_YOUTUBE_PART_URL}" != "noexcept" ]]; then
+					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+					echo "${LOG_PREFIX} metadata ${EXCEPT_YOUTUBE_FULL_URL}" #检测排除直播
+					METADATA=$(youtube-dl --get-id --get-title --get-description --no-playlist --playlist-items 1 --match-filter is_live "${EXCEPT_YOUTUBE_FULL_URL}" 2>/dev/null)
+					[[ -n "${METADATA}" ]] && echo "${LOG_PREFIX} ${EXCEPT_YOUTUBE_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+				fi
+				if [[ "${EXCEPT_TWITCAST_PART_URL}" != "noexcept" ]]; then
+					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+					echo "${LOG_PREFIX} metadata ${EXCEPT_TWITCAST_FULL_URL}"
+					(curl -s "https://twitcasting.tv/streamserver.php?target=${EXCEPT_TWITCAST_PART_URL}&mode=client" | grep -q '"live":true') && echo "${LOG_PREFIX} ${EXCEPT_TWITCAST_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+				fi
+				if [[ "${EXCEPT_TWITCH_PART_URL}" != "noexcept" ]]; then
+					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+					echo "${LOG_PREFIX} metadata ${EXCEPT_TWITCH_FULL_URL}"
+					STREAM_URL=$(streamlink --stream-url "twitch.tv/${EXCEPT_TWITCH_PART_URL}" "${FORMAT}")
+					(echo "${STREAM_URL}" | grep -q ".m3u8") && echo "${LOG_PREFIX} ${EXCEPT_TWITCH_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+				fi
+				if [[ "${EXCEPT_OPENREC_PART_URL}" != "noexcept" ]]; then
+					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+					echo "${LOG_PREFIX} metadata ${EXCEPT_OPENREC_FULL_URL}"
+					LIVE_URL=$(curl -s "https://www.openrec.tv/user/${EXCEPT_OPENREC_PART_URL}" | grep -Eoi "href=\"https://www.openrec.tv/live/(.+)\" class" | head -n 1 | cut -d '"' -f 2)
+					[[ -n "${LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_OPENREC_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+				fi
+				if [[ "${EXCEPT_STREAM_PART_URL}" != "noexcept" ]]; then
+					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+					echo "${LOG_PREFIX} metadata ${EXCEPT_STREAM_FULL_URL}"
+					STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}")
+					(echo "${STREAM_URL}" | grep -q ".m3u8") && echo "${LOG_PREFIX} ${EXCEPT_STREAM_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+					(echo "${STREAM_URL}" | grep -q ".flv") && echo "${LOG_PREFIX} ${EXCEPT_STREAM_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue		
+				fi
+				break
+			fi
 		fi
 		
 		if [[ "${1}" == "streamlink" ]]; then
