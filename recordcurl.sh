@@ -146,7 +146,7 @@ while true; do
 	
 	if [[ "${1}" == "youtube" ]]; then METADATA=$(youtube-dl --get-id --get-title --get-description --no-playlist --playlist-items 1 --match-filter is_live "${FULL_URL}" 2>/dev/null) ; ID=$(echo "${METADATA}" | sed -n '2p') ; FNAME="youtube_${PART_URL}_$(date +"%Y%m%d_%H%M%S")_${ID}.ts" ; echo "${METADATA}" > "${DIR_LOCAL}/${FNAME}.log"; fi
 	if [[ "${1}" == "youtubeffmmpeg" ]]; then STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}") ; METADATA=$(youtube-dl --get-id --get-title --get-description --no-playlist --playlist-items 1 --match-filter is_live "${FULL_URL}" 2>/dev/null) ; FNAME="youtube_${PART_URL}_$(date +"%Y%m%d_%H%M%S")_$(echo "${METADATA}" | sed -n '2p').ts" ; echo "${METADATA}" > "${DIR_LOCAL}/${FNAME}.log"; fi
-	if [[ "${1}" == "twitcast" ]]; then DLNAME="${PART_URL/:/：}_$(curl -s "https://twitcasting.tv/streamserver.php?target=${PART_URL}&mode=client" | grep -o '"id":[0-9]*' | awk -F'"' '{print $4}').ts" ; FNAME="twitcast_${PART_URL/:/：}_$(date +"%Y%m%d_%H%M%S").ts"; fi
+	if [[ "${1}" == "twitcast" ]]; then DLNAME="${PART_URL/:/：}_$(curl -s "https://twitcasting.tv/streamserver.php?target=${PART_URL}&mode=client" | grep -o '"id":[0-9]*' | awk -F':' '{print $2}').ts" ; FNAME="twitcast_${PART_URL/:/：}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "twitcastffmpeg" ]]; then STREAM_URL="http://twitcasting.tv/${PART_URL}/metastream.m3u8?video=1" ; FNAME="twitcast_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "twitch" ]]; then FNAME="twitch_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "openrec" ]]; then STREAM_URL=$(streamlink --stream-url "${LIVE_URL}" "${FORMAT}") ; FNAME="openrec_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
