@@ -6,7 +6,7 @@ autobackup.sh基于文件夹内的文件数量进行备份，间隔固定时间�
 感谢[live-stream-recorder](https://github.com/printempw/live-stream-recorder)、[GiGaFotress/Vtuber-recorder](https://github.com/GiGaFotress/Vtuber-recorder)。  
 
 # 环境依赖
-自动录播需要curl，python3，youtube-dl，streamlink，ffmpeg，livedl。  
+自动录播需要curl，python3，streamlink，ffmpeg，livedl。  
 其中livedl为可选，目的是支持twitcast高清录制， __请将编译完成的livedl文件放置于用户目录的livedl/文件夹内__  。如果不希望使用livedl可以选择twitcastffmpeg参数而非twitcast参数进行录制。  
 
 onedrive自动备份功能需要[OneDrive for Business on Bash](https://github.com/0oVicero0/OneDrive)，在服务器获取授权后即可使用。  
