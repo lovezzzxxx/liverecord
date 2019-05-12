@@ -7,6 +7,7 @@ if [[ ! -n "${1}" ]]; then
 fi
 
 
+
 BACKUP="${1}"
 DIR_LOCAL="${2}" #本地目录
 FILENUMBER="${3:-6}" #保留文件数
@@ -24,46 +25,34 @@ while true; do
 	eval ls -tl "record" | awk '/^-/{print $NF}' | while read ONEFILE ; do #根据修改时间判断文件新旧
 		let count++
 		if [ ${count} -gt ${FILENUMBER} ]; then
-			ERRFLAG_ONEDRIVE=0
-			ERRFLAG_BAIDUPAN=0
-			if [[ "${BACKUP}" == "onedrive"* ]]; then #上传onedrive
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} start"
-				onedrive -s -f "${DIR_ONEDRIVE}" "${DIR_LOCAL}/${ONEFILE}" ; ERRFLAG_ONEDRIVE=$(( ${ERRFLAG_ONEDRIVE}+$? ))
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} stopped"
-				if [[ ${ERRFLAG_ONEDRIVE} != 0 ]]; then echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} error"; fi
-				if [[ ${ERRFLAG_ONEDRIVE} == 0 && "${BACKUP}" == "onedrive" ]]; then echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${ONEFILE}" ; rm -f "${DIR_LOCAL}/${ONEFILE}"; fi
-				if [[ "${BACKUP}" == "onedrivedel" ]]; then echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${ONEFILE}" ; rm -f "${DIR_LOCAL}/${ONEFILE}"; fi
+			ERRFLAG_ONEDRIVE_FILE=0 ; ERRFLAG_BAIDUPAN_FILE="全部上传完毕"
+			if [[ "${BACKUP}" == "onedrive"* || "${BACKUP}" == "both"* ]]; then #上传onedrive
+				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} start" ; onedrive -s -f "${DIR_ONEDRIVE}" "${DIR_LOCAL}/${ONEFILE}" ; ERRFLAG_ONEDRIVE_FILE=$? ; LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+				[[ "${ERRFLAG_ONEDRIVE_FILE}" == 0 ]] && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} success"
+				[[ "${ERRFLAG_ONEDRIVE_FILE}" != 0 ]] && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} error"
 			fi
-			if [[ "${BACKUP}" == "baidupan"* ]]; then #上传baidupan
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} start"
-				BaiduPCS-Go upload "${DIR_LOCAL}/${ONEFILE}" "${DIR_BAIDUPAN}" > /dev/null ; ERRFLAG_BAIDUPAN=$(( ${ERRFLAG_BAIDUPAN}+$? ))
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} stopped"
-				if [[ ${ERRFLAG_BAIDUPAN} != 0 ]]; then echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} error"; fi
-				if [[ ${ERRFLAG_BAIDUPAN} == 0 && "${BACKUP}" == "baidupan" ]]; then echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${ONEFILE}" ; rm -f "${DIR_LOCAL}/${ONEFILE}"; fi
-				if [[ "${BACKUP}" == "baidupandel" ]]; then echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${ONEFILE}" ; rm -f "${DIR_LOCAL}/${ONEFILE}"; fi
+			if [[ "${BACKUP}" == "baidupan"* || "${BACKUP}" == "both"* ]]; then #上传baidupan
+				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} start" ; ERRFLAG_BAIDUPAN=&(BaiduPCS-Go upload "${DIR_LOCAL}/${ONEFILE}" "${DIR_BAIDUPAN}") ; LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+				(echo "${ERRFLAG_BAIDUPAN_FILE}" | grep -q "全部上传完毕") && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} success"
+				(echo "${ERRFLAG_BAIDUPAN_FILE}" | grep -q "全部上传完毕") || echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} error"
 			fi
-			if [[ "${BACKUP}" == "both"* ]]; then
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} start"
-				onedrive -s -f "${DIR_ONEDRIVE}" "${DIR_LOCAL}/${ONEFILE}" ; ERRFLAG_ONEDRIVE=$(( ${ERRFLAG_ONEDRIVE}+$? ))
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} stopped"
-				if [[ ${ERRFLAG_ONEDRIVE} != 0 ]]; then echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} error"; fi
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} start"
-				BaiduPCS-Go upload "${DIR_LOCAL}/${ONEFILE}" "${DIR_BAIDUPAN}" > /dev/null ; ERRFLAG_BAIDUPAN=$(( ${ERRFLAG_BAIDUPAN}+$? ))
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} stopped"
-				if [[ ${ERRFLAG_BAIDUPAN} != 0 ]]; then echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD} error"; fi
-				if [[ ${ERRFLAG_ONEDRIVE} == 0 && ${ERRFLAG_BAIDUPAN} == 0 && "${BACKUP}" == "both" ]]; then echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${ONEFILE} to ${DIR_CLOUD}" ; rm -f "${DIR_LOCAL}/${ONEFILE}"; fi
-				if [[ "${BACKUP}" == "bothdel" ]]; then echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${ONEFILE}" ; rm -f "${DIR_LOCAL}/${ONEFILE}"; fi
-			fi
-			
+			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") #清除文件
+			[[ "${BACKUP}" == *"keep" ]] && (echo "${LOG_PREFIX} force keep ${DIR_LOCAL}/${ONEFILE}" )
+			[[ "${BACKUP}" == *"del" ]] && (echo "${LOG_PREFIX} force delete ${DIR_LOCAL}/${ONEFILE}" ; rm -f "${DIR_LOCAL}/${ONEFILE}")
+			[[ "${BACKUP}" == "onedrive" || "${BACKUP}" == "baidupan" || "${BACKUP}" == "both" ]] && [[ "${ERRFLAG_ONEDRIVE_FILE}" == 0 ]] && (echo "${ERRFLAG_BAIDUPAN_FILE}" | grep -q "全部上传完毕") && (echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${ONEFILE}" ; rm -f "${DIR_LOCAL}/${ONEFILE}")
+		
+		
+		
 		else
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-			echo "${LOG_PREFIX} keep file $count ${DIR_LOCAL}/${ONEFILE}" #保留文件
+			echo "${LOG_PREFIX} keep $count ${DIR_LOCAL}/${ONEFILE}" #保留文件
 		fi
 	done
+	
+	
 	
 	LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 	echo "${LOG_PREFIX} backup done retry after ${INTERVAL} seconds..."
 	[[ "${LOOP}" == "once" ]] && break
-	
 	sleep ${INTERVAL}
 done
