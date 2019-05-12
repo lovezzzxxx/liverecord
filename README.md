@@ -3,8 +3,9 @@ record.sh为主要的自动录播脚本，支持youtube频道、twitcast频道�
 bilibili录制支持在其它频道有直播时不进行录制，从而简单的排除转播的录制。
 支持按照录制分段， __注意分段时可能会导致十秒左右的视频缺失__ 。  
 支持选择自动备份到onedrive或者百度云。支持选择是否根据上传结果保留本地文件。  
+如果因为偶发的检测异常导致没有直播时开始录制，进而产生没有相应录像文件的log文件，脚本将会自动删除这个没有对应录像文件的log文件。
 
-recordcurl.sh主要功能同上，使用简单解析网页的方式完成youtube直播状态检测以减少系统占用（仅提供另一种方式，并非必要，可能导致未直播时开始录制从而产生不必要的文件）。  
+recordcurl.sh主要功能同上，使用简单解析网页的方式完成youtube直播状态检测以减少系统占用（仅提供另一种方式，并非必要）。  
 autobackup.sh间隔固定时间检测指定文件夹，当文件夹中的文件数量超过指定数量时，按照修改时间将最旧的文件上传到onedrive或者百度云并删除本地文件（仅提供另一种备份方式，并非必要）。  
 
 感谢[live-stream-recorder](https://github.com/printempw/live-stream-recorder)、[GiGaFotress/Vtuber-recorder](https://github.com/GiGaFotress/Vtuber-recorder)。  
