@@ -58,8 +58,8 @@ while true; do
 		if [[ "${1}" == "youtube" || "${1}" == "youtubeffmmpeg" ]]; then
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			echo "${LOG_PREFIX} metadata ${FULL_URL}" #检测直播
-			METADATA=$(youtube-dl --get-id --get-title --get-description --no-playlist --playlist-items 1 --match-filter is_live "${FULL_URL}" 2>/dev/null)
-			[[ -n "${METADATA}" ]] && break
+			STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}")
+			(echo "${STREAM_URL}" | grep -q ".m3u8") && break
 		fi
 		if [[ "${1}" == "twitcast" || "${1}" == "twitcastffmpeg" ]]; then
 			echo "${LOG_PREFIX} metadata ${FULL_URL}"
@@ -68,13 +68,13 @@ while true; do
 		if [[ "${1}" == "twitch" ]]; then
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			echo "${LOG_PREFIX} metadata ${FULL_URL}"
-			STREAM_URL=$(streamlink --stream-url "twitch.tv/${PART_URL}" "${FORMAT}")
+			STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}")
 			(echo "${STREAM_URL}" | grep -q ".m3u8") && break
 		fi
 		if [[ "${1}" == "openrec" ]]; then
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			echo "${LOG_PREFIX} metadata ${FULL_URL}"
-			LIVE_URL=$(curl -s "https://www.openrec.tv/user/${PART_URL}" | grep -o 'href="https://www.openrec.tv/live/.*" class' | head -n 1 | awk -F'"' '{print $2}')
+			LIVE_URL=$(curl -s "${FULL_URL}" | grep -o 'href="https://www.openrec.tv/live/.*" class' | head -n 1 | awk -F'"' '{print $2}')
 			[[ -n "${LIVE_URL}" ]] && break
 		fi
 		if [[ "${1}" == "mirrativ" ]]; then
@@ -91,8 +91,8 @@ while true; do
 				if [[ "${EXCEPT_YOUTUBE_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 					echo "${LOG_PREFIX} metadata ${EXCEPT_YOUTUBE_FULL_URL}" #检测排除直播
-					METADATA=$(youtube-dl --get-id --get-title --get-description --no-playlist --playlist-items 1 --match-filter is_live "${EXCEPT_YOUTUBE_FULL_URL}" 2>/dev/null)
-					[[ -n "${METADATA}" ]] && echo "${LOG_PREFIX} ${EXCEPT_YOUTUBE_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+					EXCEPT_YOUTUBE_STREAM_URL=$(streamlink --stream-url "${EXCEPT_YOUTUBE_FULL_URL}" "${FORMAT}")
+					(echo "${EXCEPT_YOUTUBE_STREAM_URL}" | grep -q ".m3u8") && echo "${LOG_PREFIX} ${EXCEPT_YOUTUBE_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
 				fi
 				if [[ "${EXCEPT_TWITCAST_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
@@ -102,27 +102,27 @@ while true; do
 				if [[ "${EXCEPT_TWITCH_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 					echo "${LOG_PREFIX} metadata ${EXCEPT_TWITCH_FULL_URL}"
-					STREAM_URL=$(streamlink --stream-url "twitch.tv/${EXCEPT_TWITCH_PART_URL}" "${FORMAT}")
-					(echo "${STREAM_URL}" | grep -q ".m3u8") && echo "${LOG_PREFIX} ${EXCEPT_TWITCH_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+					EXCEPT_TWITCH_STREAM_URL=$(streamlink --stream-url "${EXCEPT_TWITCH_FULL_URL}" "${FORMAT}")
+					(echo "${EXCEPT_TWITCH_STREAM_URL}" | grep -q ".m3u8") && echo "${LOG_PREFIX} ${EXCEPT_TWITCH_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
 				fi
 				if [[ "${EXCEPT_OPENREC_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 					echo "${LOG_PREFIX} metadata ${EXCEPT_OPENREC_FULL_URL}"
-					LIVE_URL=$(curl -s "https://www.openrec.tv/user/${EXCEPT_OPENREC_PART_URL}" | grep -o 'href="https://www.openrec.tv/live/.*" class' | head -n 1 | awk -F'"' '{print $2}')
-					[[ -n "${LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_OPENREC_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+					EXCEPT_OPENREC_LIVE_URL=$(curl -s "${EXCEPT_OPENREC_FULL_URL}" | grep -o 'href="https://www.openrec.tv/live/.*" class' | head -n 1 | awk -F'"' '{print $2}')
+					[[ -n "${EXCEPT_OPENREC_LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_OPENREC_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
 				fi
 				if [[ "${EXCEPT_MIRRATIV_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 					echo "${LOG_PREFIX} metadata ${EXCEPT_MIRRATIV_FULL_URL}"
-					LIVE_URL=$(curl -s "https://www.mirrativ.com/api/user/profile?user_id=${EXCEPT_MIRRATIV_PART_URL}" | grep -o '"live_id":".*"' | awk -F'"' '{print $4}')
-					[[ -n "${LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_MIRRATIV_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+					EXCEPT_MIRRATIV_LIVE_URL=$(curl -s "https://www.mirrativ.com/api/user/profile?user_id=${EXCEPT_MIRRATIV_PART_URL}" | grep -o '"live_id":".*"' | awk -F'"' '{print $4}')
+					[[ -n "${EXCEPT_MIRRATIV_LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_MIRRATIV_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
 				fi
 				if [[ "${EXCEPT_STREAM_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 					echo "${LOG_PREFIX} metadata ${EXCEPT_STREAM_FULL_URL}"
-					STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}")
-					(echo "${STREAM_URL}" | grep -q ".m3u8") && echo "${LOG_PREFIX} ${EXCEPT_STREAM_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
-					(echo "${STREAM_URL}" | grep -q ".flv") && echo "${LOG_PREFIX} ${EXCEPT_STREAM_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue		
+					EXCEPT_STREAM_STREAM_URL=$(streamlink --stream-url "${EXCEPT_STREAM_FULL_URL}" "${FORMAT}")
+					(echo "${EXCEPT_STREAM_STREAM_URL}" | grep -q ".m3u8") && echo "${LOG_PREFIX} ${EXCEPT_STREAM_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+					(echo "${EXCEPT_STREAM_STREAM_URL}" | grep -q ".flv") && echo "${LOG_PREFIX} ${EXCEPT_STREAM_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue		
 				fi
 				break
 			fi
@@ -146,10 +146,9 @@ while true; do
 	
 	
 	
-	if [[ "${1}" == "youtube" ]]; then ID=$(echo "${METADATA}" | sed -n '2p') ; FNAME="youtube_${PART_URL}_$(date +"%Y%m%d_%H%M%S")_${ID}.ts" ; echo "${METADATA}" > "${DIR_LOCAL}/${FNAME}.log"; fi
-	if [[ "${1}" == "youtubeffmmpeg" ]]; then STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}") ; FNAME="youtube_${PART_URL}_$(date +"%Y%m%d_%H%M%S")_$(echo "${METADATA}" | sed -n '2p').ts" ; echo "${METADATA}" > "${DIR_LOCAL}/${FNAME}.log"; fi
-	if [[ "${1}" == "twitcast" ]]; then DLNAME="${PART_URL/:/：}_$(curl -s "https://twitcasting.tv/streamserver.php?target=${PART_URL}&mode=client" | grep -o '"id":[0-9]*' | awk -F':' '{print $2}').ts" ; FNAME="twitcast_${PART_URL/:/：}_$(date +"%Y%m%d_%H%M%S").ts"; fi
-	if [[ "${1}" == "twitcastffmpeg" ]]; then STREAM_URL="http://twitcasting.tv/${PART_URL}/metastream.m3u8?video=1" ; FNAME="twitcast_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
+	if [[ "${1}" == "youtube" || "${1}" == "youtubeffmmpeg" ]]; then ID=$(curl -s "${FULL_URL}" | grep -o '\\"videoId\\":\\".*\\"' | sed 's/\\//g' | awk -F'"' '{print $4}') ; FNAME="youtube_${PART_URL}_$(date +"%Y%m%d_%H%M%S")_${ID}.ts"; fi
+	if [[ "${1}" == "twitcast" || "${1}" == "twitcastffmpeg" ]]; then ID=$(curl -s "https://twitcasting.tv/streamserver.php?target=${PART_URL}&mode=client" | grep -o '"id":[0-9]*' | awk -F':' '{print $2}') ; DLNAME="${PART_URL/:/：}_${ID}.ts" ; FNAME="twitcast_${PART_URL/:/：}_$(date +"%Y%m%d_%H%M%S")_${ID}.ts"; fi
+	if [[ "${1}" == "twitcastffmpeg" ]]; then STREAM_URL="http://twitcasting.tv/${PART_URL}/metastream.m3u8?video=1"; fi
 	if [[ "${1}" == "twitch" ]]; then FNAME="twitch_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "openrec" ]]; then STREAM_URL=$(streamlink --stream-url "${LIVE_URL}" "${FORMAT}") ; FNAME="openrec_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "mirrativ" ]]; then STREAM_URL=$(curl -s "https://www.mirrativ.com/api/live/live?live_id=${LIVE_URL}" | grep -o '"streaming_url_hls":".*m3u8"' | awk -F'"' '{print $4}') ; FNAME="mirrativ_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
@@ -161,7 +160,7 @@ while true; do
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 		echo "${LOG_PREFIX} record start" #开始录制
 		if [[ "${1}" == "youtube" ]]; then
-			streamlink --hls-live-restart --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "https://www.youtube.com/watch?v=${ID}" "${FORMAT}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
+			streamlink --hls-live-restart --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "${FULL_URL}" "${FORMAT}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
 		if [[ "${1}" == "twitcast" ]]; then
 			livedl/livedl -tcas "${PART_URL}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
@@ -174,7 +173,7 @@ while true; do
 		
 	else
 		if [[ "${1}" == "youtube" ]]; then
-			(streamlink --hls-live-restart --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "https://www.youtube.com/watch?v=${ID}" "${FORMAT}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+			(streamlink --hls-live-restart --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "${FULL_URL}" "${FORMAT}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
 		if [[ "${1}" == "twitcast" ]]; then
 			(livedl/livedl -tcas "${PART_URL}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
