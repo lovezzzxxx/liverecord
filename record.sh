@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ ! -n "${1}" ]]; then
-	echo "${0} youtube|youtubeffmmpeg|twitcast|twitcastffmpeg|twitch|openrec|mirrativ|reality|bilibili|streamlink|m3u8 \"频道号码\" [best|其他清晰度] [loop|once|视频分段时间] [10|其他监视间隔] [\"record_video/other|其他本地目录\"] [nobackup|onedrive|baidupan|both|onedrivekeep|baidupankeep|bothkeep|onedrivedel|baidupandel|bothdel] [\"noexcept|排除转播的youtube频道号码\"] [\"noexcept|排除转播的twitcast频道号码\"] [\"noexcept|排除转播的twitch频道号码\"] [\"noexcept|排除转播的openrec频道号码\"] [\"noexcept|排除转播的streamlink支持的频道网址\"]"
+	echo "${0} youtube|youtubeffmmpeg|twitcast|twitcastffmpeg|twitch|openrec|mirrativ|bilibili|streamlink|m3u8 \"频道号码\" [best|其他清晰度] [loop|once|视频分段时间] [10|其他监视间隔] [\"record_video/other|其他本地目录\"] [nobackup|onedrive|baidupan|both|onedrivekeep|baidupankeep|bothkeep|onedrivedel|baidupandel|bothdel] [\"noexcept|排除转播的youtube频道号码\"] [\"noexcept|排除转播的twitcast频道号码\"] [\"noexcept|排除转播的twitch频道号码\"] [\"noexcept|排除转播的openrec频道号码\"] [\"noexcept|排除转播的streamlink支持的频道网址\"]"
 	echo "示例：${0} bilibili \"12235923\" best loop 30 3600 \"record_video/mea_bilibili\" both \"UCWCc8tO-uUl_7SJXIKJACMw\" \"kaguramea\" \"kagura0mea\" \"KaguraMea\" "
 	echo "仅bilibili支持排除youtube转播，twitcast和m3u8不支持清晰度选择但仍有相应参数，m3u8不支持自动备份但仍有相应参数。"
 	echo "所需模块为youtube-dl、streamlink、ffmpeg"
@@ -61,8 +61,7 @@ while true; do
 		if [[ "${1}" == "youtube" || "${1}" == "youtubeffmmpeg" ]]; then
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			echo "${LOG_PREFIX} metadata ${FULL_URL}" #检测直播
-			STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}")
-			(echo "${STREAM_URL}" | grep -q ".m3u8") && break
+			(curl -s "${FULL_URL}" | grep -q '\\"isLive\\":true') && break
 		fi
 		if [[ "${1}" == "twitcast" || "${1}" == "twitcastffmpeg" ]]; then
 			echo "${LOG_PREFIX} metadata ${FULL_URL}"
@@ -121,14 +120,14 @@ while true; do
 				if [[ "${EXCEPT_MIRRATIV_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 					echo "${LOG_PREFIX} metadata ${EXCEPT_MIRRATIV_FULL_URL}"
-					EXCEPT_MIRRATIV_STREAM_URL=$(curl -s "https://www.mirrativ.com/api/user/profile?user_id=${EXCEPT_MIRRATIV_PART_URL}" | grep -o '"live_id":".*"' | awk -F'"' '{print $4}')
-					[[ -n "${EXCEPT_MIRRATIV_STREAM_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_MIRRATIV_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+					EXCEPT_MIRRATIV_LIVE_URL=$(curl -s "https://www.mirrativ.com/api/user/profile?user_id=${EXCEPT_MIRRATIV_PART_URL}" | grep -o '"live_id":".*"' | awk -F'"' '{print $4}')
+					[[ -n "${EXCEPT_MIRRATIV_LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_MIRRATIV_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
 				fi
 				if [[ "${EXCEPT_REALITY_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 					echo "${LOG_PREFIX} metadata ${EXCEPT_REALITY_FULL_URL}"
-					EXCEPT_REALITY_LIVE_URL=$(curl -s -X POST "https://media-prod-dot-vlive-prod.appspot.com/api/v1/media/lives_user" | awk -v PART_URL="${EXCEPT_REALITY_PART_URL}" 'BEGIN{RS="\"StreamingServer\"";FS=",";ORS="\n";OFS="\t"} {M3U8_POS=match($0,"\"view_endpoint\":\"[^\"]*\"");M3U8=substr($0,M3U8_POS,RLENGTH) ;ID_POS=match($0,"\"vlive_id\":\"[^\"]*\"");ID=substr($0,ID_POS,RLENGTH);if(match($0,"\"nickname\":\"[^\"]*"PART_URL"[^\"]*\"|\"vlive_id\":\""PART_URL"\"")) print M3U8,ID}')
-					[[ -n "${EXCEPT_REALITY_LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_REALITY_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+					EXCEPT_REALITY_STREAM_URL=$(curl -s -X POST "https://media-prod-dot-vlive-prod.appspot.com/api/v1/media/lives_user" | awk -v PART_URL="${EXCEPT_REALITY_PART_URL}" 'BEGIN{RS="\"StreamingServer\"";FS=",";ORS="\n";OFS="\t"} {M3U8_POS=match($0,"\"view_endpoint\":\"[^\"]*\"");M3U8=substr($0,M3U8_POS,RLENGTH) ;ID_POS=match($0,"\"vlive_id\":\"[^\"]*\"");ID=substr($0,ID_POS,RLENGTH);if(match($0,"\"nickname\":\"[^\"]*"PART_URL"[^\"]*\"|\"vlive_id\":\""PART_URL"\"")) print M3U8,ID}')
+					[[ -n "${EXCEPT_REALITY_STREAM_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_REALITY_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
 				fi
 				if [[ "${EXCEPT_STREAM_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
@@ -160,6 +159,7 @@ while true; do
 	
 	
 	if [[ "${1}" == "youtube" || "${1}" == "youtubeffmmpeg" ]]; then ID=$(curl -s "${FULL_URL}" | grep -o '\\"videoId\\":\\".*\\"' | sed 's/\\//g' | awk -F'"' '{print $4}') ; FNAME="youtube_${PART_URL}_$(date +"%Y%m%d_%H%M%S")_${ID}.ts"; fi
+	if [[ "${1}" == "youtubeffmmpeg" ]]; then STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}"); fi
 	if [[ "${1}" == "twitcast" || "${1}" == "twitcastffmpeg" ]]; then ID=$(curl -s "https://twitcasting.tv/streamserver.php?target=${PART_URL}&mode=client" | grep -o '"id":[0-9]*' | awk -F':' '{print $2}') ; DLNAME="${PART_URL/:/：}_${ID}.ts" ; FNAME="twitcast_${PART_URL/:/：}_$(date +"%Y%m%d_%H%M%S")_${ID}.ts"; fi
 	if [[ "${1}" == "twitcastffmpeg" ]]; then STREAM_URL="http://twitcasting.tv/${PART_URL}/metastream.m3u8?video=1"; fi
 	if [[ "${1}" == "twitch" ]]; then FNAME="twitch_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
