@@ -29,13 +29,15 @@ EXCEPT_TWITCAST_PART_URL="${9:-noexcept}"
 EXCEPT_TWITCH_PART_URL="${10:-noexcept}"
 EXCEPT_OPENREC_PART_URL="${11:-noexcept}"
 EXCEPT_MIRRATIVE_PART_URL="${12:-noexcept}"
-EXCEPT_STREAM_PART_URL="${13:-noexcept}"
+EXCEPT_REALITY_PART_URL="${13:-noexcept}"
+EXCEPT_STREAM_PART_URL="${14:-noexcept}"
 
 [[ "${1}" == "youtube" || "${1}" == "youtubeffmmpeg" ]] && FULL_URL="https://www.youtube.com/channel/${PART_URL}/live"
 [[ "${1}" == "twitcast"  || "${1}" == "twitcastffmpeg" ]] && FULL_URL="https://twitcasting.tv/${PART_URL}"
 [[ "${1}" == "twitch" ]] && FULL_URL="https://twitch.tv/${PART_URL}"
 [[ "${1}" == "openrec" ]] && FULL_URL="https://openrec.tv/user/${PART_URL}"
 [[ "${1}" == "mirrativ" ]] && FULL_URL="https://www.mirrativ.com/user/${PART_URL}"
+[[ "${1}" == "reality" ]] && FULL_URL="reality_${PART_URL}"
 [[ "${1}" == "bilibili" ]] && FULL_URL="https://live.bilibili.com/${PART_URL}"
 [[ "${1}" == "streamlink" ]] && FULL_URL="${PART_URL}"
 [[ "${1}" == "m3u8" ]] && FULL_URL="${PART_URL}"
@@ -49,6 +51,7 @@ mkdir -p "${DIR_LOCAL}"
 [[ "${EXCEPT_TWITCH_PART_URL}" == "noexcept" ]] || EXCEPT_TWITCH_FULL_URL="https://twitch.tv/${EXCEPT_TWITCH_PART_URL}"
 [[ "${EXCEPT_OPENREC_PART_URL}" == "noexcept" ]] || EXCEPT_OPENREC_FULL_URL="https://openrec.tv/user/${EXCEPT_OPENREC_PART_URL}"
 [[ "${EXCEPT_MIRRATIV_PART_URL}" == "noexcept" ]] || EXCEPT_MIRRATIV_FULL_URL="https://www.mirrativ.com/user/${EXCEPT_OPENREC_PART_URL}"
+[[ "${EXCEPT_REALITY_PART_URL}" == "noexcept" ]] || EXCEPT_REALITY_FULL_URL="reality_${PART_URL}"
 [[ "${EXCEPT_STREAM_PART_URL}" == "noexcept" ]] || EXCEPT_OPENREC_FULL_URL="${EXCEPT_STREAM_PART_URL}"
 
 
@@ -81,6 +84,10 @@ while true; do
 			echo "${LOG_PREFIX} metadata ${FULL_URL}"
 			LIVE_URL=$(curl -s "https://www.mirrativ.com/api/user/profile?user_id=${PART_URL}" | grep -o '"live_id":".*"' | awk -F'"' '{print $4}')
 			[[ -n "${LIVE_URL}" ]] && break
+		fi
+		if [[ "${1}" == "reality" ]]; then 
+			STREAM_ID=$(curl -s -X POST "https://media-prod-dot-vlive-prod.appspot.com/api/v1/media/lives_user" | awk -v PART_URL="${PART_URL}" 'BEGIN{RS="\"StreamingServer\"";FS=",";ORS="\n";OFS="\t"} {M3U8_POS=match($0,"\"view_endpoint\":\"[^\"]*\"");M3U8=substr($0,M3U8_POS,RLENGTH) ;ID_POS=match($0,"\"vlive_id\":\"[^\"]*\"");ID=substr($0,ID_POS,RLENGTH);if(match($0,"\"nickname\":\"[^\"]*"PART_URL"[^\"]*\"|\"vlive_id\":\""PART_URL"\"")) print M3U8,ID}')
+			[[ -n "${STREAM_ID}" ]] && break
 		fi
 		
 		if [[ "${1}" == "bilibili" ]]; then
@@ -115,6 +122,12 @@ while true; do
 					echo "${LOG_PREFIX} metadata ${EXCEPT_MIRRATIV_FULL_URL}"
 					EXCEPT_MIRRATIV_LIVE_URL=$(curl -s "https://www.mirrativ.com/api/user/profile?user_id=${EXCEPT_MIRRATIV_PART_URL}" | grep -o '"live_id":".*"' | awk -F'"' '{print $4}')
 					[[ -n "${EXCEPT_MIRRATIV_LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_MIRRATIV_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+				fi
+				if [[ "${EXCEPT_REALITY_PART_URL}" != "noexcept" ]]; then
+					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+					echo "${LOG_PREFIX} metadata ${EXCEPT_REALITY_FULL_URL}"
+					EXCEPT_REALITY_LIVE_URL=$(curl -s -X POST "https://media-prod-dot-vlive-prod.appspot.com/api/v1/media/lives_user" | awk -v PART_URL="${EXCEPT_REALITY_PART_URL}" 'BEGIN{RS="\"StreamingServer\"";FS=",";ORS="\n";OFS="\t"} {M3U8_POS=match($0,"\"view_endpoint\":\"[^\"]*\"");M3U8=substr($0,M3U8_POS,RLENGTH) ;ID_POS=match($0,"\"vlive_id\":\"[^\"]*\"");ID=substr($0,ID_POS,RLENGTH);if(match($0,"\"nickname\":\"[^\"]*"PART_URL"[^\"]*\"|\"vlive_id\":\""PART_URL"\"")) print M3U8,ID}')
+					[[ -n "${EXCEPT_REALITY_LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_REALITY_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
 				fi
 				if [[ "${EXCEPT_STREAM_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
@@ -152,6 +165,7 @@ while true; do
 	if [[ "${1}" == "twitch" ]]; then FNAME="twitch_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "openrec" ]]; then STREAM_URL=$(streamlink --stream-url "${LIVE_URL}" "${FORMAT}") ; FNAME="openrec_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "mirrativ" ]]; then STREAM_URL=$(curl -s "https://www.mirrativ.com/api/live/live?live_id=${LIVE_URL}" | grep -o '"streaming_url_hls":".*m3u8"' | awk -F'"' '{print $4}') ; FNAME="mirrativ_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
+	if [[ "${1}" == "reality" ]]; then ID=$(echo ${STREAM_ID} | awk -F'"' '{print $8}') ; STREAM_URL=$(echo ${STREAM_ID} | awk -F'"' '{print $4}') ; FNAME="reality_${ID}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "bilibili" ]]; then STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}") ; FNAME="bilibili_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "streamlink" ]]; then FNAME="stream_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "m3u8" ]]; then STREAM_URL="${FULL_URL}" ; FNAME="m3u8_$(date +"%Y%m%d_%H%M%S").ts"; fi
@@ -165,7 +179,7 @@ while true; do
 		if [[ "${1}" == "twitcast" ]]; then
 			livedl/livedl -tcas "${PART_URL}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
-		if [[ "${1}" == "youtubeffmmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "bilibili" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
+		if [[ "${1}" == "youtubeffmmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "bilibili" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
 			ffmpeg -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
@@ -178,7 +192,7 @@ while true; do
 		if [[ "${1}" == "twitcast" ]]; then
 			(livedl/livedl -tcas "${PART_URL}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
-		if [[ "${1}" == "youtubeffmmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "bilibili" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
+		if [[ "${1}" == "youtubeffmmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "bilibili" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
 			(ffmpeg -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
 		
