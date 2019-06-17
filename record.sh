@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ ! -n "${1}" ]]; then
-	echo "${0} youtube|youtubeffmmpeg|twitcast|twitcastffmpeg|twitch|openrec|mirrativ|reality|nicolv|nicoco|nicoch|bilibili|streamlink|m3u8 \"频道号码\" [best|其他清晰度] [loop|once|视频分段时间] [10|其他监视间隔] [\"record_video/other|其他本地目录\"] [nobackup|onedrive|baidupan|both|onedrivekeep|baidupankeep|bothkeep|onedrivedel|baidupandel|bothdel] [\"noexcept|排除转播的youtube频道号码\"] [\"noexcept|排除转播的twitcast频道号码\"] [\"noexcept|排除转播的twitch频道号码\"] [\"noexcept|排除转播的openrec频道号码\"] [\"noexcept|排除转播的reality频道号码\"] [\"noexcept|排除转播的streamlink支持的频道网址\"]"
+	echo "${0} youtube|youtubeffmpeg|youtubecurl|youtubecurlffmpeg|twitcast|twitcastffmpeg|twitch|openrec|mirrativ|reality|nicolv|nicoco|nicoch|bilibili|streamlink|m3u8 \"频道号码\" [best|其他清晰度] [loop|once|视频分段时间] [10|其他监视间隔] [\"record_video/other|其他本地目录\"] [nobackup|onedrive|baidupan|both|onedrivekeep|baidupankeep|bothkeep|onedrivedel|baidupandel|bothdel] [\"noexcept|排除转播的youtube频道号码\"] [\"noexcept|排除转播的twitcast频道号码\"] [\"noexcept|排除转播的twitch频道号码\"] [\"noexcept|排除转播的openrec频道号码\"] [\"noexcept|排除转播的reality频道号码\"] [\"noexcept|排除转播的streamlink支持的频道网址\"]"
 	echo "示例：${0} bilibili \"12235923\" best loop 30 3600 \"record_video/mea_bilibili\" both \"UCWCc8tO-uUl_7SJXIKJACMw\" \"kaguramea\" \"kagura0mea\" \"KaguraMea\" "
 	echo "仅bilibili支持排除youtube转播，twitcast和m3u8不支持清晰度选择但仍有相应参数，m3u8不支持自动备份但仍有相应参数。"
 	echo "所需模块为youtube-dl、streamlink、ffmpeg"
@@ -32,7 +32,7 @@ EXCEPT_MIRRATIVE_PART_URL="${12:-noexcept}"
 EXCEPT_REALITY_PART_URL="${13:-noexcept}"
 EXCEPT_STREAM_PART_URL="${14:-noexcept}"
 
-[[ "${1}" == "youtube" || "${1}" == "youtubeffmmpeg" ]] && FULL_URL="https://www.youtube.com/channel/${PART_URL}/live"
+[[ "${1}" == "youtube" || "${1}" == "youtubeffmpeg" || "${1}" == "youtubecurl" || "${1}" == "youtubecurlffmpeg" ]] && FULL_URL="https://www.youtube.com/channel/${PART_URL}/live"
 [[ "${1}" == "twitcast"  || "${1}" == "twitcastffmpeg" ]] && FULL_URL="https://twitcasting.tv/${PART_URL}"
 [[ "${1}" == "twitch" ]] && FULL_URL="https://twitch.tv/${PART_URL}"
 [[ "${1}" == "openrec" ]] && FULL_URL="https://openrec.tv/user/${PART_URL}"
@@ -61,11 +61,16 @@ mkdir -p "${DIR_LOCAL}"
 
 while true; do
 	while true; do
-		if [[ "${1}" == "youtube" || "${1}" == "youtubeffmmpeg" ]]; then
+		if [[ "${1}" == "youtube" || "${1}" == "youtubeffmpeg" ]]; then
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			echo "${LOG_PREFIX} metadata ${FULL_URL}" #检测直播
 			STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}")
 			(echo "${STREAM_URL}" | grep -q ".m3u8") && break
+		fi
+		if [[ "${1}" == "youtubecurl" || "${1}" == "youtubecurlffmpeg" ]]; then
+			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+			echo "${LOG_PREFIX} metadata ${FULL_URL}"
+			(curl -s "${FULL_URL}" | grep -q '\\"isLive\\":true') && break
 		fi
 		if [[ "${1}" == "twitcast" || "${1}" == "twitcastffmpeg" ]]; then
 			echo "${LOG_PREFIX} metadata ${FULL_URL}"
@@ -175,7 +180,8 @@ while true; do
 	
 	
 	
-	if [[ "${1}" == "youtube" || "${1}" == "youtubeffmmpeg" ]]; then ID=$(curl -s "${FULL_URL}" | grep -o '\\"videoId\\":\\".*\\"' | sed 's/\\//g' | awk -F'"' '{print $4}') ; FNAME="youtube_${PART_URL}_$(date +"%Y%m%d_%H%M%S")_${ID}.ts"; fi
+	if [[ "${1}" == "youtube" || "${1}" == "youtubeffmpeg" || "${1}" == "youtubecurl" || "${1}" == "youtubecurlffmpeg" ]]; then ID=$(curl -s "${FULL_URL}" | grep -o '\\"videoId\\":\\".*\\"' | sed 's/\\//g' | awk -F'"' '{print $4}') ; FNAME="youtube_${PART_URL}_$(date +"%Y%m%d_%H%M%S")_${ID}.ts"; fi
+	if [[ "${1}" == "youtubecurlffmpeg" ]]; then STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}"); fi
 	if [[ "${1}" == "twitcast" || "${1}" == "twitcastffmpeg" ]]; then ID=$(curl -s "https://twitcasting.tv/streamserver.php?target=${PART_URL}&mode=client" | grep -o '"id":[0-9]*' | awk -F':' '{print $2}') ; DLNAME="${PART_URL/:/：}_${ID}.ts" ; FNAME="twitcast_${PART_URL/:/：}_$(date +"%Y%m%d_%H%M%S")_${ID}.ts"; fi
 	if [[ "${1}" == "twitcastffmpeg" ]]; then STREAM_URL="http://twitcasting.tv/${PART_URL}/metastream.m3u8?video=1"; fi
 	if [[ "${1}" == "twitch" ]]; then FNAME="twitch_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
@@ -190,7 +196,7 @@ while true; do
 	if [[ "${LOOPORTIME}" == "once" || "${LOOPORTIME}" == "loop" ]]; then
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 		echo "${LOG_PREFIX} record start" #开始录制
-		if [[ "${1}" == "youtube" ]]; then
+		if [[ "${1}" == "youtube" || "${1}" == "youtubecurl" ]]; then
 			streamlink --hls-live-restart --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "${FULL_URL}" "${FORMAT}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
 		if [[ "${1}" == "twitcast" ]]; then
@@ -199,14 +205,14 @@ while true; do
 		if [[ "${1}" == "nicolv" || "${1}" == "nicoco" || "${1}" == "nicoch" ]]; then
 			livedl/livedl -nico "${LIVE_URL}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
-		if [[ "${1}" == "youtubeffmmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "bilibili" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
+		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "youtubecurlffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "bilibili" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
 			ffmpeg -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 		echo "${LOG_PREFIX} record stopped"
 		
 	else
-		if [[ "${1}" == "youtube" ]]; then
+		if [[ "${1}" == "youtube" || "${1}" == "youtubecurl" ]]; then
 			(streamlink --hls-live-restart --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "${FULL_URL}" "${FORMAT}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
 		if [[ "${1}" == "twitcast" ]]; then
@@ -215,7 +221,7 @@ while true; do
 		if [[ "${1}" == "nicolv" || "${1}" == "nicoco" || "${1}" == "nicoch" ]]; then
 			(livedl/livedl -nico "${LIVE_URL}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
-		if [[ "${1}" == "youtubeffmmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "bilibili" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
+		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "youtubecurlffmpeg"|| "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "bilibili" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
 			(ffmpeg -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
 		
