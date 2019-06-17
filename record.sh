@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ ! -n "${1}" ]]; then
-	echo "${0} youtube|youtubeffmmpeg|twitcast|twitcastffmpeg|twitch|openrec|mirrativ|reality|bilibili|streamlink|m3u8 \"频道号码\" [best|其他清晰度] [loop|once|视频分段时间] [10|其他监视间隔] [\"record_video/other|其他本地目录\"] [nobackup|onedrive|baidupan|both|onedrivekeep|baidupankeep|bothkeep|onedrivedel|baidupandel|bothdel] [\"noexcept|排除转播的youtube频道号码\"] [\"noexcept|排除转播的twitcast频道号码\"] [\"noexcept|排除转播的twitch频道号码\"] [\"noexcept|排除转播的openrec频道号码\"] [\"noexcept|排除转播的reality频道号码\"] [\"noexcept|排除转播的streamlink支持的频道网址\"]"
+	echo "${0} youtube|youtubeffmmpeg|twitcast|twitcastffmpeg|twitch|openrec|mirrativ|reality|nicolv|nicoco|nicoch|bilibili|streamlink|m3u8 \"频道号码\" [best|其他清晰度] [loop|once|视频分段时间] [10|其他监视间隔] [\"record_video/other|其他本地目录\"] [nobackup|onedrive|baidupan|both|onedrivekeep|baidupankeep|bothkeep|onedrivedel|baidupandel|bothdel] [\"noexcept|排除转播的youtube频道号码\"] [\"noexcept|排除转播的twitcast频道号码\"] [\"noexcept|排除转播的twitch频道号码\"] [\"noexcept|排除转播的openrec频道号码\"] [\"noexcept|排除转播的reality频道号码\"] [\"noexcept|排除转播的streamlink支持的频道网址\"]"
 	echo "示例：${0} bilibili \"12235923\" best loop 30 3600 \"record_video/mea_bilibili\" both \"UCWCc8tO-uUl_7SJXIKJACMw\" \"kaguramea\" \"kagura0mea\" \"KaguraMea\" "
 	echo "仅bilibili支持排除youtube转播，twitcast和m3u8不支持清晰度选择但仍有相应参数，m3u8不支持自动备份但仍有相应参数。"
 	echo "所需模块为youtube-dl、streamlink、ffmpeg"
@@ -38,6 +38,9 @@ EXCEPT_STREAM_PART_URL="${14:-noexcept}"
 [[ "${1}" == "openrec" ]] && FULL_URL="https://openrec.tv/user/${PART_URL}"
 [[ "${1}" == "mirrativ" ]] && FULL_URL="https://www.mirrativ.com/user/${PART_URL}"
 [[ "${1}" == "reality" ]] && FULL_URL="reality_${PART_URL}"
+[[ "${1}" == "nicolv" ]] && FULL_URL="https://live.nicovideo.jp/gate/${PART_URL}"
+[[ "${1}" == "nicoco" ]] && FULL_URL="https://com.nicovideo.jp/community/${PART_URL}"
+[[ "${1}" == "nicoch" ]] && FULL_URL="https://ch.nicovideo.jp/${PART_URL}/live"
 [[ "${1}" == "bilibili" ]] && FULL_URL="https://live.bilibili.com/${PART_URL}"
 [[ "${1}" == "streamlink" ]] && FULL_URL="${PART_URL}"
 [[ "${1}" == "m3u8" ]] && FULL_URL="${PART_URL}"
@@ -89,6 +92,19 @@ while true; do
 		if [[ "${1}" == "reality" ]]; then 
 			STREAM_ID=$(curl -s -X POST "https://media-prod-dot-vlive-prod.appspot.com/api/v1/media/lives_user" | awk -v PART_URL="${PART_URL}" 'BEGIN{RS="\"StreamingServer\"";FS=",";ORS="\n";OFS="\t"} {M3U8_POS=match($0,"\"view_endpoint\":\"[^\"]*\"");M3U8=substr($0,M3U8_POS,RLENGTH) ;ID_POS=match($0,"\"vlive_id\":\"[^\"]*\"");ID=substr($0,ID_POS,RLENGTH);if(match($0,"\"nickname\":\"[^\"]*"PART_URL"[^\"]*\"|\"vlive_id\":\""PART_URL"\"")) print M3U8,ID}')
 			[[ -n "${STREAM_ID}" ]] && break
+		fi
+		
+		if [[ "${1}" == "nicolv" ]]; then 
+			LIVE_URL=$(curl -s -I "https://live.nicovideo.jp/gate/${PART_URL}" | grep -o "https://live2.nicovideo.jp/watch/lv[0-9]*")
+			[[ -n "${LIVE_URL}" ]] && break
+		fi
+		if [[ "${1}" == "nicoco" ]]; then 
+			LIVE_URL=$(curl -s "https://com.nicovideo.jp/community/${PART_URL}" | grep -o '<a class="now_live_inner" href="https://live.nicovideo.jp/watch/lv[0-9]*' | awk -F'"?' '{print $4}')
+			[[ -n "${LIVE_URL}" ]] && break
+		fi
+		if [[ "${1}" == "nicoch" ]]; then 
+			LIVE_URL=$(curl -s "https://ch.nicovideo.jp/${PART_URL}/live" | awk 'BEGIN{RS="<section class=";FS="\n";ORS="\n";OFS="\t"} $1 ~ /sub now/ {LIVE_POS=match($0,"https://live.nicovideo.jp/watch/lv[0-9]*");LIVE=substr($0,LIVE_POS,RLENGTH);print LIVE}')
+			[[ -n "${LIVE_URL}" ]] && break
 		fi
 		
 		if [[ "${1}" == "bilibili" ]]; then
@@ -166,6 +182,7 @@ while true; do
 	if [[ "${1}" == "openrec" ]]; then STREAM_URL=$(streamlink --stream-url "${LIVE_URL}" "${FORMAT}") ; FNAME="openrec_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "mirrativ" ]]; then STREAM_URL=$(curl -s "https://www.mirrativ.com/api/live/live?live_id=${LIVE_URL}" | grep -o '"streaming_url_hls":".*m3u8"' | awk -F'"' '{print $4}') ; FNAME="mirrativ_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "reality" ]]; then ID=$(echo ${STREAM_ID} | awk -F'"' '{print $8}') ; STREAM_URL=$(echo ${STREAM_ID} | awk -F'"' '{print $4}') ; FNAME="reality_${ID}_$(date +"%Y%m%d_%H%M%S").ts"; fi
+	if [[ "${1}" == "nicolv" || "${1}" == "nicoco" || "${1}" == "nicoch" ]]; then ID=$(echo ${LIVE_URL} | grep -o "lv[0-9]*") ; FNAME="niconico_${PART_URL}_$(date +"%Y%m%d_%H%M%S")_${ID}.ts"; fi
 	if [[ "${1}" == "bilibili" ]]; then STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}") ; FNAME="bilibili_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "streamlink" ]]; then FNAME="stream_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "m3u8" ]]; then STREAM_URL="${FULL_URL}" ; FNAME="m3u8_$(date +"%Y%m%d_%H%M%S").ts"; fi
@@ -179,6 +196,9 @@ while true; do
 		if [[ "${1}" == "twitcast" ]]; then
 			livedl/livedl -tcas "${PART_URL}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
+		if [[ "${1}" == "nicolv" || "${1}" == "nicoco" || "${1}" == "nicoch" ]]; then
+			livedl/livedl -nico "${LIVE_URL}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
+		fi
 		if [[ "${1}" == "youtubeffmmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "bilibili" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
 			ffmpeg -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
@@ -191,6 +211,9 @@ while true; do
 		fi
 		if [[ "${1}" == "twitcast" ]]; then
 			(livedl/livedl -tcas "${PART_URL}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+		fi
+		if [[ "${1}" == "nicolv" || "${1}" == "nicoco" || "${1}" == "nicoch" ]]; then
+			(livedl/livedl -nico "${LIVE_URL}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
 		if [[ "${1}" == "youtubeffmmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "bilibili" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
 			(ffmpeg -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
@@ -222,6 +245,11 @@ while true; do
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 		echo "${LOG_PREFIX} remane livedl/${DLNAME} to ${DIR_LOCAL}/${FNAME}"
 		mv "livedl/${DLNAME}" "${DIR_LOCAL}/${FNAME}"
+	fi
+	if [[ "${1}" == "nicolv" || "${1}" == "nicoco" || "${1}" == "nicoch" ]]; then
+		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+		echo "${LOG_PREFIX} remane livedl/${ID}* to ${DIR_LOCAL}/${FNAME}"
+		mv "livedl/${ID}"* "${DIR_LOCAL}/${FNAME}"
 	fi
 	
 	
