@@ -95,7 +95,7 @@ while true; do
 			[[ -n "${LIVE_URL}" ]] && break
 		fi
 		if [[ "${1}" == "reality" ]]; then 
-			STREAM_ID=$(curl -s -X POST "https://media-prod-dot-vlive-prod.appspot.com/api/v1/media/lives_user" | awk -v PART_URL="${PART_URL}" 'BEGIN{RS="\"StreamingServer\"";FS=",";ORS="\n";OFS="\t"} {M3U8_POS=match($0,"\"view_endpoint\":\"[^\"]*\"");M3U8=substr($0,M3U8_POS,RLENGTH) ;ID_POS=match($0,"\"vlive_id\":\"[^\"]*\"");ID=substr($0,ID_POS,RLENGTH);if(match($0,"\"nickname\":\"[^\"]*"PART_URL"[^\"]*\"|\"vlive_id\":\""PART_URL"\"")) print M3U8,ID}')
+			STREAM_ID=$(curl -s -X POST "https://media-prod-dot-vlive-prod.appspot.com/api/v1/media/lives_user" | awk -v PART_URL="${PART_URL}" 'BEGIN{RS="\"StreamingServer\"";FS=",";ORS="\n";OFS="\t"} {M3U8_POS=match($0,"\"view_endpoint\":\"[^\"]*\"");M3U8=substr($0,M3U8_POS,RLENGTH) ; ID_POS=match($0,"\"vlive_id\":\"[^\"]*\"");ID=substr($0,ID_POS,RLENGTH) ; if(match($0,"\"nickname\":\"[^\"]*"PART_URL"[^\"]*\"|\"vlive_id\":\""PART_URL"\"")) print M3U8,ID}')
 			[[ -n "${STREAM_ID}" ]] && break
 		fi
 		
@@ -269,25 +269,26 @@ while true; do
 		ERRFLAG_ONEDRIVE_FILE=0 ; ERRFLAG_ONEDRIVE_LOG=0 ; ERRFLAG_BAIDUPAN_FILE="全部上传完毕" ; ERRFLAG_BAIDUPAN_LOG="全部上传完毕"
 		if [[ "${BACKUP}" == "onedrive"* || "${BACKUP}" == "both"* ]]; then #上传onedrive
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} start" ; onedrive -s -f "${DIR_ONEDRIVE}" "${DIR_LOCAL}/${FNAME}" ; ERRFLAG_ONEDRIVE_FILE=$? ; LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-			[[ "${ERRFLAG_ONEDRIVE_FILE}" == 0 ]] && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} success"
-			[[ "${ERRFLAG_ONEDRIVE_FILE}" == 123 ]] && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} file not exist" && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} file not exist" > "${DIR_LOCAL}/${FNAME}.onedrive_filenotexist_error.log"
-			[[ "${ERRFLAG_ONEDRIVE_FILE}" != 0 && "${ERRFLAG_ONEDRIVE_FILE}" != 123 ]] && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} fail" && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} fail" > "${DIR_LOCAL}/${FNAME}.onedrive_fail_error.log"
+			[[ "${ERRFLAG_ONEDRIVE_FILE}" == 0 ]] && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} success (${ERRFLAG_ONEDRIVE_FILE})"
+			[[ "${ERRFLAG_ONEDRIVE_FILE}" == 123 ]] && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} file not exist" && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} file not exist (${ERRFLAG_ONEDRIVE_FILE})" > "${DIR_LOCAL}/${FNAME}.onedrive_filenotexist_error.log"
+			[[ "${ERRFLAG_ONEDRIVE_FILE}" != 0 && "${ERRFLAG_ONEDRIVE_FILE}" != 123 ]] && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} fail" && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} fail (${ERRFLAG_ONEDRIVE_FILE})" > "${DIR_LOCAL}/${FNAME}.onedrive_fail_error.log"
 			
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log start" ; onedrive -s -f "${DIR_ONEDRIVE}" "${DIR_LOCAL}/${FNAME}.log" ; ERRFLAG_ONEDRIVE_LOG=$? ; LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-			[[ "${ERRFLAG_ONEDRIVE_LOG}" == 0 ]] && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log success"
-			[[ "${ERRFLAG_ONEDRIVE_LOG}" == 123 ]] && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log file not exist" && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log file not exist" > "${DIR_LOCAL}/${FNAME}.log.onedrive_filenotexist_error.log"
-			[[ "${ERRFLAG_ONEDRIVE_LOG}" != 0 && "${ERRFLAG_ONEDRIVE_LOG}" != 123 ]] && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log fail" && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log fail" > "${DIR_LOCAL}/${FNAME}.log.onedrive_fail_error.log"
+			echo 
+			[[ "${ERRFLAG_ONEDRIVE_LOG}" == 0 ]] && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log success (${ERRFLAG_ONEDRIVE_LOG})"
+			[[ "${ERRFLAG_ONEDRIVE_LOG}" == 123 ]] && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log file not exist (${ERRFLAG_ONEDRIVE_LOG})" && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log file not exist" > "${DIR_LOCAL}/${FNAME}.log.onedrive_filenotexist_error.log"
+			[[ "${ERRFLAG_ONEDRIVE_LOG}" != 0 && "${ERRFLAG_ONEDRIVE_LOG}" != 123 ]] && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log fail (${ERRFLAG_ONEDRIVE_LOG})" && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log fail" > "${DIR_LOCAL}/${FNAME}.log.onedrive_fail_error.log"
 		fi
 		if [[ "${BACKUP}" == "baidupan"* || "${BACKUP}" == "both"* ]]; then #上传baidupan
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} start" ; ERRFLAG_BAIDUPAN_FILE=$(BaiduPCS-Go upload "${DIR_LOCAL}/${FNAME}" "${DIR_BAIDUPAN}") ; LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-			(echo "${ERRFLAG_BAIDUPAN_FILE}" | grep -q "全部上传完毕") && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} success"
-			(echo "${ERRFLAG_BAIDUPAN_FILE}" | grep -q "未检测到上传的文件") && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} file not exist" && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} file not exist" > "${DIR_LOCAL}/${FNAME}.baidupan_filenotexist_error.log"
-			(echo "${ERRFLAG_BAIDUPAN_FILE}" | grep -q "全部上传完毕" || echo "${ERRFLAG_BAIDUPAN_FILE}" | grep -q "未检测到上传的文件") || (echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} fail" && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} fail" > "${DIR_LOCAL}/${FNAME}.baidupan_fail_error.log")
+			(echo "${ERRFLAG_BAIDUPAN_FILE}" | grep -q "全部上传完毕") && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} success (${ERRFLAG_BAIDUPAN_FILE})"
+			(echo "${ERRFLAG_BAIDUPAN_FILE}" | grep -q "未检测到上传的文件") && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} file not exist (${ERRFLAG_BAIDUPAN_FILE})" && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} file not exist" > "${DIR_LOCAL}/${FNAME}.baidupan_filenotexist_error.log"
+			(echo "${ERRFLAG_BAIDUPAN_FILE}" | grep -q "全部上传完毕" || echo "${ERRFLAG_BAIDUPAN_FILE}" | grep -q "未检测到上传的文件") || (echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} fail (${ERRFLAG_BAIDUPAN_FILE})" && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} fail" > "${DIR_LOCAL}/${FNAME}.baidupan_fail_error.log")
 			
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log start" ; ERRFLAG_BAIDUPAN_LOG=$(BaiduPCS-Go upload "${DIR_LOCAL}/${FNAME}.log" "${DIR_BAIDUPAN}") ; LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-			(echo "${ERRFLAG_BAIDUPAN_LOG}" | grep -q "全部上传完毕") && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log success"
-			(echo "${ERRFLAG_BAIDUPAN_LOG}" | grep -q "未检测到上传的文件") && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log file not exist" && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log file not exist" > "${DIR_LOCAL}/${FNAME}.log.baidupan_filenotexist_error.log"
-			(echo "${ERRFLAG_BAIDUPAN_LOG}" | grep -q "全部上传完毕" || echo "${ERRFLAG_BAIDUPAN_LOG}" | grep -q "未检测到上传的文件") || (echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log fail" && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log fail" > "${DIR_LOCAL}/${FNAME}.log.baidupan_fail_error.log")
+			(echo "${ERRFLAG_BAIDUPAN_LOG}" | grep -q "全部上传完毕") && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log success (${ERRFLAG_BAIDUPAN_LOG})"
+			(echo "${ERRFLAG_BAIDUPAN_LOG}" | grep -q "未检测到上传的文件") && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log file not exist (${ERRFLAG_BAIDUPAN_LOG})" && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log file not exist" > "${DIR_LOCAL}/${FNAME}.log.baidupan_filenotexist_error.log"
+			(echo "${ERRFLAG_BAIDUPAN_LOG}" | grep -q "全部上传完毕" || echo "${ERRFLAG_BAIDUPAN_LOG}" | grep -q "未检测到上传的文件") || (echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log fail (${ERRFLAG_BAIDUPAN_LOG})" && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log fail" > "${DIR_LOCAL}/${FNAME}.log.baidupan_fail_error.log")
 		fi
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") #清除文件
 		[[ "${BACKUP}" == *"keep" ]] && (echo "${LOG_PREFIX} force keep ${DIR_LOCAL}/${FNAME}" ; echo "${LOG_PREFIX} force keep ${DIR_LOCAL}/${FNAME}.log")
