@@ -188,7 +188,7 @@ while true; do
 	if [[ "${1}" == "openrec" ]]; then STREAM_URL=$(streamlink --stream-url "${LIVE_URL}" "${FORMAT}") ; FNAME="openrec_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "mirrativ" ]]; then STREAM_URL=$(curl -s "https://www.mirrativ.com/api/live/live?live_id=${LIVE_URL}" | grep -o '"streaming_url_hls":".*m3u8"' | awk -F'"' '{print $4}') ; FNAME="mirrativ_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "reality" ]]; then ID=$(echo ${STREAM_ID} | awk -F'"' '{print $8}') ; STREAM_URL=$(echo ${STREAM_ID} | awk -F'"' '{print $4}') ; FNAME="reality_${ID}_$(date +"%Y%m%d_%H%M%S").ts"; fi
-	if [[ "${1}" == "nicolv" || "${1}" == "nicoco" || "${1}" == "nicoch" ]]; then ID=$(echo ${LIVE_URL} | grep -o "lv[0-9]*") ; FNAME="niconico_${PART_URL}_$(date +"%Y%m%d_%H%M%S")_${ID}.ts"; fi
+	if [[ "${1}" == "nicolv" || "${1}" == "nicoco" || "${1}" == "nicoch" ]]; then ID=$(echo ${LIVE_URL} | grep -o "lv[0-9]*") ; DLNAME="niconico_${PART_URL}_$(date +"%Y%m%d_%H%M%S")_${ID}" ; FNAME="niconico_${PART_URL}_$(date +"%Y%m%d_%H%M%S")_${ID}.ts"; fi
 	if [[ "${1}" == "bilibili" ]]; then STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}") ; FNAME="bilibili_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "streamlink" ]]; then FNAME="stream_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "m3u8" ]]; then STREAM_URL="${FULL_URL}" ; FNAME="m3u8_$(date +"%Y%m%d_%H%M%S").ts"; fi
@@ -203,7 +203,7 @@ while true; do
 			livedl/livedl -tcas "${PART_URL}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
 		if [[ "${1}" == "nicolv" || "${1}" == "nicoco" || "${1}" == "nicoch" ]]; then
-			livedl/livedl -nico "${LIVE_URL}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
+			livedl/livedl -nico-login-only=on -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico-auto-convert=on -conv-ext=ts -nico-auto-delete-mode 2 -nico "${LIVE_URL}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
 		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "youtubecurlffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "bilibili" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
 			ffmpeg -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
@@ -219,7 +219,7 @@ while true; do
 			(livedl/livedl -tcas "${PART_URL}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
 		if [[ "${1}" == "nicolv" || "${1}" == "nicoco" || "${1}" == "nicoch" ]]; then
-			(livedl/livedl -nico "${LIVE_URL}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+			(livedl/livedl -nico-login-only=on -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico-auto-convert=on -conv-ext=ts -nico-auto-delete-mode 2 -nico "${LIVE_URL}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
 		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "youtubecurlffmpeg"|| "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "bilibili" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
 			(ffmpeg -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
@@ -254,8 +254,8 @@ while true; do
 	fi
 	if [[ "${1}" == "nicolv" || "${1}" == "nicoco" || "${1}" == "nicoch" ]]; then
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-		echo "${LOG_PREFIX} remane livedl/${ID}* to ${DIR_LOCAL}/${FNAME}"
-		mv "livedl/${ID}"* "${DIR_LOCAL}/${FNAME}"
+		echo "${LOG_PREFIX} remane livedl/${DLNAME}* to ${DIR_LOCAL}/${FNAME}"
+		mv "livedl/${DLNAME}*" "${DIR_LOCAL}/${FNAME}"
 	fi
 	
 	
