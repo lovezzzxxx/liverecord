@@ -267,9 +267,25 @@ while true; do
 	(
 	if [[ "${1}" == "nicolv" || "${1}" == "nicoco" || "${1}" == "nicoch" ]]; then
 		if [[ -f "livedl/${DLNAME}.sqlite3" ]]; then
+			if [[ -f "livedl/${DLNAME}.ts" ]]; then
+				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+				echo "${LOG_PREFIX} remove existed livedl/${DLNAME}.ts and livedl/${DLNAME}.xml"
+				rm "livedl/${DLNAME}.ts" ; rm "livedl/${DLNAME}.xml"
+			fi
+			
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			echo "${LOG_PREFIX} convert livedl/${DLNAME}.sqlite3 to livedl/${DLNAME}.ts"
-			rm "livedl/${DLNAME}.ts" ; rm "livedl/${DLNAME}.xml" ; livedl/livedl -d2m -conv-ext=ts "livedl/${DLNAME}.sqlite3" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1 ; rm "livedl/${DLNAME}.sqlite3" ; rm "livedl/${DLNAME}.xml"
+			livedl/livedl -d2m -conv-ext=ts "livedl/${DLNAME}.sqlite3" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
+			
+			if [[ ! -f "livedl/${DLNAME}".ts ]]; then
+				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+				echo "${LOG_PREFIX} convert fail remove livedl/${DLNAME}.ts and livedl/${DLNAME}.xml"
+				rm "livedl/${DLNAME}.ts" ; rm "livedl/${DLNAME}.xml"
+			else
+				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+				echo "${LOG_PREFIX} convert success remove livedl/${DLNAME}.sqlite3 and livedl/${DLNAME}.xml"
+				rm "livedl/${DLNAME}.sqlite3" ; rm "livedl/${DLNAME}.xml"
+			fi
 		fi
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 		echo "${LOG_PREFIX} remane livedl/${DLNAME}.ts to ${DIR_LOCAL}/${FNAME}"
