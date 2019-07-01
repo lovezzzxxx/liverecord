@@ -11,9 +11,12 @@ if [[ ! -n "${1}" ]]; then
 fi
 
 if [[ "${1}" == "twitcast" ]]; then
-	if [[ ! -f "livedl/livedl" ]]; then
-		echo "需要livedl，请将livedl文件放置于此用户目录livedl文件夹内"
-	fi
+	[[ ! -f "livedl/livedl" ]] && echo "需要livedl，请将livedl文件放置于运行时目录的livedl文件夹内"
+fi
+
+if [[ "${1}" == "nicolv" || "${1}" == "nicoco" || "${1}" == "nicoch" ]]; then
+	[[ ! -f "livedl/livedl" ]] && echo "需要livedl，请将livedl文件放置于运行时目录的livedl文件夹内"
+	[[ ! -f "conf.db" ]] && echo "livedl需要登录，请使用livedl/livedl -nico-login \"用户名,密码\""
 fi
 
 
@@ -94,21 +97,30 @@ while true; do
 			LIVE_URL=$(curl -s "https://www.mirrativ.com/api/user/profile?user_id=${PART_URL}" | grep -o '"live_id":".*"' | awk -F'"' '{print $4}')
 			[[ -n "${LIVE_URL}" ]] && break
 		fi
-		if [[ "${1}" == "reality" ]]; then 
-			STREAM_ID=$(curl -s -X POST "https://media-prod-dot-vlive-prod.appspot.com/api/v1/media/lives_user" | awk -v PART_URL="${PART_URL}" 'BEGIN{RS="\"StreamingServer\"";FS=",";ORS="\n";OFS="\t"} {M3U8_POS=match($0,"\"view_endpoint\":\"[^\"]*\"");M3U8=substr($0,M3U8_POS,RLENGTH) ; ID_POS=match($0,"\"vlive_id\":\"[^\"]*\"");ID=substr($0,ID_POS,RLENGTH) ; if(match($0,"\"nickname\":\"[^\"]*"PART_URL"[^\"]*\"|\"vlive_id\":\""PART_URL"\"")) print M3U8,ID}')
+		if [[ "${1}" == "reality" ]]; then
+			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+			echo "${LOG_PREFIX} metadata ${FULL_URL}"
+			STREAM_ID=$(curl -s -X POST "https://media-prod-dot-vlive-prod.appspot.com/api/v1/media/lives_user" | awk -v PART_URL="${PART_URL}" 'BEGIN{RS="\"StreamingServer\"";FS=",";ORS="\n";OFS="\t"} {M3U8_POS=match($0,"\"view_endpoint\":\"[^\"]*\"");M3U8=substr($0,M3U8_POS,RLENGTH) ; ID_POS=match($0,"\"vlive_id\":\"[^\"]*\"");ID=substr($0,ID_POS,RLENGTH) ; if(match($0,"\"nickname\":\"[^\"]*"PART_URL"[^\"]*\"|\"vlive_id\":\""PART_URL"\"")) print M3U8,ID}' | head -n 1)
 			[[ -n "${STREAM_ID}" ]] && break
 		fi
 		
-		if [[ "${1}" == "nicolv" ]]; then 
+		if [[ "${1}" == "nicolv" ]]; then
+			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+			echo "${LOG_PREFIX} metadata ${FULL_URL}"
 			LIVE_URL=$(curl -s -I "https://live.nicovideo.jp/gate/${PART_URL}" | grep -o "https://live2.nicovideo.jp/watch/lv[0-9]*")
 			[[ -n "${LIVE_URL}" ]] && break
 		fi
-		if [[ "${1}" == "nicoco" ]]; then 
-			LIVE_URL=$(curl -s "https://com.nicovideo.jp/community/${PART_URL}" | grep -o '<a class="now_live_inner" href="https://live.nicovideo.jp/watch/lv[0-9]*' | awk -F'"?' '{print $4}')
+		if [[ "${1}" == "nicoco" ]]; then
+			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+			echo "${LOG_PREFIX} metadata ${FULL_URL}"
+			LIVE_URL=$(curl -s "https://com.nicovideo.jp/community/${PART_URL}" | grep -o '<a class="now_live_inner" href="https://live.nicovideo.jp/watch/lv[0-9]*' | head -n 1 | awk -F'"?' '{print $4}')
 			[[ -n "${LIVE_URL}" ]] && break
 		fi
-		if [[ "${1}" == "nicoch" ]]; then 
-			LIVE_URL=$(curl -s "https://ch.nicovideo.jp/${PART_URL}/live" | awk 'BEGIN{RS="<section class=";FS="\n";ORS="\n";OFS="\t"} $1 ~ /sub now/ {LIVE_POS=match($0,"https://live.nicovideo.jp/watch/lv[0-9]*");LIVE=substr($0,LIVE_POS,RLENGTH);print LIVE}')
+		if [[ "${1}" == "nicoch" ]]; then
+			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+			echo "${LOG_PREFIX} metadata ${FULL_URL}"
+			LIVE_URL=$(curl -s "https://ch.nicovideo.jp/${PART_URL}/live" | awk 'BEGIN{RS="<section class=";FS="\n";ORS="\n";OFS="\t"} $1 ~ /sub now/ {LIVE_POS=match($0,"https://live.nicovideo.jp/watch/lv[0-9]*");LIVE=substr($0,LIVE_POS,RLENGTH);print LIVE}' | head -n 1)
+			[[ -n "${LIVE_URL}" ]] || LIVE_URL="https://live.nicovideo.jp/watch/lv$(curl -s "https://ch.nicovideo.jp/${PART_URL}" | grep -o "data-live_id=\"[0-9]*\" data-live_status=\"onair\"" | head -n 1 | awk -F'"' '{print $2}')"
 			[[ -n "${LIVE_URL}" ]] && break
 		fi
 		
@@ -148,7 +160,7 @@ while true; do
 				if [[ "${EXCEPT_REALITY_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 					echo "${LOG_PREFIX} metadata ${EXCEPT_REALITY_FULL_URL}"
-					EXCEPT_REALITY_STREAM_URL=$(curl -s -X POST "https://media-prod-dot-vlive-prod.appspot.com/api/v1/media/lives_user" | awk -v PART_URL="${EXCEPT_REALITY_PART_URL}" 'BEGIN{RS="\"StreamingServer\"";FS=",";ORS="\n";OFS="\t"} {M3U8_POS=match($0,"\"view_endpoint\":\"[^\"]*\"");M3U8=substr($0,M3U8_POS,RLENGTH) ;ID_POS=match($0,"\"vlive_id\":\"[^\"]*\"");ID=substr($0,ID_POS,RLENGTH);if(match($0,"\"nickname\":\"[^\"]*"PART_URL"[^\"]*\"|\"vlive_id\":\""PART_URL"\"")) print M3U8,ID}')
+					EXCEPT_REALITY_STREAM_URL=$(curl -s -X POST "https://media-prod-dot-vlive-prod.appspot.com/api/v1/media/lives_user" | awk -v PART_URL="${EXCEPT_REALITY_PART_URL}" 'BEGIN{RS="\"StreamingServer\"";FS=",";ORS="\n";OFS="\t"} {M3U8_POS=match($0,"\"view_endpoint\":\"[^\"]*\"");M3U8=substr($0,M3U8_POS,RLENGTH) ;ID_POS=match($0,"\"vlive_id\":\"[^\"]*\"");ID=substr($0,ID_POS,RLENGTH);if(match($0,"\"nickname\":\"[^\"]*"PART_URL"[^\"]*\"|\"vlive_id\":\""PART_URL"\"")) print M3U8,ID}' | head -n 1)
 					[[ -n "${EXCEPT_REALITY_STREAM_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_REALITY_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
 				fi
 				if [[ "${EXCEPT_STREAM_PART_URL}" != "noexcept" ]]; then
@@ -197,32 +209,32 @@ while true; do
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 		echo "${LOG_PREFIX} record start" #开始录制
 		if [[ "${1}" == "youtube" || "${1}" == "youtubecurl" ]]; then
-			streamlink --hls-live-restart --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "${FULL_URL}" "${FORMAT}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
+			streamlink --hls-live-restart --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "${FULL_URL}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
 		if [[ "${1}" == "twitcast" ]]; then
-			livedl/livedl -tcas "${PART_URL}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
+			livedl/livedl -tcas "${PART_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
 		if [[ "${1}" == "nicolv" || "${1}" == "nicoco" || "${1}" == "nicoch" ]]; then
-			livedl/livedl -nico-login-only=on -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico-auto-convert=on -conv-ext=ts -nico-auto-delete-mode 2 -nico "${LIVE_URL}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
+			livedl/livedl -nico-login-only=on -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico-auto-convert=on -conv-ext=ts -nico-auto-delete-mode 2 -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
 		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "youtubecurlffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "bilibili" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
-			ffmpeg -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
+			ffmpeg -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 		echo "${LOG_PREFIX} record stopped"
 		
 	else
 		if [[ "${1}" == "youtube" || "${1}" == "youtubecurl" ]]; then
-			(streamlink --hls-live-restart --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "${FULL_URL}" "${FORMAT}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+			(streamlink --hls-live-restart --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "${FULL_URL}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
 		if [[ "${1}" == "twitcast" ]]; then
-			(livedl/livedl -tcas "${PART_URL}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+			(livedl/livedl -tcas "${PART_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
 		if [[ "${1}" == "nicolv" || "${1}" == "nicoco" || "${1}" == "nicoch" ]]; then
-			(livedl/livedl -nico-login-only=on -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico-auto-convert=on -conv-ext=ts -nico-auto-delete-mode 2 -nico "${LIVE_URL}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+			(livedl/livedl -nico-login-only=on -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico-auto-convert=on -conv-ext=ts -nico-auto-delete-mode 2 -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
 		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "youtubecurlffmpeg"|| "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "bilibili" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
-			(ffmpeg -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+			(ffmpeg -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
 		
 		RECORDPID=$! #录制进程PID
@@ -252,21 +264,26 @@ while true; do
 		echo "${LOG_PREFIX} remane livedl/${DLNAME} to ${DIR_LOCAL}/${FNAME}"
 		mv "livedl/${DLNAME}" "${DIR_LOCAL}/${FNAME}"
 	fi
+	(
 	if [[ "${1}" == "nicolv" || "${1}" == "nicoco" || "${1}" == "nicoch" ]]; then
+		if [[ -f "livedl/${DLNAME}.sqlite3" ]]; then
+			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+			echo "${LOG_PREFIX} convert livedl/${DLNAME}.sqlite3 to livedl/${DLNAME}.ts"
+			rm "livedl/${DLNAME}.ts" ; rm "livedl/${DLNAME}.xml" ; livedl/livedl -d2m -conv-ext=ts "livedl/${DLNAME}.sqlite3" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1 ; rm "livedl/${DLNAME}.sqlite3" ; rm "livedl/${DLNAME}.xml"
+		fi
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-		echo "${LOG_PREFIX} remane livedl/${DLNAME}* to ${DIR_LOCAL}/${FNAME}"
-		mv "livedl/${DLNAME}*" "${DIR_LOCAL}/${FNAME}"
+		echo "${LOG_PREFIX} remane livedl/${DLNAME}.ts to ${DIR_LOCAL}/${FNAME}"
+		mv "livedl/${DLNAME}.ts" "${DIR_LOCAL}/${FNAME}"
 	fi
 	
 	
 	
-	(
 	if [[ ! -f "${DIR_LOCAL}/${FNAME}" ]]; then #判断是否无录像
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 		echo "${LOG_PREFIX} ${DIR_LOCAL}/${FNAME} file not exist, remove ${DIR_LOCAL}/${FNAME}.log"
 		rm -f "${DIR_LOCAL}/${FNAME}.log"
 	else
-		ERRFLAG_ONEDRIVE_FILE=0 ; ERRFLAG_ONEDRIVE_LOG=0 ; ERRFLAG_BAIDUPAN_FILE="上传文件成功" ; ERRFLAG_BAIDUPAN_LOG="上传文件成功"
+		ERRFLAG_ONEDRIVE_FILE=0 ; ERRFLAG_ONEDRIVE_LOG=0 ; ERRFLAG_BAIDUPAN_FILE="成功" ; ERRFLAG_BAIDUPAN_LOG="成功"
 		if [[ "${BACKUP}" == "onedrive"* || "${BACKUP}" == "both"* ]]; then #上传onedrive
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} start" ; onedrive -s -f "${DIR_ONEDRIVE}" "${DIR_LOCAL}/${FNAME}" ; ERRFLAG_ONEDRIVE_FILE=$? ; LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			[[ "${ERRFLAG_ONEDRIVE_FILE}" == 0 ]] && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} success (${ERRFLAG_ONEDRIVE_FILE})"
@@ -280,21 +297,21 @@ while true; do
 			[[ "${ERRFLAG_ONEDRIVE_LOG}" != 0 && "${ERRFLAG_ONEDRIVE_LOG}" != 123 ]] && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log fail (${ERRFLAG_ONEDRIVE_LOG})" && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log fail" > "${DIR_LOCAL}/${FNAME}.log.onedrive_fail_error.log"
 		fi
 		if [[ "${BACKUP}" == "baidupan"* || "${BACKUP}" == "both"* ]]; then #上传baidupan
-			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} start" ; ERRFLAG_BAIDUPAN_FILE=$(BaiduPCS-Go upload "${DIR_LOCAL}/${FNAME}" "${DIR_BAIDUPAN}") ; LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-			(echo "${ERRFLAG_BAIDUPAN_FILE}" | grep -q "上传文件成功") && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} success (${ERRFLAG_BAIDUPAN_FILE})"
+			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} start" ; ERRFLAG_BAIDUPAN_FILE=$(BaiduPCS-Go upload "${DIR_LOCAL}/${FNAME}" "${DIR_BAIDUPAN}" | tail -n 5) ; LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+			(echo "${ERRFLAG_BAIDUPAN_FILE}" | grep -q "成功") && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} success (${ERRFLAG_BAIDUPAN_FILE})"
 			(echo "${ERRFLAG_BAIDUPAN_FILE}" | grep -q "未检测到上传的文件") && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} file not exist (${ERRFLAG_BAIDUPAN_FILE})" && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} file not exist" > "${DIR_LOCAL}/${FNAME}.baidupan_filenotexist_error.log"
-			(echo "${ERRFLAG_BAIDUPAN_FILE}" | grep -q "上传文件成功" || echo "${ERRFLAG_BAIDUPAN_FILE}" | grep -q "未检测到上传的文件") || (echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} fail (${ERRFLAG_BAIDUPAN_FILE})" && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} fail" > "${DIR_LOCAL}/${FNAME}.baidupan_fail_error.log")
+			(echo "${ERRFLAG_BAIDUPAN_FILE}" | grep -q "成功" || echo "${ERRFLAG_BAIDUPAN_FILE}" | grep -q "未检测到上传的文件") || (echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} fail (${ERRFLAG_BAIDUPAN_FILE})" && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} fail" > "${DIR_LOCAL}/${FNAME}.baidupan_fail_error.log")
 			
-			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log start" ; ERRFLAG_BAIDUPAN_LOG=$(BaiduPCS-Go upload "${DIR_LOCAL}/${FNAME}.log" "${DIR_BAIDUPAN}") ; LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-			(echo "${ERRFLAG_BAIDUPAN_LOG}" | grep -q "上传文件成功") && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log success (${ERRFLAG_BAIDUPAN_LOG})"
+			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log start" ; ERRFLAG_BAIDUPAN_LOG=$(BaiduPCS-Go upload "${DIR_LOCAL}/${FNAME}.log" "${DIR_BAIDUPAN}" | tail -n 5) ; LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+			(echo "${ERRFLAG_BAIDUPAN_LOG}" | grep -q "成功") && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log success (${ERRFLAG_BAIDUPAN_LOG})"
 			(echo "${ERRFLAG_BAIDUPAN_LOG}" | grep -q "未检测到上传的文件") && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log file not exist (${ERRFLAG_BAIDUPAN_LOG})" && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log file not exist" > "${DIR_LOCAL}/${FNAME}.log.baidupan_filenotexist_error.log"
-			(echo "${ERRFLAG_BAIDUPAN_LOG}" | grep -q "上传文件成功" || echo "${ERRFLAG_BAIDUPAN_LOG}" | grep -q "未检测到上传的文件") || (echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log fail (${ERRFLAG_BAIDUPAN_LOG})" && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log fail" > "${DIR_LOCAL}/${FNAME}.log.baidupan_fail_error.log")
+			(echo "${ERRFLAG_BAIDUPAN_LOG}" | grep -q "成功" || echo "${ERRFLAG_BAIDUPAN_LOG}" | grep -q "未检测到上传的文件") || (echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log fail (${ERRFLAG_BAIDUPAN_LOG})" && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log fail" > "${DIR_LOCAL}/${FNAME}.log.baidupan_fail_error.log")
 		fi
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") #清除文件
 		[[ "${BACKUP}" == *"keep" ]] && (echo "${LOG_PREFIX} force keep ${DIR_LOCAL}/${FNAME}" ; echo "${LOG_PREFIX} force keep ${DIR_LOCAL}/${FNAME}.log")
 		[[ "${BACKUP}" == *"del" ]] && (echo "${LOG_PREFIX} force delete ${DIR_LOCAL}/${FNAME}" ; rm -f "${DIR_LOCAL}/${FNAME}" ; echo "${LOG_PREFIX} force delete ${DIR_LOCAL}/${FNAME}.log" ; rm -f "${DIR_LOCAL}/${FNAME}.log")
-		[[ "${BACKUP}" == "onedrive" || "${BACKUP}" == "baidupan" || "${BACKUP}" == "both" ]] && [[ "${ERRFLAG_ONEDRIVE_FILE}" == 0 ]] && (echo "${ERRFLAG_BAIDUPAN_FILE}" | grep -q "上传文件成功") && (echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${FNAME}" ; rm -f "${DIR_LOCAL}/${FNAME}")
-		[[ "${BACKUP}" == "onedrive" || "${BACKUP}" == "baidupan" || "${BACKUP}" == "both" ]] && [[ "${ERRFLAG_ONEDRIVE_LOG}" == 0 ]] && (echo "${ERRFLAG_BAIDUPAN_LOG}" | grep -q "上传文件成功") && (echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${FNAME}.log" ; rm -f "${DIR_LOCAL}/${FNAME}.log")
+		[[ "${BACKUP}" == "onedrive" || "${BACKUP}" == "baidupan" || "${BACKUP}" == "both" ]] && [[ "${ERRFLAG_ONEDRIVE_FILE}" == 0 ]] && (echo "${ERRFLAG_BAIDUPAN_FILE}" | grep -q "成功") && (echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${FNAME}" ; rm -f "${DIR_LOCAL}/${FNAME}")
+		[[ "${BACKUP}" == "onedrive" || "${BACKUP}" == "baidupan" || "${BACKUP}" == "both" ]] && [[ "${ERRFLAG_ONEDRIVE_LOG}" == 0 ]] && (echo "${ERRFLAG_BAIDUPAN_LOG}" | grep -q "成功") && (echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${FNAME}.log" ; rm -f "${DIR_LOCAL}/${FNAME}.log")
 	fi
 	)&
 	
