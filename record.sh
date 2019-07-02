@@ -272,11 +272,9 @@ while true; do
 				echo "${LOG_PREFIX} remove existed livedl/${DLNAME}.ts and livedl/${DLNAME}.xml"
 				rm "livedl/${DLNAME}.ts" ; rm "livedl/${DLNAME}.xml"
 			fi
-			
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			echo "${LOG_PREFIX} convert livedl/${DLNAME}.sqlite3 to livedl/${DLNAME}.ts"
-			livedl/livedl -d2m -conv-ext=ts "livedl/${DLNAME}.sqlite3" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
-			
+			livedl/livedl -d2m -conv-ext=ts "${DLNAME}.sqlite3" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
 			if [[ ! -f "livedl/${DLNAME}".ts ]]; then
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 				echo "${LOG_PREFIX} convert fail remove livedl/${DLNAME}.ts and livedl/${DLNAME}.xml"
