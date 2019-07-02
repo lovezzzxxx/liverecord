@@ -1,7 +1,7 @@
 # liverecord
 record.sh为自动录播脚本，支持youtube频道、twitcast频道、twitch频道、openrec频道、mirrativ频道、reality频道、niconico生放送、niconico社区、niconico频道、bilibili直播间、其它streamlink支持的直播网址和ffmpeg支持的m3u8地址。  
 bilibili录制支持在youtube频道、twitcast频道、twitch频道、openrec频道、mirrativ频道、reality频道有直播时不进行录制，从而简单的排除转播的录制。
-支持按照录制分段， __注意分段时可能会导致十秒左右的视频缺失，对于niconico的录制分段可能导致livedl未进行转码而直接上传，直接播放可能会有乱码现象，需要使用livedl进行转码（`livedl -d2m 文件名` 详见livedl的github页面)__ 。  
+支持按照录制分段， __注意分段时可能会导致十秒左右的视频缺失__ 。  
 支持选择自动备份到onedrive或者百度云。支持选择是否根据上传结果保留本地文件。  
 如果因为偶发的检测异常导致没有直播时开始录制，进而产生没有相应录像文件的log文件，脚本将会自动删除这个没有对应录像文件的log文件。
  
@@ -32,7 +32,7 @@ nohup record.sh bilibili "12235923" best 7200 30 "record_video/mea_bilibili" bot
 第二个参数必选，选择频道号码。其中youtube、twitcast、twitch、openrec、mirrativ为对应网站个人主页网址中的ID部分，reality为频道名称(如果为部分名字则匹配含有这些文字的其中一个频道)或vlive_id(获取方法可于脚本内查找)，nicolv为niconico生放送号码(如lv320447549)，nicoco为niconico社区号码(如co41030)，nicoch为niconico频道号码(如macoto2525)，bilibili为直播间号码，streamlink为直播网址，m3u8为直播m3u8文件网址。  
 
 第三个参数可选，选择清晰度，默认为best。  
-第四个参数可选，选择是否循环或者录制分段时间，默认为loop。如果指定为once则会在检测到直播并进行一次录制后终止，如果指定为数字则会在录制进行相应秒数时分段，使用视频分段功能时为loop模式。 __注意分段时可能会导致十秒左右的视频缺失，对于niconico的录制分段可能导致livedl未进行转码而直接上传，直接播放可能会有乱码现象，需要使用livedl进行转码（`livedl -d2m 文件名` 详见livedl的github页面)__ 。  
+第四个参数可选，选择是否循环或者录制分段时间，默认为loop。如果指定为once则会在检测到直播并进行一次录制后终止，如果指定为数字则会在录制进行相应秒数时分段，使用视频分段功能时为loop模式。 __注意分段时可能会导致十秒左右的视频缺失__ 。  
 第五个参数可选，选择监视间隔，默认为10秒。  
 第六个参数可选，选择本地录像存放目录，默认为record_video/other文件夹。  
 第七个参数可选，选择是否自动备份，默认为nobackup。可选参数为nobackup、onedrive、baidupan、both、onedrivenot、baidupannot、bothnot、onedrivedel、baidupandel、bothdel。其中onedrive、baidupan、both分别指上传onedrive、上传百度云、同时上传，在一次录制完成后开始上传，上传路径与本地路径相同，如果上传成功则删除本地文件，上传失败将会保留本地文件。带有keep的参数即使上传成功也会保留本地文件。带有del的参数即使上传失败也会删除本地文件。  
