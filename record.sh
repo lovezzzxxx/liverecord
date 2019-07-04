@@ -15,7 +15,7 @@ fi
 
 
 
-NICO_ID_PSW=$(echo "$1" | awk -F":" '{print $2}')
+NICO_ID_PSW=$(echo "${1}" | awk -F":" '{print $2}')
 PART_URL="${2}" #频道号码
 FORMAT="${3:-best}" #清晰度
 LOOPORTIME="${4:-loop}" #是否循环或者视频分段时间
@@ -209,11 +209,12 @@ while true; do
 		if [[ "${1}" == "twitcast" ]]; then
 			livedl/livedl -tcas "${PART_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
-		if [[ "${1}" == "nicolv" || "${1}" == "nicoco" || "${1}" == "nicoch" ]]; then
-			livedl/livedl -nico-login-only=off -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico-auto-convert=on -conv-ext=ts -nico-auto-delete-mode 2 -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
-		fi
-		if [[ "${1}" == "nicolv:"* || "${1}" == "nicoco:"* || "${1}" == "nicoch:"* ]]; then
-			livedl/livedl -nico-login-only=on -nico-login "${NICO_ID_PSW}" -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico-auto-convert=on -conv-ext=ts -nico-auto-delete-mode 2 -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
+		if [[ "${1}" == "nicolv"* || "${1}" == "nicoco"* || "${1}" == "nicoch"* ]]; then
+			if [[ -n "${NICO_ID_PSW}" ]]; then
+				livedl/livedl -nico-login-only=on -nico-login "${NICO_ID_PSW}" -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico-auto-convert=on -conv-ext=ts -nico-auto-delete-mode 2 -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
+			else
+				livedl/livedl -nico-login-only=off -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico-auto-convert=on -conv-ext=ts -nico-auto-delete-mode 2 -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
+			fi
 		fi
 		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "youtubecurlffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "bilibili" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
 			ffmpeg -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
@@ -228,11 +229,12 @@ while true; do
 		if [[ "${1}" == "twitcast" ]]; then
 			(livedl/livedl -tcas "${PART_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
-		if [[ "${1}" == "nicolv" || "${1}" == "nicoco" || "${1}" == "nicoch" ]]; then
-			(livedl/livedl -nico-login-only=off -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico-auto-convert=on -conv-ext=ts -nico-auto-delete-mode 2 -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
-		fi
-		if [[ "${1}" == "nicolv:"* || "${1}" == "nicoco:"* || "${1}" == "nicoch:"* ]]; then
-			(livedl/livedl -nico-login-only=on -nico-login "${NICO_ID_PSW}" -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico-auto-convert=on -conv-ext=ts -nico-auto-delete-mode 2 -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+		if [[ "${1}" == "nicolv"* || "${1}" == "nicoco"* || "${1}" == "nicoch"* ]]; then
+			if [[ -n "${NICO_ID_PSW}" ]]; then
+				(livedl/livedl -nico-login-only=on -nico-login "${NICO_ID_PSW}" -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico-auto-convert=on -conv-ext=ts -nico-auto-delete-mode 2 -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+			else
+				(livedl/livedl -nico-login-only=off -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico-auto-convert=on -conv-ext=ts -nico-auto-delete-mode 2 -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+			fi
 		fi
 		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "youtubecurlffmpeg"|| "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "bilibili" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
 			(ffmpeg -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
@@ -267,28 +269,28 @@ while true; do
 	fi
 	(
 	if [[ "${1}" == "nicolv"* || "${1}" == "nicoco"* || "${1}" == "nicoch"* ]]; then
-		if [[ -f "livedl/${DLNAME}.sqlite3" ]]; then
-			if [[ -f "livedl/${DLNAME}.ts" ]]; then
+		if [[ -f "livedl/${DLNAME}"*".sqlite3" ]]; then
+			if [[ -f "livedl/${DLNAME}"*".ts" ]]; then
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 				echo "${LOG_PREFIX} remove existed livedl/${DLNAME}*.ts and livedl/${DLNAME}*.xml"
-				rm "livedl/${DLNAME}*.ts" ; rm "livedl/${DLNAME}*.xml"
+				rm "livedl/${DLNAME}"*".ts" ; rm "livedl/${DLNAME}"*".xml"
 			fi
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			echo "${LOG_PREFIX} convert livedl/${DLNAME}*.sqlite3 to livedl/${DLNAME}*.ts"
-			livedl/livedl -d2m -conv-ext=ts "${DLNAME}*.sqlite3" >> "${DIR_LOCAL}/${FNAME}*.log" 2>&1
+			livedl/livedl -d2m -conv-ext=ts "${DLNAME}"*".sqlite3" >> "${DIR_LOCAL}/${FNAME}"*".log" 2>&1
 			if [[ ! -f "livedl/${DLNAME}".ts ]]; then
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 				echo "${LOG_PREFIX} convert fail remove livedl/${DLNAME}*.ts and livedl/${DLNAME}.xml"
-				rm "livedl/${DLNAME}*.ts" ; rm "livedl/${DLNAME}*.xml"
+				rm "livedl/${DLNAME}"*".ts" ; rm "livedl/${DLNAME}"*".xml"
 			else
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 				echo "${LOG_PREFIX} convert success remove livedl/${DLNAME}*.sqlite3 and livedl/${DLNAME}*.xml"
-				rm "livedl/${DLNAME}*.sqlite3" ; rm "livedl/${DLNAME}*.xml"
+				rm "livedl/${DLNAME}"*".sqlite3" ; rm "livedl/${DLNAME}"*".xml"
 			fi
 		fi
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 		echo "${LOG_PREFIX} remane livedl/${DLNAME}*.ts to ${DIR_LOCAL}/${FNAME}"
-		mv "livedl/${DLNAME}*.ts" "${DIR_LOCAL}/${FNAME}"
+		mv "livedl/${DLNAME}"*".ts" "${DIR_LOCAL}/${FNAME}"
 	fi
 	
 	
