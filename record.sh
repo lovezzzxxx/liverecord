@@ -115,8 +115,9 @@ while true; do
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			echo "${LOG_PREFIX} metadata ${FULL_URL}"
 			LIVE_URL=$(curl -s "https://ch.nicovideo.jp/${PART_URL}/live" | awk 'BEGIN{RS="<section class=";FS="\n";ORS="\n";OFS="\t"} $1 ~ /sub now/ {LIVE_POS=match($0,"https://live.nicovideo.jp/watch/lv[0-9]*");LIVE=substr($0,LIVE_POS,RLENGTH);print LIVE}' | head -n 1)
-			[[ -n "${LIVE_URL}" ]] || LIVE_URL="https://live.nicovideo.jp/watch/lv$(curl -s "https://ch.nicovideo.jp/${PART_URL}" | grep -o "data-live_id=\"[0-9]*\" data-live_status=\"onair\"" | head -n 1 | awk -F'"' '{print $2}')"
-			[[ -n "${LIVE_URL}" ]] && break
+			[[ -n "${LIVE_URL}" ]] && break			
+			LIVE_ID=$(curl -s "https://ch.nicovideo.jp/${PART_URL}" | grep -o "data-live_id=\"[0-9]*\" data-live_status=\"onair\"" | head -n 1 | awk -F'"' '{print $2}') ; LIVE_URL="https://live.nicovideo.jp/watch/lv${LIVE_ID}"
+			[[ -n "${LIVE_ID}" ]] && break
 		fi
 		
 		if [[ "${1}" == "bilibili" ]]; then
