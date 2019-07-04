@@ -9,7 +9,7 @@ bilibili录制支持在youtube频道、twitcast频道、twitch频道、openrec�
 
 # 环境依赖
 自动录播需要curl，[ffmpeg](https://github.com/FFmpeg/FFmpeg)，[streamlink](https://github.com/streamlink/streamlink)(基于python3)，[livedl](https://github.com/himananiito/livedl)(基于go)。  
-其中livedl为可选，目的是支持twitcast高清录制和niconico相关的录制， __请将编译完成的livedl文件放置于用户目录的livedl/文件夹内__  。如果不希望使用livedl可以选择twitcastffmpeg参数而非twitcast参数进行twitcast的录制，无法进行niconico的录制。  
+其中livedl为可选，目的是支持twitcast高清录制和niconico相关的录制， __请将编译完成的livedl文件放置于用户目录的livedl/文件夹内__  。如果不希望使用livedl可以选择twitcastffmpeg参数而非twitcast参数进行twitcast的录制，无法进行niconico的录制。 __注意依赖于livedl的录制请不要重复录制同一个直播（即使用重复的多个livedl进程录制同一个直播），使用livedl录制同一个twitcast直播会导致文件命名错误，使用livedl重复录制同一个niconico直播会导致websocket冲突。__  
 
 onedrive自动备份功能需要[OneDrive for Business on Bash](https://github.com/0oVicero0/OneDrive)，在服务器获取授权后即可使用。  
 百度云自动备份功能需要[BaiduPCS-Go](https://github.com/iikira/BaiduPCS-Go)，在服务器登陆后即可使用。如果上传不稳定建议尝试修改设置为使用https方式上传。  
