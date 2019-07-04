@@ -262,35 +262,53 @@ while true; do
 		done
 	fi
 	
+	
+	
 	if [[ "${1}" == "twitcast" ]]; then
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 		echo "${LOG_PREFIX} remane livedl/${DLNAME} to ${DIR_LOCAL}/${FNAME}"
 		mv "livedl/${DLNAME}" "${DIR_LOCAL}/${FNAME}"
 	fi
+	
 	(
 	if [[ "${1}" == "nicolv"* || "${1}" == "nicoco"* || "${1}" == "nicoch"* ]]; then
-		if [[ -f "livedl/${DLNAME}"*".sqlite3" ]]; then
-			if [[ -f "livedl/${DLNAME}"*".ts" ]]; then
+		if [[ -f "livedl/${DLNAME}.sqlite3" ]]; then
+			if [[ -f "livedl/${DLNAME}.ts" ]]; then
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-				echo "${LOG_PREFIX} remove existed livedl/${DLNAME}*.ts and livedl/${DLNAME}*.xml"
-				rm "livedl/${DLNAME}"*".ts" ; rm "livedl/${DLNAME}"*".xml"
+				echo "${LOG_PREFIX} remove existed livedl/${DLNAME}.ts and livedl/${DLNAME}.xml"
+				rm "livedl/${DLNAME}.ts" ; rm "livedl/${DLNAME}.xml"
 			fi
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-			echo "${LOG_PREFIX} convert livedl/${DLNAME}*.sqlite3 to livedl/${DLNAME}*.ts"
-			livedl/livedl -d2m -conv-ext=ts "${DLNAME}"*".sqlite3" >> "${DIR_LOCAL}/${FNAME}"*".log" 2>&1
-			if [[ ! -f "livedl/${DLNAME}".ts ]]; then
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-				echo "${LOG_PREFIX} convert fail remove livedl/${DLNAME}*.ts and livedl/${DLNAME}.xml"
-				rm "livedl/${DLNAME}"*".ts" ; rm "livedl/${DLNAME}"*".xml"
-			else
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-				echo "${LOG_PREFIX} convert success remove livedl/${DLNAME}*.sqlite3 and livedl/${DLNAME}*.xml"
-				rm "livedl/${DLNAME}"*".sqlite3" ; rm "livedl/${DLNAME}"*".xml"
-			fi
+			echo "${LOG_PREFIX} convert start livedl/${DLNAME}.sqlite3 to livedl/${DLNAME}.ts"
+			livedl/livedl -d2m -conv-ext=ts "${DLNAME}.sqlite3" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
+			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+			echo "${LOG_PREFIX} convert stopped remove livedl/${DLNAME}.sqlite3 and livedl/${DLNAME}.xml"
+			rm "livedl/${DLNAME}.sqlite3" ; rm "livedl/${DLNAME}.xml"
 		fi
-		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-		echo "${LOG_PREFIX} remane livedl/${DLNAME}*.ts to ${DIR_LOCAL}/${FNAME}"
-		mv "livedl/${DLNAME}"*".ts" "${DIR_LOCAL}/${FNAME}"
+		if [[ -f "livedl/${DLNAME}".ts ]]; then
+			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+			echo "${LOG_PREFIX} remane livedl/${DLNAME}.ts to ${DIR_LOCAL}/${FNAME}"
+			mv "livedl/${DLNAME}.ts" "${DIR_LOCAL}/${FNAME}"
+		fi
+		
+		if [[ -f "livedl/${DLNAME}(TS).sqlite3" ]]; then
+			if [[ -f "livedl/${DLNAME}(TS).ts" ]]; then
+				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+				echo "${LOG_PREFIX} remove existed livedl/${DLNAME}(TS).ts and livedl/${DLNAME}(TS).xml"
+				rm "livedl/${DLNAME}(TS).ts" ; rm "livedl/${DLNAME}(TS).xml"
+			fi
+			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+			echo "${LOG_PREFIX} convert start livedl/${DLNAME}(TS).sqlite3 to livedl/${DLNAME}(TS).ts"
+			livedl/livedl -d2m -conv-ext=ts "${DLNAME}(TS).sqlite3" >> "${DIR_LOCAL}/${FNAME}.log" 2>&1
+			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+			echo "${LOG_PREFIX} convert stopped remove livedl/${DLNAME}(TS).sqlite3 and livedl/${DLNAME}(TS).xml"
+			rm "livedl/${DLNAME}(TS).sqlite3" ; rm "livedl/${DLNAME}(TS).xml"
+		fi
+		if [[ -f "livedl/${DLNAME}(TS)".ts ]]; then
+			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+			echo "${LOG_PREFIX} remane livedl/${DLNAME}(TS).ts to ${DIR_LOCAL}/${FNAME}"
+			mv "livedl/${DLNAME}(TS).ts" "${DIR_LOCAL}/${FNAME}"
+		fi
 	fi
 	
 	
