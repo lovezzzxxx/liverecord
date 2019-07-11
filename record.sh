@@ -2,10 +2,11 @@
 
 if [[ ! -n "${1}" ]]; then
 	echo "${0} youtube|youtubeffmpeg|youtubecurl|youtubecurlffmpeg|twitcast|twitcastffmpeg|twitch|openrec|mirrativ|reality|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|bilibili|streamlink|m3u8 \"频道号码\" [best|其他清晰度] [loop|once|视频分段时间] [10|其他监视间隔] [\"record_video/other|其他本地目录\"] [nobackup|onedrive|baidupan|both|onedrivekeep|baidupankeep|bothkeep|onedrivedel|baidupandel|bothdel] [\"noexcept|排除转播的youtube频道号码\"] [\"noexcept|排除转播的twitcast频道号码\"] [\"noexcept|排除转播的twitch频道号码\"] [\"noexcept|排除转播的openrec频道号码\"] [\"noexcept|排除转播的reality频道号码\"] [\"noexcept|排除转播的streamlink支持的频道网址\"]"
-	echo "示例：${0} bilibili \"12235923\" best 14400 30 \"record_video/mea_bilibili\" both \"UCWCc8tO-uUl_7SJXIKJACMw\" \"kaguramea\" \"kagura0mea\" \"KaguraMea\" "
-	echo "仅bilibili支持排除转播功能"
-	echo "必要模块为youtube-dl、streamlink、ffmpeg，可选模块为livedl、请将livedl文件放置于此用户目录livedl文件夹内。"
+	echo "示例：${0} bilibili \"12235923\" best,1080p60,1080p,720p,480p,360p,worst 14400 30 \"record_video/mea_bilibili\" both \"UCWCc8tO-uUl_7SJXIKJACMw\" \"kaguramea\" \"kagura0mea\" \"KaguraMea\" "
+	echo "必要模块为curl、streamlink、ffmpeg，可选模块为livedl、请将livedl文件放置于此用户目录livedl文件夹内。"
 	echo "onedrive自动备份基于\"https://github.com/0oVicero0/OneDrive\"，百度云自动备份基于BaiduPCS-Go，请登录后使用。"
+	echo "注意使用ffmpeg录制youtube直播仅支持1080p以下的清晰度，请不要使用best和1080p60的参数"
+	echo "仅bilibili支持排除转播功能"
 	exit 1
 fi
 
@@ -62,7 +63,7 @@ while true; do
 		if [[ "${1}" == "youtube" || "${1}" == "youtubeffmpeg" ]]; then
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			echo "${LOG_PREFIX} metadata ${FULL_URL}" #检测直播
-			STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}")
+			STREAM_URL=$(streamlink --stream-url "${FULL_URL}" worst)
 			(echo "${STREAM_URL}" | grep -q ".m3u8") && break
 		fi
 		if [[ "${1}" == "youtubecurl" || "${1}" == "youtubecurlffmpeg" ]]; then
@@ -127,7 +128,7 @@ while true; do
 				if [[ "${EXCEPT_YOUTUBE_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 					echo "${LOG_PREFIX} metadata ${EXCEPT_YOUTUBE_FULL_URL}" #检测排除直播
-					EXCEPT_YOUTUBE_STREAM_URL=$(streamlink --stream-url "${EXCEPT_YOUTUBE_FULL_URL}" "${FORMAT}")
+					EXCEPT_YOUTUBE_STREAM_URL=$(streamlink --stream-url "${EXCEPT_YOUTUBE_FULL_URL}" worst)
 					(echo "${EXCEPT_YOUTUBE_STREAM_URL}" | grep -q ".m3u8") && echo "${LOG_PREFIX} ${EXCEPT_YOUTUBE_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
 				fi
 				if [[ "${EXCEPT_TWITCAST_PART_URL}" != "noexcept" ]]; then
