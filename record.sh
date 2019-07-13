@@ -213,9 +213,9 @@ while true; do
 		fi
 		if [[ "${1}" == "nicolv"* || "${1}" == "nicoco"* || "${1}" == "nicoch"* ]]; then
 			if [[ -n "${NICO_ID_PSW}" ]]; then
-				livedl/livedl -nico-login-only=on -nico-login "${NICO_ID_PSW}" -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico-auto-convert=on -conv-ext=ts -nico-auto-delete-mode 2 -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
+				livedl/livedl -nico-login-only=on -nico-login "${NICO_ID_PSW}" -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
 			else
-				livedl/livedl -nico-login-only=off -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico-auto-convert=on -conv-ext=ts -nico-auto-delete-mode 2 -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
+				livedl/livedl -nico-login-only=off -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
 			fi
 		fi
 		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "youtubecurlffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "bilibili" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
