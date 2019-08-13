@@ -342,9 +342,9 @@ while true; do
 		echo "${LOG_PREFIX} ${DIR_LOCAL}/${FNAME} file not exist, remove ${DIR_LOCAL}/${FNAME}.log"
 		rm -f "${DIR_LOCAL}/${FNAME}.log"
 	else
+		ONEDRIVE_FILE_RETRY=1
+		ONEDRIVE_FILE_ERRFLAG=0
 		if [[ "${BACKUP}" == "onedrive"* || "${BACKUP}" == "both"* ]]; then
-			ONEDRIVE_FILE_RETRY=1
-			ONEDRIVE_FILE_ERRFLAG=0
 			until [[ ${ONEDRIVE_FILE_RETRY} -gt ${BACKUP_RETRY} ]]; do
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 				echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} start retry ${ONEDRIVE_FILE_RETRY}"
@@ -356,9 +356,9 @@ while true; do
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			[[ "${ONEDRIVE_FILE_ERRFLAG}" == 0 ]] || echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} fail"
 		fi
+		ONEDRIVE_LOG_RETRY=1
+		ONEDRIVE_LOG_ERRFLAG=0
 		if [[ "${BACKUP}" == "onedrive"* || "${BACKUP}" == "both"* ]]; then
-			ONEDRIVE_LOG_RETRY=1
-			ONEDRIVE_LOG_ERRFLAG=0
 			until [[ ${ONEDRIVE_LOG_RETRY} -gt ${BACKUP_RETRY} ]]; do
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 				echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log start retry ${ONEDRIVE_LOG_RETRY}"
@@ -370,9 +370,10 @@ while true; do
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			[[ "${ONEDRIVE_LOG_ERRFLAG}" == 0 ]] || echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log fail"
 		fi
+		BAIDUPAN_FILE_RETRY=1
+		BAIDUPAN_FILE_ERRFLAG="成功"
 		if [[ "${BACKUP}" == "baidupan"* || "${BACKUP}" == "both"* ]]; then
-			BAIDUPAN_FILE_RETRY=1
-			BAIDUPAN_FILE_ERRFLAG="成功"
+			
 			until [[ ${BAIDUPAN_FILE_RETRY} -gt ${BACKUP_RETRY} ]]; do
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 				echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} start retry ${BAIDUPAN_FILE_RETRY}"
@@ -383,9 +384,9 @@ while true; do
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			(echo "${BAIDUPAN_FILE_ERRFLAG}" | grep -q "成功") || echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} fail"
 		fi
+		BAIDUPAN_LOG_RETRY=1
+		BAIDUPAN_LOG_ERRFLAG="成功"
 		if [[ "${BACKUP}" == "baidupan"* || "${BACKUP}" == "both"* ]]; then
-			BAIDUPAN_LOG_RETRY=1
-			BAIDUPAN_LOG_ERRFLAG="成功"
 			until [[ ${BAIDUPAN_LOG_RETRY} -gt ${BACKUP_RETRY} ]]; do
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 				echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log start retry ${BAIDUPAN_LOG_RETRY}"
