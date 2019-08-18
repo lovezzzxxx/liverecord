@@ -354,7 +354,7 @@ while true; do
 				let ONEDRIVE_FILE_RETRY++
 			done
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-			[[ "${ONEDRIVE_FILE_ERRFLAG}" == 0 ]] || echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} fail"
+			[[ "${ONEDRIVE_FILE_ERRFLAG}" == 0 ]] || echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} fail" && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} fail" > "${DIR_LOCAL}/${FNAME}.onedrivefail.log" && echo "${ONEDRIVE_FILE_ERRFLAG}" >> "${DIR_LOCAL}/${FNAME}.onedrivefail.log"
 		fi
 		ONEDRIVE_LOG_RETRY=1
 		ONEDRIVE_LOG_ERRFLAG=0
@@ -368,7 +368,7 @@ while true; do
 				let ONEDRIVE_LOG_RETRY++
 			done
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-			[[ "${ONEDRIVE_LOG_ERRFLAG}" == 0 ]] || echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log fail"
+			[[ "${ONEDRIVE_LOG_ERRFLAG}" == 0 ]] || echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log fail" && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log fail" > "${DIR_LOCAL}/${FNAME}.log.onedrivefail.log" && echo "${ONEDRIVE_LOG_ERRFLAG}" >> "${DIR_LOCAL}/${FNAME}.log.onedrivefail.log"
 		fi
 		BAIDUPAN_FILE_RETRY=1
 		BAIDUPAN_FILE_ERRFLAG="成功"
@@ -382,7 +382,7 @@ while true; do
 				let BAIDUPAN_FILE_RETRY++
 			done
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-			(echo "${BAIDUPAN_FILE_ERRFLAG}" | grep -q "成功") || echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} fail"
+			(echo "${BAIDUPAN_FILE_ERRFLAG}" | grep -q "成功") || echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} fail" && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} fail" > "${DIR_LOCAL}/${FNAME}.baidupanfail.log" && echo "${BAIDUPAN_FILE_ERRFLAG}" >> "${DIR_LOCAL}/${FNAME}.baidupanfail.log"
 		fi
 		BAIDUPAN_LOG_RETRY=1
 		BAIDUPAN_LOG_ERRFLAG="成功"
@@ -395,7 +395,7 @@ while true; do
 				let BAIDUPAN_LOG_RETRY++
 			done
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-			(echo "${BAIDUPAN_FILE_ERRFLAG}" | grep -q "成功") || echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log fail"
+			(echo "${BAIDUPAN_FILE_ERRFLAG}" | grep -q "成功") || echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log fail" && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log fail" > "${DIR_LOCAL}/${FNAME}.log.baidupanfail.log" && echo "${BAIDUPAN_LOG_ERRFLAG}" >> "${DIR_LOCAL}/${FNAME}.log.baidupanfail.log"
 		fi
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") #清除文件
 		[[ "${BACKUP}" == *"keep" ]] && (echo "${LOG_PREFIX} force keep ${DIR_LOCAL}/${FNAME}" ; echo "${LOG_PREFIX} force keep ${DIR_LOCAL}/${FNAME}.log")
