@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ ! -n "${1}" ]]; then
-	echo "${0} youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|streamlink|m3u8 \"频道号码\" [best|其他清晰度] [loop|once|视频分段时间] [10|循环检测间隔,录制结束后等待间隔] [\"record_video/other|其他本地目录\"] [nobackup|onedrive重试次数|baidupan重试次数|both重试次数|onedrive重试次数keep|baidupan重试次数keep|both重试次数keep|onedrive重试次数del|baidupan重试次数del|both重试次数del] [\"noexcept|排除转播的youtube频道号码\"] [\"noexcept|排除转播的twitcast频道号码\"] [\"noexcept|排除转播的twitch频道号码\"] [\"noexcept|排除转播的openrec频道号码\"] [\"noexcept|排除转播的nicolv频道号码\"] [\"noexcept|排除转播的nicoco频道号码\"] [\"noexcept|排除转播的nicoch频道号码\"] [\"noexcept|排除转播的mirrativ频道号码\"] [\"noexcept|排除转播的reality频道号码\"] [\"noexcept|排除转播的17live频道号码\"] [\"noexcept|排除转播的streamlink支持的频道网址\"]"
+	echo "${0} youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|streamlink|m3u8 \"频道号码\" [best|其他清晰度] [loop|once|视频分段时间] [10|循环检测间隔,最短录制间隔] [\"record_video/other|其他本地目录\"] [nobackup|onedrive重试次数|baidupan重试次数|both重试次数|onedrive重试次数keep|baidupan重试次数keep|both重试次数keep|onedrive重试次数del|baidupan重试次数del|both重试次数del] [\"noexcept|排除转播的youtube频道号码\"] [\"noexcept|排除转播的twitcast频道号码\"] [\"noexcept|排除转播的twitch频道号码\"] [\"noexcept|排除转播的openrec频道号码\"] [\"noexcept|排除转播的nicolv频道号码\"] [\"noexcept|排除转播的nicoco频道号码\"] [\"noexcept|排除转播的nicoch频道号码\"] [\"noexcept|排除转播的mirrativ频道号码\"] [\"noexcept|排除转播的reality频道号码\"] [\"noexcept|排除转播的17live频道号码\"] [\"noexcept|排除转播的streamlink支持的频道网址\"]"
 	echo "示例：${0} bilibili \"12235923\" best,1080p60,1080p,720p,480p,360p,worst 14400 30,5 \"record_video/mea_bilibili\" both3keep \"UCWCc8tO-uUl_7SJXIKJACMw\" \"kaguramea\" \"kagura0mea\" \"KaguraMea\" "
 	echo "必要模块为curl、streamlink、ffmpeg，可选模块为livedl、请将livedl文件放置于此用户目录livedl文件夹内。"
 	echo "onedrive自动备份基于\"https://github.com/0oVicero0/OneDrive\"，百度云自动备份基于BaiduPCS-Go，请登录后使用。"
@@ -20,7 +20,7 @@ NICO_ID_PSW=$(echo "${1}" | awk -F":" '{print $2}')
 PART_URL="${2}" #频道号码
 FORMAT="${3:-best}" #清晰度
 LOOPORTIME="${4:-loop}" #是否循环或者视频分段时间
-LOOPINTERVAL_ENDINTERVAL="${5:-10}" ; LOOPINTERVAL=$(echo "${LOOPINTERVAL_ENDINTERVAL}" | grep -o "^[0-9]*") ; ENDINTERVAL=$(echo "${LOOPINTERVAL_ENDINTERVAL}" | grep -o "[0-9]*$") #循环检测间隔,录制结束后等待间隔
+LOOPINTERVAL_ENDINTERVAL="${5:-10}" ; LOOPINTERVAL=$(echo "${LOOPINTERVAL_ENDINTERVAL}" | grep -o "^[0-9]*") ; ENDINTERVAL=$(echo "${LOOPINTERVAL_ENDINTERVAL}" | grep -o "[0-9]*$") #循环检测间隔,最短录制间隔
 DIR_LOCAL="${6:-record_video/other}" #本地目录
 BACKUP="${7:-nobackup}" #自动备份
 EXCEPT_YOUTUBE_PART_URL="${8:-noexcept}" #排除转播的频道号码
@@ -240,6 +240,10 @@ while true; do
 	if [[ "${1}" == "streamlink" ]]; then FNAME="stream_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "m3u8" ]]; then STREAM_URL="${FULL_URL}" ; FNAME="m3u8_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	
+	
+	
+	RECORDENDTIME=$(( $(date +%s)+${ENDINTERVAL} )) #最短录制间隔时间戳
+	
 	if [[ "${LOOPORTIME}" == "once" || "${LOOPORTIME}" == "loop" ]]; then
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 		echo "${LOG_PREFIX} record start" #开始录制
@@ -410,7 +414,11 @@ while true; do
 	
 	[[ "${LOOP}" == "once" ]] && break
 	
-	LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-	echo "${LOG_PREFIX} record end retry after ${ENDINTERVAL} seconds..."
-	sleep ${ENDINTERVAL}
+	if [[ $(date +%s) -lt ${RECORDENDTIME} ]]; then
+		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+		ENDINTERVALREMAIN=$(( ${RECORDENDTIME}-$(date +%s) ))
+		[[ ENDINTERVALREMAIN -lt 0 ]] && ENDINTERVALREMAIN=0
+		echo "${LOG_PREFIX} record end retry after ${ENDINTERVALREMAIN} seconds..."
+		sleep ${ENDINTERVALREMAIN}
+	fi
 done
