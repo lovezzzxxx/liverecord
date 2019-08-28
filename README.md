@@ -16,14 +16,14 @@ onedrive自动备份功能需要[OneDrive for Business on Bash](https://github.c
 
 # 自动录播使用方法
 ### 方法
-`record.sh youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|streamlink|m3u8 \"频道号码\" [best|其他清晰度] [loop|once|视频分段时间] [10|其他监视间隔] [\"record_video/other|其他本地目录\"] [nobackup|onedrive重试次数|baidupan重试次数|both重试次数|onedrive重试次数keep|baidupan重试次数keep|both重试次数keep|onedrive重试次数del|baidupan重试次数del|both重试次数del] [\"noexcept|排除转播的youtube频道号码\"] [\"noexcept|排除转播的twitcast频道号码\"] [\"noexcept|排除转播的twitch频道号码\"] [\"noexcept|排除转播的openrec频道号码\"] [\"noexcept|排除转播的nicolv频道号码\"] [\"noexcept|排除转播的nicoco频道号码\"] [\"noexcept|排除转播的nicoch频道号码\"] [\"noexcept|排除转播的mirrativ频道号码\"] [\"noexcept|排除转播的reality频道号码\"] [\"noexcept|排除转播的17live频道号码\"] [\"noexcept|排除转播的streamlink支持的频道网址\"]`  
+`record.sh youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|streamlink|m3u8 \"频道号码\" [best|其他清晰度] [loop|once|视频分段时间] [10|循环检测间隔,最短录制间隔] [\"record_video/other|其他本地目录\"] [nobackup|onedrive重试次数|baidupan重试次数|both重试次数|onedrive重试次数keep|baidupan重试次数keep|both重试次数keep|onedrive重试次数del|baidupan重试次数del|both重试次数del] [\"noexcept|排除转播的youtube频道号码\"] [\"noexcept|排除转播的twitcast频道号码\"] [\"noexcept|排除转播的twitch频道号码\"] [\"noexcept|排除转播的openrec频道号码\"] [\"noexcept|排除转播的nicolv频道号码\"] [\"noexcept|排除转播的nicoco频道号码\"] [\"noexcept|排除转播的nicoch频道号码\"] [\"noexcept|排除转播的mirrativ频道号码\"] [\"noexcept|排除转播的reality频道号码\"] [\"noexcept|排除转播的17live频道号码\"] [\"noexcept|排除转播的streamlink支持的频道网址\"]`  
 ### 示例
 ```
 record.sh youtube "UCWCc8tO-uUl_7SJXIKJACMw"   #使用默认参数录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw
 
 record.sh youtubeffmpeg "UCWCc8tO-uUl_7SJXIKJACMw" 1080p,720p,480p,360p,worst once loop 30 "record_video/mea" both   #使用ffmpeg录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw，依次获取1080p 720p 480p 360p worst第一个可用的清晰度，在检测到直播并进行一次录制后终止，间隔30秒检测，录像保存于record_video/mea文件夹中，录制完成后自动上传到onedrive和百度云相同路径并在上传结束后删除本地录像，如果上传失败则会保留本地录像
 
-nohup record.sh bilibili "12235923" best 7200 30 "record_video/mea_bilibili" both3keep "UCWCc8tO-uUl_7SJXIKJACMw" "kaguramea" "kagura0mea" "KaguraMea" > mea_bilibili.log &   #后台录制https://www.twitch.tv/kagura0mea，最高清晰度，循环检测并在录制进行7200秒时分段，间隔30秒检测，录像保存于record_video/mea文件夹中，录制完成后自动上传到onedrive和百度云相同路径，如果出错则重试三次，上传完成后无论成功与否都保留本地录像，log记录保存于mea_bilibili.log文件
+nohup record.sh bilibili "12235923" best 7200 30,5 "record_video/mea_bilibili" both3keep "UCWCc8tO-uUl_7SJXIKJACMw" "kaguramea" "kagura0mea" "KaguraMea" > mea_bilibili.log &   #后台录制https://www.twitch.tv/kagura0mea，最高清晰度，循环检测并在录制进行7200秒时分段，间隔30秒检测，录像保存于record_video/mea文件夹中，录制完成后自动上传到onedrive和百度云相同路径，如果出错则重试三次，上传完成后无论成功与否都保留本地录像，如果距离录制开始不足5秒则等待到5秒再开始下一次检测，log记录保存于mea_bilibili.log文件
  ```
 ### 参数说明
 第一个参数必选，选择录制平台。可选参数为youtube、youtubeffmpeg、twitcast、twitcastffmpeg、twitch、openrec、nicolv、nicoco、nicoch、mirrativ、reality、17live、bilibili、streamlink、m3u8，如果需要登陆nico账号进行nico相关的录制请使用`nicolv:用户名,密码` 、 `nicoco:用户名,密码` 、 `nicoch:用户名,密码`。youtubeffmpeg参数为使用ffmpeg录制youtube。twitch参数使用streamlink判断直播状态系统占用较多。twitcastffmpeg参数为使用ffmpeg录制twitcasting，无法录制高清流但不需要livedl。nicolv、nicoco、nicoch参数都需要livedl。 __注意依赖于livedl的录制请尽量不要重复录制同一个直播（即使用重复的多个livedl进程录制同一个直播），使用livedl录制同一个twitcast直播虽然都能正常进行录制但文件名将带-2后缀，使用livedl重复录制同一个niconico直播文件名相同会导致数据库锁定（可以在调用livedl时通过`-nico-format 文件名`参数指定文件名避免，本脚本已设置此参数所以应该不会出现文件名冲突）和相同账号重复登陆会导致websocket冲突（即同一直播同一账号只能进行一个录制，可以通过不使用登陆功能避免，即同一直播可以同时进行多个未登陆的录制，但只有登陆才能使用timeshift和会员限定这样的功能）。__  
@@ -31,7 +31,7 @@ nohup record.sh bilibili "12235923" best 7200 30 "record_video/mea_bilibili" bot
 
 第三个参数可选，选择清晰度，默认为best。可以用,分隔来指定多个清晰度，将会依次获取尝试直到获取第一个可用的清晰度。 __注意streamlink对于1080p60及以上清晰度的录制并不稳定，请尽量不要使用best或1080p60及以上的参数__ 。 __注意使用ffmpeg录制youtube直播仅支持1080p以下的清晰度，请不要使用best或1080p60及以上的参数__ 。  
 第四个参数可选，选择是否循环或者录制分段时间，默认为loop。如果指定为once则会在检测到直播并进行一次录制后终止，如果指定为数字则会在录制进行相应秒数时分段，使用视频分段功能时为loop模式。 __注意分段时可能会导致十秒左右的视频缺失__ 。  
-第五个参数可选，选择监视间隔，默认为10秒。  
+第五个参数可选，选择循环检测间隔和最短录制间隔，以`,`分割，默认都为10秒。循环检测间隔是指如果未检测到直播，则等待相应时间进行下一次检测；最短录制间隔是指如果一次录制结束后，如果距离录制开始小于最短录制间隔，则等待到最短录制间隔进行下一次检测。最短录制间隔主要是为了防止检测到直播但录制出错的情况，此时一次录制结束如果立即进行下一次检测可能会因为检测过于频繁导致被封禁IP或者导致高系统占用，这种情况可能出现在网站改版等特殊时期。  
 第六个参数可选，选择本地录像存放目录，默认为record_video/other文件夹。  
 第七个参数可选，选择是否自动备份，默认为nobackup。可选参数为nobackup或者 onedrive/baidupan/both + 重试次数 + 无/keep/del，直接连接在一起，例如 `onedrive1del`或`both3keep`。其中第一项中的onedrive、baidupan、both分别指上传onedrive、上传百度云、同时上传两个网盘。第二项为重试次数，如果不指定则默认为尝试一次。第三项为上传完成后是否保留本地文件，默认情况是上传成功则删除本地文件，上传失败将会保留本地文件，keep参数为不论结果始终保留本地文件，del参数为不论结果始终删除本地文件。使用
 
