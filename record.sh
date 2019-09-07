@@ -147,70 +147,70 @@ while true; do
 				if [[ "${EXCEPT_YOUTUBE_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 					echo "${LOG_PREFIX} metadata ${EXCEPT_YOUTUBE_FULL_URL}" #检测排除直播
-					(wget -q -O- "${EXCEPT_YOUTUBE_FULL_URL}" | grep -q '\\"isLive\\":true') && echo "${LOG_PREFIX} ${EXCEPT_YOUTUBE_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+					(wget -q -O- "${EXCEPT_YOUTUBE_FULL_URL}" | grep -q '\\"qualityLabel\\":\\"[0-9]*p\\"') && echo "${LOG_PREFIX} ${EXCEPT_YOUTUBE_FULL_URL} is restream now. retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
 				fi
 				if [[ "${EXCEPT_TWITCAST_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 					echo "${LOG_PREFIX} metadata ${EXCEPT_TWITCAST_FULL_URL}"
-					(wget -q -O- "https://twitcasting.tv/streamserver.php?target=${EXCEPT_TWITCAST_PART_URL}&mode=client" | grep -q '"live":true') && echo "${LOG_PREFIX} ${EXCEPT_TWITCAST_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+					(wget -q -O- "https://twitcasting.tv/streamserver.php?target=${EXCEPT_TWITCAST_PART_URL}&mode=client" | grep -q '"live":true') && echo "${LOG_PREFIX} ${EXCEPT_TWITCAST_FULL_URL} is restream now. retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
 				fi
 				if [[ "${EXCEPT_TWITCH_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 					echo "${LOG_PREFIX} metadata ${EXCEPT_TWITCH_FULL_URL}"
 					EXCEPT_TWITCH_STREAM_URL=$(streamlink --stream-url "${EXCEPT_TWITCH_FULL_URL}" "${FORMAT}")
-					(echo "${EXCEPT_TWITCH_STREAM_URL}" | grep -q ".m3u8") && echo "${LOG_PREFIX} ${EXCEPT_TWITCH_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+					(echo "${EXCEPT_TWITCH_STREAM_URL}" | grep -q ".m3u8") && echo "${LOG_PREFIX} ${EXCEPT_TWITCH_FULL_URL} is restream now. retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
 				fi
 				if [[ "${EXCEPT_OPENREC_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 					echo "${LOG_PREFIX} metadata ${EXCEPT_OPENREC_FULL_URL}"
 					EXCEPT_OPENREC_LIVE_URL=$(wget -q -O- "${EXCEPT_OPENREC_FULL_URL}" | grep -o 'href="https://www.openrec.tv/live/.*" class' | head -n 1 | awk -F'"' '{print $2}')
-					[[ -n "${EXCEPT_OPENREC_LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_OPENREC_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+					[[ -n "${EXCEPT_OPENREC_LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_OPENREC_FULL_URL} is restream now. retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
 				fi
 				
 				if [[ "${EXCEPT_NICOLV_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 					echo "${LOG_PREFIX} metadata ${EXCEPT_NICOLV_FULL_URL}"
 					EXCEPT_NICOLV_LIVE_URL=$(curl -s -I "https://live.nicovideo.jp/gate/${EXCEPT_NICOLV_PART_URL}" | grep -o "https://live2.nicovideo.jp/watch/lv[0-9]*")
-					[[ -n "${EXCEPT_NICOLV_LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_NICOLV_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+					[[ -n "${EXCEPT_NICOLV_LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_NICOLV_FULL_URL} is restream now. retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
 				fi
 				if [[ "${EXCEPT_NICOCO_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 					echo "${LOG_PREFIX} metadata ${EXCEPT_NICOCO_FULL_URL}"
 					EXCEPT_NICOCO_LIVE_URL=$(wget -q -O- "https://com.nicovideo.jp/community/${EXCEPT_NICOCO_PART_URL}" | grep -o '<a class="now_live_inner" href="https://live.nicovideo.jp/watch/lv[0-9]*' | head -n 1 | awk -F'"?' '{print $4}')
-					[[ -n "${EXCEPT_NICOCO_LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_NICOCO_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+					[[ -n "${EXCEPT_NICOCO_LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_NICOCO_FULL_URL} is restream now. retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
 				fi
 				if [[ "${EXCEPT_NICOCH_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 					echo "${LOG_PREFIX} metadata ${EXCEPT_NICOCH_FULL_URL}"
 					EXCEPT_NICOCH_LIVE_URL=$(wget -q -O- "https://ch.nicovideo.jp/${EXCEPT_NICOCH_PART_URL}/live" | awk 'BEGIN{RS="<section class=";FS="\n";ORS="\n";OFS="\t"} $1 ~ /sub now/ {LIVE_POS=match($0,"https://live.nicovideo.jp/watch/lv[0-9]*");LIVE=substr($0,LIVE_POS,RLENGTH);print LIVE}' | head -n 1)
-					[[ -n "${EXCEPT_NICOCH_LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_NICOCH_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+					[[ -n "${EXCEPT_NICOCH_LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_NICOCH_FULL_URL} is restream now. retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
 					EXCEPT_NICOCH_LIVE_ID=$(wget -q -O- "https://ch.nicovideo.jp/${EXCEPT_NICOCH_PART_URL}" | grep -o "data-live_id=\"[0-9]*\" data-live_status=\"onair\"" | head -n 1 | awk -F'"' '{print $2}') ; LIVE_URL="https://live.nicovideo.jp/watch/lv${LIVE_ID}"
-					[[ -n "${EXCEPT_NICOCH_LIVE_ID}" ]] && echo "${LOG_PREFIX} ${EXCEPT_NICOCH_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+					[[ -n "${EXCEPT_NICOCH_LIVE_ID}" ]] && echo "${LOG_PREFIX} ${EXCEPT_NICOCH_FULL_URL} is restream now. retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
 				fi
 				
 				if [[ "${EXCEPT_MIRRATIV_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 					echo "${LOG_PREFIX} metadata ${EXCEPT_MIRRATIV_FULL_URL}"
 					EXCEPT_MIRRATIV_LIVE_URL=$(wget -q -O- "https://www.mirrativ.com/api/user/profile?user_id=${EXCEPT_MIRRATIV_PART_URL}" | grep -o '"live_id":".*"' | awk -F'"' '{print $4}')
-					[[ -n "${EXCEPT_MIRRATIV_LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_MIRRATIV_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+					[[ -n "${EXCEPT_MIRRATIV_LIVE_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_MIRRATIV_FULL_URL} is restream now. retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
 				fi
 				if [[ "${EXCEPT_REALITY_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 					echo "${LOG_PREFIX} metadata ${EXCEPT_REALITY_FULL_URL}"
 					EXCEPT_REALITY_STREAM_URL=$(curl -s -X POST "https://media-prod-dot-vlive-prod.appspot.com/api/v1/media/lives_user" | awk -v PART_URL="${EXCEPT_REALITY_PART_URL}" 'BEGIN{RS="\"StreamingServer\"";FS=",";ORS="\n";OFS="\t"} {M3U8_POS=match($0,"\"view_endpoint\":\"[^\"]*\"");M3U8=substr($0,M3U8_POS,RLENGTH) ;ID_POS=match($0,"\"vlive_id\":\"[^\"]*\"");ID=substr($0,ID_POS,RLENGTH);if(match($0,"\"nickname\":\"[^\"]*"PART_URL"[^\"]*\"|\"vlive_id\":\""PART_URL"\"")) print M3U8,ID}' | head -n 1)
-					[[ -n "${EXCEPT_REALITY_STREAM_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_REALITY_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+					[[ -n "${EXCEPT_REALITY_STREAM_URL}" ]] && echo "${LOG_PREFIX} ${EXCEPT_REALITY_FULL_URL} is restream now. retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
 				fi
 				if [[ "${EXCEPT_17LIVE_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 					echo "${LOG_PREFIX} metadata ${EXCEPT_17LIVE_FULL_URL}"
 					EXCEPT_17LIVE_LIVE_STATUS=$(curl -s -X POST 'http://api-dsa.17app.co/api/v1/liveStreams/getLiveStreamInfo' --data "{\"liveStreamID\": ${EXCEPT_17LIVE_PART_URL}}" | grep -o '\\"closeBy\\":\\"\\"')
-					[[ -n "${EXCEPT_17LIVE_LIVE_STATUS}" ]] && echo "${LOG_PREFIX} ${EXCEPT_17LIVE_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+					[[ -n "${EXCEPT_17LIVE_LIVE_STATUS}" ]] && echo "${LOG_PREFIX} ${EXCEPT_17LIVE_FULL_URL} is restream now. retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
 				fi
 				if [[ "${EXCEPT_STREAM_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 					echo "${LOG_PREFIX} metadata ${EXCEPT_STREAM_FULL_URL}"
 					EXCEPT_STREAM_STREAM_URL=$(streamlink --stream-url "${EXCEPT_STREAM_FULL_URL}" "${FORMAT}")
-					(echo "${EXCEPT_STREAM_STREAM_URL}" | grep -Eq ".m3u8|.flv|rtmp:") && echo "${LOG_PREFIX} ${EXCEPT_STREAM_FULL_URL} is restream now. retry after ${INTERVAL} seconds..." && sleep ${INTERVAL} && continue
+					(echo "${EXCEPT_STREAM_STREAM_URL}" | grep -Eq ".m3u8|.flv|rtmp:") && echo "${LOG_PREFIX} ${EXCEPT_STREAM_FULL_URL} is restream now. retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
 				fi
 				break
 			fi
