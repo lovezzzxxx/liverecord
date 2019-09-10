@@ -30,7 +30,7 @@ EXCEPT_OPENREC_PART_URL="${11:-noexcept}"
 EXCEPT_NICOLV_PART_URL="${12:-noexcept}"
 EXCEPT_NICOCO_PART_URL="${13:-noexcept}"
 EXCEPT_NICOCH_PART_URL="${14:-noexcept}"
-EXCEPT_MIRRATIVE_PART_URL="${15:-noexcept}"
+EXCEPT_MIRRATIV_PART_URL="${15:-noexcept}"
 EXCEPT_REALITY_PART_URL="${16:-noexcept}"
 EXCEPT_17LIVE_PART_URL="${17:-noexcept}"
 EXCEPT_STREAM_PART_URL="${18:-noexcept}"
@@ -413,7 +413,7 @@ while true; do
 	
 	
 	
-	[[ "${LOOP}" == "once" ]] && break
+	[[ "${LOOPORTIME}" == "once" ]] && break
 	
 	if [[ $(date +%s) -lt ${RECORDENDTIME} ]]; then
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
