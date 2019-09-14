@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ ! -n "${1}" ]]; then
-	echo "${0} youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|streamlink|m3u8 \"频道号码\" [best|其他清晰度] [loop|once|视频分段时间] [10|循环检测间隔,最短录制间隔] [\"record_video/other|其他本地目录\"] [nobackup|onedrive重试次数|baidupan重试次数|both重试次数|onedrive重试次数keep|baidupan重试次数keep|both重试次数keep|onedrive重试次数del|baidupan重试次数del|both重试次数del] [\"noexcept|排除转播的youtube频道号码\"] [\"noexcept|排除转播的twitcast频道号码\"] [\"noexcept|排除转播的twitch频道号码\"] [\"noexcept|排除转播的openrec频道号码\"] [\"noexcept|排除转播的nicolv频道号码\"] [\"noexcept|排除转播的nicoco频道号码\"] [\"noexcept|排除转播的nicoch频道号码\"] [\"noexcept|排除转播的mirrativ频道号码\"] [\"noexcept|排除转播的reality频道号码\"] [\"noexcept|排除转播的17live频道号码\"] [\"noexcept|排除转播的streamlink支持的频道网址\"]"
+	echo "${0} youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|bilibiliffmpeg|bilibiliwget|streamlink|m3u8 \"频道号码\" [best|其他清晰度] [loop|once|视频分段时间] [10|循环检测间隔,最短录制间隔] [\"record_video/other|其他本地目录\"] [nobackup|onedrive重试次数|baidupan重试次数|both重试次数|onedrive重试次数keep|baidupan重试次数keep|both重试次数keep|onedrive重试次数del|baidupan重试次数del|both重试次数del] [\"noexcept|排除转播的youtube频道号码\"] [\"noexcept|排除转播的twitcast频道号码\"] [\"noexcept|排除转播的twitch频道号码\"] [\"noexcept|排除转播的openrec频道号码\"] [\"noexcept|排除转播的nicolv频道号码\"] [\"noexcept|排除转播的nicoco频道号码\"] [\"noexcept|排除转播的nicoch频道号码\"] [\"noexcept|排除转播的mirrativ频道号码\"] [\"noexcept|排除转播的reality频道号码\"] [\"noexcept|排除转播的17live频道号码\"] [\"noexcept|排除转播的streamlink支持的频道网址\"]"
 	echo "示例：${0} bilibili \"12235923\" best,1080p60,1080p,720p,480p,360p,worst 14400 30,5 \"record_video/mea_bilibili\" both3keep \"UCWCc8tO-uUl_7SJXIKJACMw\" \"kaguramea\" \"kagura0mea\" \"KaguraMea\" "
 	echo "必要模块为curl、streamlink、ffmpeg，可选模块为livedl、请将livedl文件放置于此用户目录livedl文件夹内。"
 	echo "onedrive自动备份基于\"https://github.com/0oVicero0/OneDrive\"，百度云自动备份基于BaiduPCS-Go，请登录后使用。"
@@ -45,7 +45,7 @@ EXCEPT_STREAM_PART_URL="${18:-noexcept}"
 [[ "${1}" == "mirrativ" ]] && FULL_URL="https://www.mirrativ.com/user/${PART_URL}"
 [[ "${1}" == "reality" ]] && FULL_URL="reality_${PART_URL}"
 [[ "${1}" == "17live" ]] && FULL_URL="https://17.live/live/${PART_URL}"
-[[ "${1}" == "bilibili" ]] && FULL_URL="https://live.bilibili.com/${PART_URL}"
+[[ "${1}" == "bilibili" || "${1}" == "bilibiliffmpeg" || "${1}" == "bilibiliwget" ]] && FULL_URL="https://live.bilibili.com/${PART_URL}"
 [[ "${1}" == "streamlink" ]] && FULL_URL="${PART_URL}"
 [[ "${1}" == "m3u8" ]] && FULL_URL="${PART_URL}"
 
@@ -140,7 +140,7 @@ while true; do
 			(echo "${STREAM_URL}" | grep -Eq ".m3u8|.flv|rtmp:") && break
 		fi
 		
-		if [[ "${1}" == "bilibili" ]]; then
+		if [[ "${1}" == "bilibili"  || "${1}" == "bilibiliffmpeg" || "${1}" == "bilibiliwget" ]]; then
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			echo "${LOG_PREFIX} metadata ${FULL_URL}"
 			if (wget -q -O- "https://api.live.bilibili.com/room/v1/Room/get_info?room_id=${PART_URL}" | grep -q '"live_status":1'); then
@@ -237,8 +237,8 @@ while true; do
 	if [[ "${1}" == "mirrativ" ]]; then STREAM_URL=$(wget -q -O- "https://www.mirrativ.com/api/live/live?live_id=${LIVE_URL}" | grep -o '"streaming_url_hls":".*m3u8"' | awk -F'"' '{print $4}') ; FNAME="mirrativ_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "reality" ]]; then ID=$(echo ${STREAM_ID} | awk -F'"' '{print $8}') ; STREAM_URL=$(echo ${STREAM_ID} | awk -F'"' '{print $4}') ; FNAME="reality_${ID}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "17live" ]]; then STREAM_URL=$(curl -s -X POST 'http://api-dsa.17app.co/api/v1/liveStreams/getLiveStreamInfo' --data "{\"liveStreamID\": ${PART_URL}}" | grep -o '\\"webUrl\\":\\"[^\\]*' | awk -F'\"' '{print $4}') ; FNAME="17live_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
-	if [[ "${1}" == "bilibili" || "${1}" == "bilibiliffmpeg" ]]; then FNAME="bilibili_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
-	if [[ "${1}" == "bilibiliffmpeg" ]]; then STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}"); fi
+	if [[ "${1}" == "bilibili" || "${1}" == "bilibiliffmpeg" || "${1}" == "bilibiliwget" ]]; then FNAME="bilibili_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
+	if [[ "${1}" == "bilibiliffmpeg" || "${1}" == "bilibiliwget" ]]; then STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}"); fi
 	if [[ "${1}" == "streamlink" ]]; then FNAME="stream_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "m3u8" ]]; then STREAM_URL="${FULL_URL}" ; FNAME="m3u8_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	
@@ -252,9 +252,6 @@ while true; do
 		if [[ "${1}" == "youtube" ]]; then
 			streamlink --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "https://www.youtube.com/watch?v=${ID}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
-		if [[ "${1}" == "bilibili" ]]; then
-			streamlink --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "${FULL_URL}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
-		fi
 		if [[ "${1}" == "twitcast" ]]; then
 			livedl/livedl -tcas "${PART_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
@@ -265,19 +262,23 @@ while true; do
 				livedl/livedl -nico-login-only=off -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
 			fi
 		fi
+		
+		if [[ "${1}" == "bilibili" ]]; then
+			streamlink --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "${FULL_URL}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
+		fi
 		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "bilibiliffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "17live" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
 			ffmpeg -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
-
+		if [[ "${1}" == "bilibiliwget" ]]; then
+			wget -O "${DIR_LOCAL}/${FNAME}" "${STREAM_URL}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
+		fi
+		
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 		echo "${LOG_PREFIX} record stopped"
 		
 	else
 		if [[ "${1}" == "youtube" ]]; then
 			(streamlink --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "https://www.youtube.com/watch?v=${ID}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
-		fi
-		if [[ "${1}" == "bilibili" ]]; then
-			(streamlink --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "${FULL_URL}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
 		if [[ "${1}" == "twitcast" ]]; then
 			(livedl/livedl -tcas "${PART_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
@@ -289,8 +290,15 @@ while true; do
 				(livedl/livedl -nico-login-only=off -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 			fi
 		fi
+		
+		if [[ "${1}" == "bilibili" ]]; then
+			(streamlink --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "${FULL_URL}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+		fi
 		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "bilibiliffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "17live" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
 			(ffmpeg -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+		fi
+		if [[ "${1}" == "bilibiliwget" ]]; then
+			wget -O "${DIR_LOCAL}/${FNAME}" "${STREAM_URL}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
 		
 		RECORDPID=$! #录制进程PID
