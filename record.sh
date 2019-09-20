@@ -438,7 +438,7 @@ while true; do
 	
 	
 	
-	[[ "${LOOP}" == "once" ]] && break
+	[[ "${LOOPORTIME}" == "once" ]] && break
 	
 	if [[ $(date +%s) -lt ${RECORDENDTIME} ]]; then
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
