@@ -76,6 +76,8 @@ while true; do
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			echo "${LOG_PREFIX} metadata ${FULL_URL}"
 			(wget -q -O- "${FULL_URL}" | grep "ytplayer" | grep -q '\\"isLive\\":true') && break
+			#(wget -q -O- "${FULL_URL}" | grep -q '\\"qualityLabel\\":\\"[0-9]*p\\"') && break			
+			#(wget -q -O- "${FULL_URL}" | grep -q '\\"playabilityStatus\\":{\\"status\\":\\"OK\\"') && break
 		fi
 		if [[ "${1}" == "twitcast"* ]]; then
 			echo "${LOG_PREFIX} metadata ${FULL_URL}"
@@ -148,6 +150,8 @@ while true; do
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 					echo "${LOG_PREFIX} metadata ${EXCEPT_YOUTUBE_FULL_URL}" #检测排除直播
 					(wget -q -O- "${EXCEPT_YOUTUBE_FULL_URL}" | grep "ytplayer" | grep -q '\\"isLive\\":true') && echo "${LOG_PREFIX} ${EXCEPT_YOUTUBE_FULL_URL} is restream now. retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
+					#(wget -q -O- "${EXCEPT_YOUTUBE_FULL_URL}" | grep -q '\\"qualityLabel\\":\\"[0-9]*p\\"') && echo "${LOG_PREFIX} ${EXCEPT_YOUTUBE_FULL_URL} is restream now. retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
+					#(wget -q -O- "${EXCEPT_YOUTUBE_FULL_URL}" | grep -q '\\"playabilityStatus\\":{\\"status\\":\\"OK\\"') && echo "${LOG_PREFIX} ${EXCEPT_YOUTUBE_FULL_URL} is restream now. retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
 				fi
 				if [[ "${EXCEPT_TWITCAST_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
@@ -279,7 +283,7 @@ while true; do
 		fi
 		
 		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "bilibili" || "${1}" == "bilibiliproxy"* || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "17live" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
-			ffmpeg -user_agent "Mozilla/5.0" -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
+			ffmpeg -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
 
 		
