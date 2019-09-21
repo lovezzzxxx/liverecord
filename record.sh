@@ -17,7 +17,7 @@ fi
 
 
 NICO_ID_PSW=$(echo "${1}" | awk -F":" '{print $2}')
-LINK_PROXY_HARD=$(echo "${1}" | awk -F"," '{print $2}')
+STREAM_URL_PROXY_HARD=$(echo "${1}" | awk -F"," '{print $2}')
 PART_URL="${2}" #频道号码
 FORMAT="${3:-best}" #清晰度
 LOOPORTIME="${4:-loop}" #是否循环或者视频分段时间
@@ -243,17 +243,17 @@ while true; do
 	if [[ "${1}" == "17live" ]]; then STREAM_URL=$(curl -s -X POST 'http://api-dsa.17app.co/api/v1/liveStreams/getLiveStreamInfo' --data "{\"liveStreamID\": ${PART_URL}}" | grep -o '\\"webUrl\\":\\"[^\\]*' | awk -F'\"' '{print $4}') ; FNAME="17live_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "bilibili"* ]]; then STREAM_URL=$(wget -q -O- "https://api.live.bilibili.com/room/v1/Room/playUrl?cid=${PART_URL}&quality=0&platform=web" | grep -o "\"url\":\"[^\"]*\"" | head -n 1 | awk -F"\"" '{print $4}') ; FNAME="bilibili_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "bilibiliproxy"* ]]; then
-		if [[ -n "${LINK_PROXY_HARD}" ]]; then
-			LINK_PROXY="${LINK_PROXY_HARD}"
+		if [[ -n "${STREAM_URL_PROXY_HARD}" ]]; then
+			STREAM_URL_PROXY="${STREAM_URL_PROXY_HARD}"
 		else
-			if ! (curl -s --proxy "${LINK_PROXY}" "https://api.live.bilibili.com/room/v1/Room/playUrl?cid=12235923&quality=0&platform=web" | grep -q "\"code\":0"); then #验证代理可行性
+			if ! (curl -s --proxy "${STREAM_URL_PROXY}" "https://api.live.bilibili.com/room/v1/Room/playUrl?cid=12235923&quality=0&platform=web" | grep -q "\"code\":0"); then #验证代理可行性
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-				echo "${LOG_PREFIX} proxy not available ${LINK_PROXY} try get new"
-				LINK_PROXY=$(curl -s "http://http.tiqu.alicdns.com/getip3?num=1&type=1&pro=&city=0&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions="); #可替换为任意代理获取方法
+				echo "${LOG_PREFIX} proxy not available ${STREAM_URL_PROXY} try get new"
+				STREAM_URL_PROXY=$(curl -s "http://http.tiqu.alicdns.com/getip3?num=1&type=1&pro=&city=0&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions="); #可替换为任意代理获取方法
 			fi
 		fi
-		echo "${LOG_PREFIX} proxy using ${LINK_PROXY}"
-		STREAM_URL=$(curl -s --proxy ${LINK_PROXY} "https://api.live.bilibili.com/room/v1/Room/playUrl?cid=${PART_URL}&quality=0&platform=web" | grep -o "\"url\":\"[^\"]*\"" | head -n 1 | awk -F"\"" '{print $4}')
+		echo "${LOG_PREFIX} proxy using ${STREAM_URL_PROXY}"
+		STREAM_URL=$(curl -s --proxy ${STREAM_URL_PROXY} "https://api.live.bilibili.com/room/v1/Room/playUrl?cid=${PART_URL}&quality=0&platform=web" | grep -o "\"url\":\"[^\"]*\"" | head -n 1 | awk -F"\"" '{print $4}')
 	fi
 	if [[ "${1}" == "streamlink" ]]; then FNAME="stream_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "m3u8" ]]; then STREAM_URL="${FULL_URL}" ; FNAME="m3u8_$(date +"%Y%m%d_%H%M%S").ts"; fi
