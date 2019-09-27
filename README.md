@@ -1,6 +1,6 @@
 # liverecord
 record.sh为自动录播脚本，支持youtube频道、twitcast频道、twitch频道、openrec频道、niconico生放送、niconico社区、niconico频道（支持登陆niconico账号进行录制）、mirrativ频道、reality频道、17live频道、bilibili频道、streamlink支持的直播网址、ffmpeg支持的m3u8地址。  
-bilibili录制支持在youtube频道、twitcast频道、twitch频道、openrec频道、mirrativ频道、reality频道有直播时不进行录制，从而简单的排除转播的录制。
+bilibili录制支持在youtube频道、twitcast频道、twitch频道、openrec频道、mirrativ频道、reality频道有直播时不进行录制，从而简单的排除转播的录制。支持在请求bilibili直播媒体流链接时使用代理。  
 支持按照录制时长分段。  
 支持选择自动备份到onedrive或者百度云。支持可指定次数的上传出错重试。支持根据上传结果选择是否保留本地文件。  
 如果因为偶发的检测异常导致没有直播时开始录制，进而产生没有相应录像文件的log文件，脚本将会自动删除这个没有对应录像文件的log文件。
