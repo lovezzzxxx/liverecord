@@ -250,11 +250,11 @@ while true; do
 			if ! (curl -s --proxy "${STREAM_URL_PROXY}" "https://api.live.bilibili.com/room/v1/Room/playUrl?cid=12235923&quality=0&platform=web" | grep -q "\"code\":0"); then #验证代理可行性
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 				echo "${LOG_PREFIX} proxy not available ${STREAM_URL_PROXY} try get new"
-				STREAM_URL_PROXY=$(curl -s "http://http.tiqu.alicdns.com/getip3?num=1&type=1&pro=&city=0&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions="); #可替换为任意代理获取方法
+				STREAM_URL_PROXY=$(curl -s ""); #可替换为任意代理获取方法
 			fi
 		fi
 		echo "${LOG_PREFIX} proxy using ${STREAM_URL_PROXY}"
-		STREAM_URL=$(curl -s --proxy ${STREAM_URL_PROXY} "https://api.live.bilibili.com/room/v1/Room/playUrl?cid=${PART_URL}&quality=0&platform=web" | grep -o "\"url\":\"[^\"]*\"" | head -n 1 | awk -F"\"" '{print $4}')
+		STREAM_URL=$(curl -s --proxy ${STREAM_URL_PROXY} "https://api.live.bilibili.com/room/v1/Room/playUrl?cid=${PART_URL}&quality=0&platform=web" | grep -o "\"url\":\"[^\"]*\"" | head -n 1 | awk -F"\"" '{print $4}' | sed 's/\\u0026/\&/g')
 	fi
 	if [[ "${1}" == "streamlink" ]]; then FNAME="stream_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "m3u8" ]]; then STREAM_URL="${FULL_URL}" ; FNAME="m3u8_$(date +"%Y%m%d_%H%M%S").ts"; fi
