@@ -1,11 +1,11 @@
 #!/bin/bash
 
 if [[ ! -n "${1}" ]]; then
-	echo "${0} youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|bilibiliwget|bilibiliproxy[,代理ip:代理端口]|bilibiliproxywget[,代理ip:代理端口]|streamlink|m3u8 \"频道号码\" [best|其他清晰度] [loop|once|视频分段时间] [10|循环检测间隔,最短录制间隔] [\"record_video/other|其他本地目录\"] [nobackup|onedrive重试次数|baidupan重试次数|both重试次数|onedrive重试次数keep|baidupan重试次数keep|both重试次数keep|onedrive重试次数del|baidupan重试次数del|both重试次数del] [\"noexcept|排除转播的youtube频道号码\"] [\"noexcept|排除转播的twitcast频道号码\"] [\"noexcept|排除转播的twitch频道号码\"] [\"noexcept|排除转播的openrec频道号码\"] [\"noexcept|排除转播的nicolv频道号码\"] [\"noexcept|排除转播的nicoco频道号码\"] [\"noexcept|排除转播的nicoch频道号码\"] [\"noexcept|排除转播的mirrativ频道号码\"] [\"noexcept|排除转播的reality频道号码\"] [\"noexcept|排除转播的17live频道号码\"] [\"noexcept|排除转播的streamlink支持的频道网址\"]"
-	echo "示例：${0} bilibiliproxywget,127.0.0.1:1080 \"12235923\" best,1080p60,1080p,720p,480p,360p,worst 14400 30,5 \"record_video/mea_bilibili\" both3keep \"UCWCc8tO-uUl_7SJXIKJACMw\" \"kaguramea\" \"kagura0mea\" \"KaguraMea\" "
+	echo "${0} youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|bilibiliwget|bilibiliproxy[,代理ip:代理端口]|bilibiliproxywget[,代理ip:代理端口]|streamlink|m3u8 \"频道号码\" [best|其他清晰度] [loop|once|视频分段时间] [10|循环检测间隔,最短录制间隔] [\"record_video/other|其他本地目录\"] [nobackup|rclone:网盘名称:|onedrive|baidupan[重试次数][keep|del]] [\"noexcept|排除转播的youtube频道号码\"] [\"noexcept|排除转播的twitcast频道号码\"] [\"noexcept|排除转播的twitch频道号码\"] [\"noexcept|排除转播的openrec频道号码\"] [\"noexcept|排除转播的nicolv频道号码\"] [\"noexcept|排除转播的nicoco频道号码\"] [\"noexcept|排除转播的nicoch频道号码\"] [\"noexcept|排除转播的mirrativ频道号码\"] [\"noexcept|排除转播的reality频道号码\"] [\"noexcept|排除转播的17live频道号码\"] [\"noexcept|排除转播的streamlink支持的频道网址\"]"
+	echo "示例：${0} bilibiliproxywget,127.0.0.1:1080 \"12235923\" best,1080p60,1080p,720p,480p,360p,worst 14400 30,5 \"record_video/mea_bilibili\" rclone:vps-1:baidupan3keep \"UCWCc8tO-uUl_7SJXIKJACMw\" \"kaguramea\" \"kagura0mea\" \"KaguraMea\" "
 	echo "必要模块为curl、streamlink、ffmpeg，可选模块为livedl、请将livedl文件放置于此用户目录livedl文件夹内。"
-	echo "onedrive自动备份基于\"https://github.com/0oVicero0/OneDrive\"，百度云自动备份基于BaiduPCS-Go，请登录后使用。"
-	echo "注意使用ffmpeg录制youtube直播仅支持1080p以下的清晰度，请不要使用best和1080p60及以上的参数"
+	echo "rclone上传基于\"https://github.com/rclone/rclone\"，onedrive上传基于\"https://github.com/0oVicero0/OneDrive\"，百度云上传基于BaiduPCS-Go，请登录后使用。"
+	echo "注意使用youtube直播仅支持1080p以下的清晰度，请不要使用best和1080p60及以上的参数"
 	echo "仅bilibili支持排除转播功能"
 	exit 1
 fi
@@ -50,11 +50,13 @@ EXCEPT_STREAM_PART_URL="${18:-noexcept}"
 [[ "${1}" == "streamlink" ]] && FULL_URL="${PART_URL}"
 [[ "${1}" == "m3u8" ]] && FULL_URL="${PART_URL}"
 
+BACKUP_DISK="$(echo "${BACKUP}" | awk -F":" '{print $1}')$(echo "${BACKUP}" | awk -F":" '{print $NF}')" #选择上传网盘
+DIR_RCLONE="$(echo "${BACKUP}" | awk -F":" '{print $2}'):${DIR_LOCAL}" #网盘路径
 DIR_ONEDRIVE="${DIR_LOCAL}"
 DIR_BAIDUPAN="${DIR_LOCAL}"
-mkdir -p "${DIR_LOCAL}"
-BACKUP_RETRY=$(echo "${BACKUP}" | grep -o "[0-9]*") #自动备份重试次数
+BACKUP_RETRY=$(echo "${BACKUP}" | awk -F":" '{print $NF}' | grep -o "[0-9]*") #自动备份重试次数
 [[ ! -n "${BACKUP_RETRY}" ]] && BACKUP_RETRY=1
+mkdir -p "${DIR_LOCAL}"
 
 [[ "${EXCEPT_YOUTUBE_PART_URL}" == "noexcept" ]] || EXCEPT_YOUTUBE_FULL_URL="https://www.youtube.com/channel/${EXCEPT_YOUTUBE_PART_URL}/live"
 [[ "${EXCEPT_TWITCAST_PART_URL}" == "noexcept" ]] || EXCEPT_TWITCAST_FULL_URL="https://twitcasting.tv/${EXCEPT_TWITCAST_PART_URL}"
@@ -377,9 +379,36 @@ while true; do
 		echo "${LOG_PREFIX} ${DIR_LOCAL}/${FNAME} file not exist, remove ${DIR_LOCAL}/${FNAME}.log"
 		rm -f "${DIR_LOCAL}/${FNAME}.log"
 	else
+		RCLONE_FILE_RETRY=1
+		RCLONE_FILE_ERRFLAG=""
+		if [[ "${BACKUP_DISK}" == *"rclone"* ]]; then
+			until [[ ${RCLONE_FILE_RETRY} -gt ${BACKUP_RETRY} ]]; do
+				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+				echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} start retry ${RCLONE_FILE_RETRY}"
+				RCLONE_FILE_ERRFLAG=$(rclone copy "${DIR_LOCAL}/${FNAME}" "${DIR_RCLONE}")
+				[[ "${RCLONE_FILE_ERRFLAG}" == "" ]] && echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} success" && break
+				let RCLONE_FILE_RETRY++
+			done
+			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+			[[ "${RCLONE_FILE_ERRFLAG}" == "" ]] || (echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} fail" && echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} fail" > "${DIR_LOCAL}/${FNAME}.rclonefail.log" && echo "${RCLONE_FILE_ERRFLAG}" >> "${DIR_LOCAL}/${FNAME}.rclonefail.log")
+		fi
+		RCLONE_LOG_RETRY=1
+		RCLONE_LOG_ERRFLAG=""
+		if [[ "${BACKUP_DISK}" == *"rclone"* ]]; then
+			until [[ ${RCLONE_LOG_RETRY} -gt ${BACKUP_RETRY} ]]; do
+				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+				echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME}.log start retry ${RCLONE_LOG_RETRY}"
+				RCLONE_LOG_ERRFLAG=$(rclone copy "${DIR_LOCAL}/${FNAME}.log" "${DIR_RCLONE}")
+				[[ "${RCLONE_LOG_ERRFLAG}" == "" ]] && echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME}.log success" && break
+				let RCLONE_LOG_RETRY++
+			done
+			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
+			[[ "${RCLONE_LOG_ERRFLAG}" == "" ]] || (echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME}.log fail" && echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME}.log fail" > "${DIR_LOCAL}/${FNAME}.log.rclonefail.log" && echo "${RCLONE_LOG_ERRFLAG}" >> "${DIR_LOCAL}/${FNAME}.log.rclonefail.log")
+		fi
+		
 		ONEDRIVE_FILE_RETRY=1
 		ONEDRIVE_FILE_ERRFLAG=0
-		if [[ "${BACKUP}" == "onedrive"* || "${BACKUP}" == "both"* ]]; then
+		if [[ "${BACKUP_DISK}" == *"onedrive"* ]]; then
 			until [[ ${ONEDRIVE_FILE_RETRY} -gt ${BACKUP_RETRY} ]]; do
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 				echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} start retry ${ONEDRIVE_FILE_RETRY}"
@@ -393,7 +422,7 @@ while true; do
 		fi
 		ONEDRIVE_LOG_RETRY=1
 		ONEDRIVE_LOG_ERRFLAG=0
-		if [[ "${BACKUP}" == "onedrive"* || "${BACKUP}" == "both"* ]]; then
+		if [[ "${BACKUP_DISK}" == *"onedrive"* ]]; then
 			until [[ ${ONEDRIVE_LOG_RETRY} -gt ${BACKUP_RETRY} ]]; do
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 				echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log start retry ${ONEDRIVE_LOG_RETRY}"
@@ -405,10 +434,10 @@ while true; do
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			[[ "${ONEDRIVE_LOG_ERRFLAG}" == 0 ]] || (echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log fail" && echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log fail" > "${DIR_LOCAL}/${FNAME}.log.onedrivefail.log" && echo "${ONEDRIVE_LOG_ERRFLAG}" >> "${DIR_LOCAL}/${FNAME}.log.onedrivefail.log")
 		fi
+		
 		BAIDUPAN_FILE_RETRY=1
 		BAIDUPAN_FILE_ERRFLAG="成功"
-		if [[ "${BACKUP}" == "baidupan"* || "${BACKUP}" == "both"* ]]; then
-			
+		if [[ "${BACKUP_DISK}" == *"baidupan"* ]]; then			
 			until [[ ${BAIDUPAN_FILE_RETRY} -gt ${BACKUP_RETRY} ]]; do
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 				echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} start retry ${BAIDUPAN_FILE_RETRY}"
@@ -421,7 +450,7 @@ while true; do
 		fi
 		BAIDUPAN_LOG_RETRY=1
 		BAIDUPAN_LOG_ERRFLAG="成功"
-		if [[ "${BACKUP}" == "baidupan"* || "${BACKUP}" == "both"* ]]; then
+		if [[ "${BACKUP_DISK}" == *"baidupan"* ]]; then
 			until [[ ${BAIDUPAN_LOG_RETRY} -gt ${BACKUP_RETRY} ]]; do
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 				echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log start retry ${BAIDUPAN_LOG_RETRY}"
@@ -432,11 +461,12 @@ while true; do
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			(echo "${BAIDUPAN_FILE_ERRFLAG}" | grep -q "成功") || (echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log fail" && echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log fail" > "${DIR_LOCAL}/${FNAME}.log.baidupanfail.log" && echo "${BAIDUPAN_LOG_ERRFLAG}" >> "${DIR_LOCAL}/${FNAME}.log.baidupanfail.log")
 		fi
+		
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") #清除文件
 		[[ "${BACKUP}" == *"keep" ]] && (echo "${LOG_PREFIX} force keep ${DIR_LOCAL}/${FNAME}" ; echo "${LOG_PREFIX} force keep ${DIR_LOCAL}/${FNAME}.log")
 		[[ "${BACKUP}" == *"del" ]] && (echo "${LOG_PREFIX} force delete ${DIR_LOCAL}/${FNAME}" ; rm -f "${DIR_LOCAL}/${FNAME}" ; echo "${LOG_PREFIX} force delete ${DIR_LOCAL}/${FNAME}.log" ; rm -f "${DIR_LOCAL}/${FNAME}.log")
-		[[ "${BACKUP}" == "onedrive" || "${BACKUP}" == "baidupan" || "${BACKUP}" == "both" || "${BACKUP}" == *[0-9] ]] && [[ "${ONEDRIVE_FILE_ERRFLAG}" == 0 ]] && (echo "${BAIDUPAN_FILE_ERRFLAG}" | grep -q "成功") && (echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${FNAME}" ; rm -f "${DIR_LOCAL}/${FNAME}")
-		[[ "${BACKUP}" == "onedrive" || "${BACKUP}" == "baidupan" || "${BACKUP}" == "both" || "${BACKUP}" == *[0-9] ]] && [[ "${ONEDRIVE_LOG_ERRFLAG}" == 0 ]] && (echo "${BAIDUPAN_LOG_ERRFLAG}" | grep -q "成功") && (echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${FNAME}.log" ; rm -f "${DIR_LOCAL}/${FNAME}.log")
+		[[ "${BACKUP}" == "rclone" || "${BACKUP}" == "onedrive" || "${BACKUP}" == "baidupan" || "${BACKUP}" == *[0-9] ]] && [[ "${RCLONE_FILE_ERRFLAG}" == "" ]] && [[ "${ONEDRIVE_FILE_ERRFLAG}" == 0 ]] && (echo "${BAIDUPAN_FILE_ERRFLAG}" | grep -q "成功") && (echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${FNAME}" ; rm -f "${DIR_LOCAL}/${FNAME}")
+		[[ "${BACKUP}" == "rclone" || "${BACKUP}" == "onedrive" || "${BACKUP}" == "baidupan" || "${BACKUP}" == *[0-9] ]] && [[ "${RCLONE_LOG_ERRFLAG}" == "" ]] && [[ "${ONEDRIVE_LOG_ERRFLAG}" == 0 ]] && (echo "${BAIDUPAN_LOG_ERRFLAG}" | grep -q "成功") && (echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${FNAME}.log" ; rm -f "${DIR_LOCAL}/${FNAME}.log")
 	fi
 	)&
 	
