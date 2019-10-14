@@ -37,20 +37,20 @@ nohup record.sh bilibiliproxywget,127.0.0.1:1080 "12235923" best 7200 30,5 "reco
 
 网站|第一个参数|第二个参数|说明|注意事项
 :---|:---|:---|:---|:---
-youtube|youtube、youtubeffmpeg|个人主页网址中的ID部分(如UCWCc8tO-uUl_7SJXIKJACMw)|youtubeffmpeg为使用ffmpeg进行录制|请不要将第三个清晰都参数指定为best或1080p60及以上的分辨率
-twitcast|twitcast、twitcastffmpeg、twitcastpy|个人主页网址中的ID部分(如kaguramea_vov)|twitcastffmpeg为使用ffmpeg进行录制，twitcastpy为使用record_twitcast.py进行录制|如果未安装相应依赖，则仅能使用twitcast参数，无法录制twitcast最高清晰度。 __请不要对同一场直播进行多个录制，会导致文件命名问题__
-niconico|nicolv、nicoco、nicoch|分别为niconico生放送号码(如lv320447549)，niconico社区号码(如co41030)，niconico频道号码(如macoto2525)|可以在后方添加`:用户名,密码`来登陆nico账号进行录制|如果未安装相应依赖，则无法录制niconico。 __请不要对同一场直播使用同一账号进行多个录制，会产生websocket链接冲突导致录像卡顿或反复断联__
-bilibili|bilibili、bilibiliwget、bilibiliproxy、bilibiliproxyffmpeg|直播间网址中的ID部分(如12235923)|bilibiliwget与bilibiliproxyffmpeg为使用wget进行录制。bilibiliproxy与bilibiliproxyffmpeg为通过代理获取直播媒体流网址，可以直接在后方添加`,代理ip:代理端口`指定代理服务器，也可以在脚本内相应部分添加代理获取方法
-其他网站| twitch、openrec、mirrativ、reality、17live|个人主页网址中的ID部分，其中reality为频道名称(如果为部分名字则匹配含有这些文字的其中一个频道)或vlive_id(获取方法可于脚本内查找)|其中twitch使用streamlink检测直播状态，系统占用较高||
-其他|streamlink、m3u8|streamlink支持的个人主页网址或直播网址、直播媒体流的m3u8网址||
+youtube|`youtube`、`youtubeffmpeg`|个人主页网址中的ID部分(如UCWCc8tO-uUl_7SJXIKJACMw)|youtubeffmpeg为使用ffmpeg进行录制|请不要将第三个清晰都参数指定为best或1080p60及以上的分辨率
+twitcast|`twitcast`、`twitcastffmpeg`、`twitcastpy`|个人主页网址中的ID部分(如kaguramea_vov)|twitcastffmpeg为使用ffmpeg进行录制，twitcastpy为使用record_twitcast.py进行录制|如果未安装相应依赖，则仅能使用twitcast参数，无法录制twitcast最高清晰度。 __请不要对同一场直播进行多个录制，会导致文件命名问题__
+niconico|`nicolv`、`nicoco`、`nicoch`|分别为niconico生放送号码(如lv320447549)，niconico社区号码(如co41030)，niconico频道号码(如macoto2525)|可以在后方添加`:用户名,密码`来登陆nico账号进行录制(如`nicolv:user@mail.com,password`)|如果未安装相应依赖，则无法录制niconico。 __请不要对同一场直播使用同一账号进行多个录制，会产生websocket链接冲突导致录像卡顿或反复断联__
+bilibili|`bilibili`、`bilibiliwget`、`bilibiliproxy`、`bilibiliproxyffmpeg`|直播间网址中的ID部分(如12235923)|bilibiliwget与bilibiliproxyffmpeg为使用wget进行录制。bilibiliproxy与bilibiliproxyffmpeg为通过代理获取直播媒体流网址，可以直接在后方添加`,代理ip:代理端口`指定代理服务器(如`bilibiliproxy,127.0.0.1:1080`)，也可以在脚本内相应部分添加代理获取方法
+其他网站| `twitch`、`openrec`、`mirrativ`、`reality`、`17live`|个人主页网址中的ID部分，其中reality为频道名称(如果为部分名字则匹配含有这些文字的其中一个频道)或vlive_id(获取方法可于脚本内查找)|其中twitch使用streamlink检测直播状态，系统占用较高||
+其他|`streamlink`、`m3u8`|streamlink支持的个人主页网址或直播网址、直播媒体流的m3u8网址||
 
   * 可选参数
 
 参数|功能|默认值|其他可选值|说明
 :---|:---|:---|:---|:---
-第三个参数|清晰度|best|streamlink支持的清晰度，可以用,分隔来指定多个清晰度|将会依次获取尝试直到获取第一个可用的清晰度
-第四个参数|是否循环和录制分段时间|loop|once、分段秒数|如果指定为once则会在检测到直播并进行一次录制后终止，如果指定为数字则会以loop模式进行录制并在在录制进行相应秒数时分段。 __注意分段时可能会导致十秒左右的视频缺失__
-第五个参数|循环检测间隔和最短录制间隔|10|循环检测间隔秒数和最短录制间隔秒数，以`,`分割，如果不分割则两者皆为此值|循环检测间隔是指如果未检测到直播，则等待相应时间进行下一次检测；最短录制间隔是指如果一次录制结束后，如果距离录制开始小于最短录制间隔，则等待到最短录制间隔进行下一次检测。最短录制间隔主要是为了防止检测到直播但录制出错的情况，此时一次录制结束如果立即进行下一次检测可能会因为检测过于频繁导致被封禁IP或者导致高系统占用，这种情况可能出现在网站改版等特殊时期。需要注意的是如果一次直播时间过短或者频繁断流也能触发等待。
-第六个参数|本地录像存放目录|record_video/other|本地目录||
-第七个参数|是否自动备份|nobackup|rclone:网盘名称:/onedrive/baidupan + 重试次数 + 无/keep/del，直接连接在一起(如onedrive1del或rclone:vps:baidupan3keep)|其中第一项中的onedrive、baidupan、both分别指上传rclone相应名称的网盘、onedrive一键脚本、百度云。第二项为重试次数，如果不指定则默认为尝试一次。第三项为上传完成后是否保留本地文件，如果不指定则上传成功将删除本地文件，上传失败将保留本地文件，keep参数为不论结果始终保留本地文件，del参数为不论结果始终删除本地文件
-第八至十四个参数|bilibili的录制需要排除的转播|noexcept|相应频道号码，写法同第二个参数，具体按照顺序分别为youtube、twitcast、twitch、openrec、nicolv、nicoco、nicoch、mirrativ、reality、17live、streamlink|仅bilibili录制有效，检测到相应频道正在直播时不进行bilibili的录制
+第三个参数|清晰度|`best`|`清晰度`，可以用`,`分隔来指定多个清晰度|仅支持streamlink含有的清晰度，将会依次获取尝试直到获取第一个可用的清晰度
+第四个参数|是否循环和录制分段时间|`loop`|`once`、`分段秒数`|如果指定为once则会在检测到直播并进行一次录制后终止，如果指定为数字则会以loop模式进行录制并在在录制进行相应秒数时分段。 __注意分段时可能会导致十秒左右的视频缺失__
+第五个参数|循环检测间隔和最短录制间隔|`10`|`循环检测间隔秒数,最短录制间隔秒数`，如果不以`,`分隔则两者皆为指定值|循环检测间隔是指如果未检测到直播，则等待相应时间进行下一次检测；最短录制间隔是指如果一次录制结束后，如果距离录制开始小于最短录制间隔，则等待到最短录制间隔进行下一次检测。最短录制间隔主要是为了防止检测到直播但录制出错的情况，此时一次录制结束如果立即进行下一次检测可能会因为检测过于频繁导致被封禁IP或者导致高系统占用，这种情况可能出现在网站改版等特殊时期。需要注意的是如果一次直播时间过短或者频繁断流也能触发等待。
+第六个参数|本地录像存放目录|`record_video/other`|`本地目录`||
+第七个参数|是否自动备份|`nobackup`|`rclone:网盘名称:/onedrive/baidupan` + `重试次数` + `无/keep/del`，不需要`/`与空格直接连接在一起(如onedrive1del或rclone:vps:baidupan3keep)|其中第一项中的onedrive、baidupan、both分别指上传rclone相应名称的网盘、onedrive一键脚本、百度云。第二项为重试次数，如果不指定则默认为尝试一次。第三项为上传完成后是否保留本地文件，如果不指定则上传成功将删除本地文件，上传失败将保留本地文件，keep参数为不论结果始终保留本地文件，del参数为不论结果始终删除本地文件
+第八至十四个参数|bilibili的录制需要排除的转播|`noexcept`|`相应频道号码`，写法同第二个参数，顺序分别为youtube、twitcast、twitch、openrec、nicolv、nicoco、nicoch、mirrativ、reality、17live、streamlink|仅bilibili录制有效，检测到相应频道正在直播时不进行bilibili的录制
