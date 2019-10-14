@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ ! -n "${1}" ]]; then
-	echo "${0} youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitcastpy|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|bilibiliwget|bilibiliproxy[,代理ip:代理端口]|bilibiliproxywget[,代理ip:代理端口]|streamlink|m3u8 \"频道号码\" [best|其他清晰度] [loop|once|视频分段时间] [10|循环检测间隔,最短录制间隔] [\"record_video/other|其他本地目录\"] [nobackup|rclone:网盘名称:|onedrive|baidupan[重试次数][keep|del]] [\"noexcept|排除转播的youtube频道号码\"] [\"noexcept|排除转播的twitcast频道号码\"] [\"noexcept|排除转播的twitch频道号码\"] [\"noexcept|排除转播的openrec频道号码\"] [\"noexcept|排除转播的nicolv频道号码\"] [\"noexcept|排除转播的nicoco频道号码\"] [\"noexcept|排除转播的nicoch频道号码\"] [\"noexcept|排除转播的mirrativ频道号码\"] [\"noexcept|排除转播的reality频道号码\"] [\"noexcept|排除转播的17live频道号码\"] [\"noexcept|排除转播的streamlink支持的频道网址\"]"
+	echo "${0} youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitcastpy|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|bilibiliwget|bilibiliproxy[,代理ip:代理端口]|bilibiliproxywget[,代理ip:代理端口]|bilibiliproxydlwget[,代理ip:代理端口]|streamlink|m3u8 \"频道号码\" [best|其他清晰度] [loop|once|视频分段时间] [10|循环检测间隔,最短录制间隔] [\"record_video/other|其他本地目录\"] [nobackup|rclone:网盘名称:|onedrive|baidupan[重试次数][keep|del]] [\"noexcept|排除转播的youtube频道号码\"] [\"noexcept|排除转播的twitcast频道号码\"] [\"noexcept|排除转播的twitch频道号码\"] [\"noexcept|排除转播的openrec频道号码\"] [\"noexcept|排除转播的nicolv频道号码\"] [\"noexcept|排除转播的nicoco频道号码\"] [\"noexcept|排除转播的nicoch频道号码\"] [\"noexcept|排除转播的mirrativ频道号码\"] [\"noexcept|排除转播的reality频道号码\"] [\"noexcept|排除转播的17live频道号码\"] [\"noexcept|排除转播的streamlink支持的频道网址\"]"
 	echo "示例：${0} bilibiliproxywget,127.0.0.1:1080 \"12235923\" best,1080p60,1080p,720p,480p,360p,worst 14400 30,5 \"record_video/mea_bilibili\" rclone:vps-1:baidupan3keep \"UCWCc8tO-uUl_7SJXIKJACMw\" \"kaguramea\" \"kagura0mea\" \"KaguraMea\" "
 	echo "必要模块为curl、streamlink、ffmpeg，可选模块为livedl与python3、请将livedl文件放置于运行时目录的livedl文件夹内、请将record_twitcast.py文件放置于运行时目录的record文件夹内。"
 	echo "rclone上传基于\"https://github.com/rclone/rclone\"，onedrive上传基于\"https://github.com/0oVicero0/OneDrive\"，百度云上传基于BaiduPCS-Go，请登录后使用。"
@@ -19,7 +19,7 @@ fi
 
 
 NICO_ID_PSW=$(echo "${1}" | awk -F":" '{print $2}')
-STREAM_URL_PROXY_HARD=$(echo "${1}" | awk -F"," '{print $2}')
+STREAM_PROXY_HARD=$(echo "${1}" | awk -F"," '{print $2}')
 PART_URL="${2}" #频道号码
 FORMAT="${3:-best}" #清晰度
 LOOPORTIME="${4:-loop}" #是否循环或者视频分段时间
@@ -246,20 +246,21 @@ while true; do
 	if [[ "${1}" == "mirrativ" ]]; then STREAM_URL=$(wget -q -O- "https://www.mirrativ.com/api/live/live?live_id=${LIVE_URL}" | grep -o '"streaming_url_hls":".*m3u8"' | awk -F'"' '{print $4}') ; FNAME="mirrativ_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "reality" ]]; then ID=$(echo ${STREAM_ID} | awk -F'"' '{print $8}') ; STREAM_URL=$(echo ${STREAM_ID} | awk -F'"' '{print $4}') ; FNAME="reality_${ID}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "17live" ]]; then STREAM_URL=$(curl -s -X POST 'http://api-dsa.17app.co/api/v1/liveStreams/getLiveStreamInfo' --data "{\"liveStreamID\": ${PART_URL}}" | grep -o '\\"webUrl\\":\\"[^\\]*' | awk -F'\"' '{print $4}') ; FNAME="17live_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
-	if [[ "${1}" == "bilibili" ]]; then FNAME="bilibili_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
+	if [[ "${1}" == "bilibili"* ]]; then FNAME="bilibili_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "bilibili" || "${1}" == "bilibiliwget" ]]; then STREAM_URL=$(wget -q -O- "https://api.live.bilibili.com/room/v1/Room/playUrl?cid=${PART_URL}&quality=0&platform=web" | grep -o "\"url\":\"[^\"]*\"" | head -n 1 | awk -F"\"" '{print $4}'); fi
 	if [[ "${1}" == "bilibiliproxy"* ]]; then
-		if [[ -n "${STREAM_URL_PROXY_HARD}" ]]; then
-			STREAM_URL_PROXY="${STREAM_URL_PROXY_HARD}"
+		if [[ -n "${STREAM_PROXY_HARD}" ]]; then
+			STREAM_PROXY="${STREAM_PROXY_HARD}"
 		else
-			if ! (curl -s --proxy "${STREAM_URL_PROXY}" "https://api.live.bilibili.com/room/v1/Room/playUrl?cid=12235923&quality=0&platform=web" | grep -q "\"code\":0"); then #验证代理可行性
+			if ! (curl -s --proxy "${STREAM_PROXY}" "https://api.live.bilibili.com/room/v1/Room/playUrl?cid=12235923&quality=0&platform=web" | grep -q "\"code\":0"); then #验证代理可行性
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
-				echo "${LOG_PREFIX} proxy not available ${STREAM_URL_PROXY} try get new"
-				STREAM_URL_PROXY=$(curl -s ""); #可替换为任意代理获取方法
+				echo "${LOG_PREFIX} proxy not available ${STREAM_PROXY} try get new"
+				STREAM_PROXY=$(curl -s "http://ip.11jsq.com/index.php/api/entry?method=proxyServer.generate_api_url&packid=0&fa=0&fetch_key=&groupid=0&qty=1&time=1&pro=&city=&port=1&format=txt&ss=1&css=&dt=1&specialTxt=3&specialJson=&usertype=14"); #可替换为任意代理获取方法
+				#STREAM_PROXY=$(curl -s "http://http.tiqu.alicdns.com/getip3?num=1&type=1&pro=&city=0&yys=0&port=1&time=1&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=");
 			fi
 		fi
-		echo "${LOG_PREFIX} proxy using ${STREAM_URL_PROXY}"
-		STREAM_URL=$(curl -s --proxy ${STREAM_URL_PROXY} "https://api.live.bilibili.com/room/v1/Room/playUrl?cid=${PART_URL}&quality=0&platform=web" | grep -o "\"url\":\"[^\"]*\"" | head -n 1 | awk -F"\"" '{print $4}' | sed 's/\\u0026/\&/g')
+		echo "${LOG_PREFIX} proxy using ${STREAM_PROXY}"
+		STREAM_URL=$(curl -s --proxy ${STREAM_PROXY} "https://api.live.bilibili.com/room/v1/Room/playUrl?cid=${PART_URL}&quality=0&platform=web" | grep -o "\"url\":\"[^\"]*\"" | head -n 1 | awk -F"\"" '{print $4}' | sed 's/\\u0026/\&/g')
 	fi
 	if [[ "${1}" == "streamlink" ]]; then FNAME="stream_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "m3u8" ]]; then STREAM_URL="${FULL_URL}" ; FNAME="m3u8_$(date +"%Y%m%d_%H%M%S").ts"; fi
@@ -290,11 +291,12 @@ while true; do
 		if [[ "${1}" == "bilibiliwget" || "${1}" == "bilibiliproxywget"* ]]; then
 			wget -O "${DIR_LOCAL}/${FNAME}" "${STREAM_URL}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
-		
+		if [[ "${1}" == "bilibiliproxydlwget"* ]]; then
+			wget -Y on -e "-https_proxy=${STREAM_PROXY}" -O "${DIR_LOCAL}/${FNAME}" "${STREAM_URL}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
+		fi
 		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "bilibili" || "${1}" == "bilibiliproxy"* || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "17live" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
 			ffmpeg -user_agent "Mozilla/5.0" -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
-
 		
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 		echo "${LOG_PREFIX} record stopped"
@@ -319,7 +321,9 @@ while true; do
 		if [[ "${1}" == "bilibiliwget" || "${1}" == "bilibiliproxywget"* ]]; then
 			(wget -O "${DIR_LOCAL}/${FNAME}" "${STREAM_URL}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
-		
+		if [[ "${1}" == "bilibiliproxydlwget"* ]]; then
+			(wget -Y on -e "-https_proxy=${STREAM_PROXY}" -O "${DIR_LOCAL}/${FNAME}" "${STREAM_URL}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1)&
+		fi
 		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "bilibili" || "${1}" == "bilibiliproxy"* || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "17live" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
 			(ffmpeg -user_agent "Mozilla/5.0" -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
