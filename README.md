@@ -29,7 +29,7 @@ record.sh youtube "UCWCc8tO-uUl_7SJXIKJACMw"   #使用默认参数录制https://
 
 record.sh youtubeffmpeg "UCWCc8tO-uUl_7SJXIKJACMw" 1080p,720p,480p,360p,worst once loop 30 "record_video/mea" rclone:vps:baidupan3   #使用ffmpeg录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw，依次获取1080p 720p 480p 360p worst第一个可用的清晰度，在检测到直播并进行一次录制后终止，间隔30秒检测，录像保存于record_video/mea文件夹中，录制完成后自动上传到rclone中名称为vps的网盘和百度云网盘的相同路径并在上传结束后删除本地录像，如果上传失败则会保留本地录像
 
-nohup record.sh bilibiliproxywget,127.0.0.1:1080 "12235923" best 7200 30,5 "record_video/mea_bilibili" rclone:vps:both3keep "UCWCc8tO-uUl_7SJXIKJACMw" "kaguramea" "kagura0mea" "KaguraMea" > mea_bilibili.log &   #后台录制https://www.twitch.tv/kagura0mea，使用代理服务器127.0.0.1:1080获取直播媒体流链接，最高清晰度，循环检测并在录制进行7200秒时分段，间隔30秒检测，录像保存于record_video/mea文件夹中，录制完成后自动上传到rclone中名称为vps的网盘和百度云网盘的相同路径，如果出错则重试三次，上传完成后无论成功与否都保留本地录像，如果距离录制开始不足5秒则等待到5秒再开始下一次检测，log记录保存于mea_bilibili.log文件
+nohup record.sh bilibiliproxywget,127.0.0.1:1080 "12235923" best 7200 30,5 "record_video/mea_bilibili" rclone:vps:baidupan3keep "UCWCc8tO-uUl_7SJXIKJACMw" "kaguramea" "kagura0mea" "KaguraMea" > mea_bilibili.log &   #后台录制https://www.twitch.tv/kagura0mea，使用代理服务器127.0.0.1:1080获取直播媒体流链接，最高清晰度，循环检测并在录制进行7200秒时分段，间隔30秒检测，录像保存于record_video/mea文件夹中，录制完成后自动上传到rclone中名称为vps的网盘和百度云网盘的相同路径，如果出错则重试三次，上传完成后无论成功与否都保留本地录像，如果距离录制开始不足5秒则等待到5秒再开始下一次检测，log记录保存于mea_bilibili.log文件
  ```
 ### 参数说明
 
