@@ -211,7 +211,7 @@ while true; do
 	if [[ "${1}" == "streamlink" ]]; then FNAME="stream_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	
 	if [[ "${1}" == "bilibili"* ]]; then FNAME="bilibili_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
-	if [[ "${1}" == "bilibili" || "${1}" == "bilibiliwget" ]]; then STREAM_URL=$(wget -q -O- "https://api.live.bilibili.com/room/v1/Room/playUrl?cid=${PART_URL}&quality=0&platform=web" | grep -o "\"url\":\"[^\"]*\"" | head -n 1 | awk -F"\"" '{print $4}'); fi
+	if [[ "${1}" == "bilibili" || "${1}" == "bilibiliwget" ]]; then STREAM_URL=$(wget -q -O- "https://api.live.bilibili.com/room/v1/Room/playUrl?cid=${PART_URL}&quality=0&platform=web" | grep -o "\"url\":\"[^\"]*\"" | head -n 1 | awk -F"\"" '{print $4}' | sed 's/\\u0026/\&/g'); fi
 	if [[ "${1}" == "bilibiliproxy"* ]]; then
 		if [[ -n "${STREAM_PROXY_HARD}" ]]; then
 			STREAM_PROXY="${STREAM_PROXY_HARD}"
