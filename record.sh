@@ -276,7 +276,7 @@ while true; do
 			(python3 record/record_twitcast.py "${STREAM_URL}" "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
 		
-		if [[ "${1}" == "nicolv"* || "${1}" == "nicoco"* || "${1}" == "nicoch"* ]]; then
+		if [[ "${1}" == "nico"* ]]; then
 			if [[ -n "${NICO_ID_PSW}" ]]; then
 				(livedl/livedl -nico-login-only=on -nico-login "${NICO_ID_PSW}" -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 			else
@@ -284,15 +284,15 @@ while true; do
 			fi
 		fi
 		
-		if [[ "${1}" == "bilibiliwget" || "${1}" == "bilibiliproxywget,"* ]]; then
+		if [[ "${1}" == "bilibiliwget" || "${1}" == "bilibiliproxywget"* ]]; then
 			(wget -O "${DIR_LOCAL}/${FNAME}" "${STREAM_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
-		if [[ "${1}" == "bilibiliproxydlwget,"* ]]; then
+		if [[ "${1}" == "bilibiliproxydlwget"* ]]; then
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} proxy ${STREAM_PROXY} wget"
 			(wget -Y on -e "-https_proxy=${STREAM_PROXY}" -O "${DIR_LOCAL}/${FNAME}" "${STREAM_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1)&
 		fi
 		
-		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "17live" || "${1}" == "streamlink" || "${1}" == "bilibili" || "${1}" == "bilibiliproxy,"* || "${1}" == "bilibiliproxy,"* || "${1}" == "m3u8" ]]; then
+		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "17live" || "${1}" == "streamlink" || "${1}" == "bilibili" || "${1}" == "bilibiliproxy" || "${1}" == "bilibiliproxy,"* || "${1}" == "m3u8" ]]; then
 			(ffmpeg -user_agent "Mozilla/5.0" -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
 		
