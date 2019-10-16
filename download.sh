@@ -64,8 +64,7 @@ while true; do
 		if [[ "${STATUS}" == "直播" ]] && [[ "${RECORD}" == "" ]]; then
 			URL_LIVE_STATUS=$(wget -q -O- "https://www.youtube.com/watch?v=${URL}" | grep "ytplayer" | grep -0 '\\"isLive\\":true')
 			URL_LIVE_DURATION=$(( $(date +%s)-${TIMESTAMP} ))
-			[[ "${URL_LIVE_STATUS}" != "" ]] && [[ "${URL_LIVE_DURATION}" -lt 7200 ]] && RECORD=="录像下载待" && RETRY=0
-			sed -i "/${URL}/s/录像[^\t]*/${RECORD}/" "${DIR_LOG}"
+			[[ "${URL_LIVE_STATUS}" != "" ]] && [[ "${URL_LIVE_DURATION}" -lt 7200 ]] && RECORD="录像下载待" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t${RECORD}\t\5\t\6/" "${DIR_LOG}"
 		fi
 		
 		#状态
@@ -75,7 +74,7 @@ while true; do
 			[[ "${URL_STATUS}" == 1 ]] && STATUS="压制"
 			[[ "${URL_STATUS}" -gt 1 ]] && STATUS="正常"
 			[[ "${URL_STATUS}" == "" ]] && STATUS="删除"
-			sed -i "/${URL}/s/[^\t]*\t[^\t]*\t[^\t]*/${URL}\t${TIMESTAMP}\t${STATUS}/" "${DIR_LOG}"
+			sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t${STATUS}\t\4\t\5\t\6/" "${DIR_LOG}"
 		fi
 		
 		
@@ -85,12 +84,11 @@ while true; do
 			FNAME="youtube_${PART_URL}_$(date -d @${TIMESTAMP} +"%Y%m%d_%H%M%S")_${URL}.mkv" #注意不相同
 			if [[ "${RECORD}" == "" ]]; then
 				RECORD_NUM=$(grep -Eo "录像下载待|录像下载中|录像上传待|录像上传中" "${DIR_LOG}" | wc -l)
-				[[ ${RECORD_NUM} -lt ${RECORD_NUM_MAX} ]] && RECORD="录像下载待" && sed -i "/${URL}/c ${URL}\t${TIMESTAMP}\t${STATUS}\t${RECORD}\t${THUMBNAIL}\t${DESCRIPTION}" "${DIR_LOG}" #注意相同
+				[[ ${RECORD_NUM} -lt ${RECORD_NUM_MAX} ]] && RECORD="录像下载待" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t${RECORD}\t\5\t\6/" "${DIR_LOG}"
 			fi
 			
 			if [[ "${RECORD}" == "录像下载待" ]]; then
-				RECORD="录像下载中"
-				sed -i "/${URL}/s/录像[^\t]*/${RECORD}/" "${DIR_LOG}"
+				RECORD="录像下载中" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t${RECORD}\t\5\t\6/" "${DIR_LOG}"
 				(
 				RETRY=1
 				until [[ ${RETRY} -gt ${RETRY_MAX} ]]; do
@@ -106,13 +104,12 @@ while true; do
 					RECORD="录像下载失败"
 					rm "${DIR_LOCAL}/${FNAME}"
 				fi
-				sed -i "/${URL}/s/录像[^\t]*/${RECORD}/" "${DIR_LOG}"
+				sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t${RECORD}\t\5\t\6/" "${DIR_LOG}"
 				) &
 			fi
 			
 			if [[ "${RECORD}" == "录像上传待" ]]; then
-				RECORD="录像上传中"
-				sed -i "/${URL}/s/录像[^\t]*/${RECORD}/" "${DIR_LOG}"
+				RECORD="录像上传中" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t${RECORD}\t\5\t\6/"
 				(
 				RCLONE_RETRY=1 ; RCLONE_ERRFLAG=""
 				if [[ "${BACKUP_DISK}" == *"rclone"* ]]; then
@@ -148,7 +145,7 @@ while true; do
 					RECORD="录像上传失败"
 				fi
 				rm "${DIR_LOCAL}/${FNAME}"
-				sed -i "/${URL}/s/录像[^\t]*/${RECORD}/" "${DIR_LOG}"
+				sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t${RECORD}\t\5\t\6/" "${DIR_LOG}"
 				)&
 			fi
 		fi
@@ -158,12 +155,11 @@ while true; do
 			FNAME="youtube_${PART_URL}_$(date -d @${TIMESTAMP} +"%Y%m%d_%H%M%S")_${URL}.jpg"
 			if [[ "${THUMBNAIL}" == "" ]]; then
 				THUMBNAIL_NUM=$(grep -Eo "图片下载待|图片下载中|图片上传待|图片上传中" "${DIR_LOG}" | wc -l)
-				[[ ${THUMBNAIL_NUM} -lt ${THUMBNAIL_NUM_MAX} ]] && THUMBNAIL="图片下载待" && sed -i "/${URL}/c ${URL}\t${TIMESTAMP}\t${STATUS}\t${RECORD}\t${THUMBNAIL}\t${DESCRIPTION}" "${DIR_LOG}"
+				[[ ${THUMBNAIL_NUM} -lt ${THUMBNAIL_NUM_MAX} ]] && THUMBNAIL="图片下载待" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t${THUMBNAIL}\t\6/" "${DIR_LOG}"
 			fi
 			
 			if [[ "${THUMBNAIL}" == "图片下载待" ]]; then
-				THUMBNAIL="图片下载中"
-				sed -i "/${URL}/s/图片[^\t]*/${THUMBNAIL}/" "${DIR_LOG}"
+				THUMBNAIL="图片下载中" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t${THUMBNAIL}\t\6/" "${DIR_LOG}"
 				(
 				RETRY=1
 				until [[ ${RETRY} -gt ${RETRY_MAX} ]]; do
@@ -179,13 +175,12 @@ while true; do
 					THUMBNAIL="图片下载失败"
 					rm "${DIR_LOCAL}/${FNAME}"
 				fi
-				sed -i "/${URL}/s/图片[^\t]*/${THUMBNAIL}/" "${DIR_LOG}"
+				sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t${THUMBNAIL}\t\6/" "${DIR_LOG}"
 				) &
 			fi
 			
 			if [[ "${THUMBNAIL}" == "图片上传待" ]]; then
-				THUMBNAIL="图片上传中"
-				sed -i "/${URL}/s/图片[^\t]*/${THUMBNAIL}/" "${DIR_LOG}"
+				THUMBNAIL="图片上传中" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t${THUMBNAIL}\t\6/" "${DIR_LOG}"
 				(
 				RCLONE_RETRY=1 ; RCLONE_ERRFLAG=""
 				if [[ "${BACKUP_DISK}" == *"rclone"* ]]; then
@@ -221,7 +216,7 @@ while true; do
 					THUMBNAIL="图片上传失败"
 				fi
 				rm "${DIR_LOCAL}/${FNAME}"
-				sed -i "/${URL}/s/图片[^\t]*/${THUMBNAIL}/" "${DIR_LOG}"
+				sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t${THUMBNAIL}\t\6/" "${DIR_LOG}"
 				)&
 			fi
 		fi
@@ -231,12 +226,11 @@ while true; do
 			FNAME="youtube_${PART_URL}_$(date -d @${TIMESTAMP} +"%Y%m%d_%H%M%S")_${URL}.txt"
 			if [[ "${DESCRIPTION}" == "" ]]; then
 				DESCRIPTION_NUM=$(grep -Eo "简介下载待|简介下载中|简介上传待|简介上传中" "${DIR_LOG}" | wc -l)
-				[[ ${DESCRIPTION_NUM} -lt ${DESCRIPTION_NUM_MAX} ]] && DESCRIPTION="简介下载待" &&	sed -i "/${URL}/c ${URL}\t${TIMESTAMP}\t${STATUS}\t${RECORD}\t${THUMBNAIL}\t${DESCRIPTION}" "${DIR_LOG}"
+				[[ ${DESCRIPTION_NUM} -lt ${DESCRIPTION_NUM_MAX} ]] && DESCRIPTION="简介下载待" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t\5\t${DESCRIPTION}/" "${DIR_LOG}"
 			fi
 			
 			if [[ "${DESCRIPTION}" == "简介下载待" ]]; then
-				DESCRIPTION="简介下载中"
-				sed -i "/${URL}/s/简介[^\t]*/${DESCRIPTION}/" "${DIR_LOG}"
+				DESCRIPTION="简介下载中" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t\5\t${DESCRIPTION}/" "${DIR_LOG}"
 				(
 				RETRY=1
 				until [[ ${RETRY} -gt ${RETRY_MAX} ]]; do
@@ -253,13 +247,12 @@ while true; do
 					DESCRIPTION="简介下载失败"
 					rm "${DIR_LOCAL}/${FNAME}"
 				fi
-				sed -i "/${URL}/s/简介[^\t]*/${DESCRIPTION}/" "${DIR_LOG}"
+				sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t\5\t${DESCRIPTION}/" "${DIR_LOG}"
 				) &
 			fi
 			
 			if [[ "${DESCRIPTION}" == "简介上传待" ]]; then
-				DESCRIPTION="简介上传中"
-				sed -i "/${URL}/s/简介[^\t]*/${DESCRIPTION}/" "${DIR_LOG}"
+				DESCRIPTION="简介上传中" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t\5\t${DESCRIPTION}/" "${DIR_LOG}"
 				(
 				RCLONE_RETRY=1 ; RCLONE_ERRFLAG=""
 				if [[ "${BACKUP_DISK}" == *"rclone"* ]]; then
@@ -295,10 +288,11 @@ while true; do
 					DESCRIPTION="简介上传失败"
 				fi
 				rm "${DIR_LOCAL}/${FNAME}"
-				sed -i "/${URL}/s/简介[^\t]*/${DESCRIPTION}/" "${DIR_LOG}"
+				sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t\5\t${DESCRIPTION}/" "${DIR_LOG}"
 				)&
 			fi
 		fi
+		#sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t\5\t\6/" "${DIR_LOG}"
 	done
 	
 	if [[ "${LOOP_TIME}" != "loop" ]]; then
