@@ -8,7 +8,7 @@ record.sh为自动录播脚本。
 
 record_twitcast.py为可选，是一个可以录制websocket的精简脚本。因为twitcast分别提供了基于h5与的websocket流，但最高清晰度仅能通过websocket获取，而ffmpeg并不能支持websocket，所以提供一个可以录制websocket的脚本。也可单独使用，方法为`python3 record_twitcast.py "ws或wss网址" "输出文件目录"`。  
 
-download.sh与录制功能无关，是一个完全独立的小脚本。本质是轮询检测youtube频道的直播和视频页第一页，产生一个youtube视频列表，并对列表中视频的录像、封面图、标题与简介进行备份。因为youtube上时长不足两小时的直播，直播结束后到删档前仍有一段时间可以下载完整的视频，而且一旦开始下载则下载过程不受删档影响，所以也内置了在下播后及时尝试下载的功能。对于时长超过两小时的直播，则会等待压制完成后进行下载。具体用法可直接不加参数运行`download.sh`查看。
+download.sh与录制功能无关，是一个完全独立的小脚本。本质是轮询检测youtube频道的直播和视频页第一页，产生一个youtube视频列表，并对列表中视频的录像、封面图、标题与简介进行备份。因为youtube上时长不足两小时的直播，直播结束后到删档前仍有一段时间可以下载完整的视频，而且一旦开始下载则下载过程不受删档影响，所以也内置了在下播后及时尝试下载的功能。对于时长超过两小时的直播，则会等待压制完成后进行下载。具体用法可直接不加参数运行`download.sh`查看。（另外由于脚本的工作状态完全取决于视频列表的内容，所以直接指定或修改视频列表大概也能有一些奇怪的作用）
 
 感谢[live-stream-recorder](https://github.com/printempw/live-stream-recorder)、[GiGaFotress/Vtuber-recorder](https://github.com/GiGaFotress/Vtuber-recorder)。  
 
