@@ -11,7 +11,7 @@ fi
 
 
 
-URL_LIVE_DURATION_MAX=$(echo "${1}" | grep -o "[0-9]*") #触发快速模式的最长直播时间
+URL_LIVE_DURATION_MAX=$(echo "${1}" | grep -o "[0-9]*") #触发下播后立即录像的最长直播时间
 PART_URL="${2}" #youtube频道号码
 LOOP_TIME="${3:-loop}" #是否循环或循环次数
 LOOPINTERVAL="${4:-10}" #循环检测间隔
