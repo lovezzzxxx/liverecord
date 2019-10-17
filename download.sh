@@ -3,7 +3,7 @@
 if [[ ! -n "${1}" ]]; then
 	echo "${0} none|live|video|livevideo[fast][触发下播后立即录像的最长直播时间][full] youtube频道号码 [loop|循环次数] [10|循环检测间隔] [3,3,3|录像最大并发数,图片最大并发数,简介最大并发数] [\"download_video/other,download_log/other.txt|本地目录,txt文件路径\"] [nobackup|rclone:网盘名称:|onedrive|baidupan[重试次数]]"
 	echo "示例：${0} livevideofastfull \"UCWCc8tO-uUl_7SJXIKJACMw\" loop 15 3,5,5 \"download_video/mea,download_log/mea.txt\" rclone:vps:baidupan3"
-	echo "第一个参数说明(其他参数用法基本同record.sh)：live与video为分别从直播和视频页面获取视频列表，设置为none则不更新视频列表，适用于手动提供视频列表的情况，注意每行都应该添加五个制表符。fast为直播下播后立即录像，有机会在删档前开始下载。触发下播后立即录像的最长直播时间设置为7200可以避免下载到未压制完成的视频。full为确保下载到完整视频，防止因下播后立即录像功能导致无法下载到压制完成的视频。"
+	echo "第一个参数说明(其他参数用法基本同record.sh)：live与video为分别从直播和视频页面获取视频列表，设置为none则不更新视频列表，适用于手动提供视频列表的情况，注意每行都应该添加五个制表符，如果是直播视频ID则最好添加时间戳，否则如果指定了触发下播后立即录像的最长直播时间则无法触发下播后立即录像。fast为直播下播后立即录像，有机会在删档前开始下载。触发下播后立即录像的最长直播时间设置为7200可以避免下载到未压制完成的视频。full为确保下载到完整视频，防止因下播后立即录像功能导致无法下载到压制完成的视频。"
 	echo "必要模块为curl、youtube-dl"
 	echo "rclone上传基于\"https://github.com/rclone/rclone\"，onedrive上传基于\"https://github.com/0oVicero0/OneDrive\"，百度云上传基于BaiduPCS-Go，请登录后使用。"
 	echo "注意文件路径不能带有\",\"，注意循环次数过少可能会导致下载与上传不能完成"
