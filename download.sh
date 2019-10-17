@@ -28,22 +28,23 @@ RETRY_MAX=$(echo "${BACKUP}" | awk -F":" '{print $NF}' | grep -o "[0-9]*") ; [[ 
 LOOP=1
 
 while true; do
-	echo $LOOP
 	#添加列表，for获取LIST不能加引号，awk|while无法修改外部变量
 	if (echo "${1}" | grep -q "live"); then
+		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata https://www.youtube.com/channel/${PART_URL}/live"
 		(wget -q -O- "https://www.youtube.com/channel/${PART_URL}/live" | grep -q '\\"qualityLabel\\":\\"[0-9]*p\\"') && URL_ADD_LIST_LIVE=$(wget -q -O- "https://www.youtube.com/channel/${PART_URL}/live" | grep -o '\\"liveStreamabilityRenderer\\":{\\"videoId\\":\\".*\\"' | head -n 1 | sed 's/\\//g' | awk -F'"' '{print $6}')
 		for URL_ADD in ${URL_ADD_LIST_LIVE}; do 
 			URL_LIST=$(awk '{print $1}' "${DIR_LOG}") ; URL_EXIST=0
 			for URL in ${URL_LIST}; do [[ "${URL_ADD}" == "${URL}" ]] && let URL_EXIST++; done
-			if [[ "${URL_EXIST}" == 0 ]]; then URL_TIMESTAMP=$(date +%s); echo -e "${URL_ADD}\t${URL_TIMESTAMP}\t直播\t\t\t" >> "${DIR_LOG}"; fi
+			[[ "${URL_EXIST}" == 0 ]] && URL_TIMESTAMP=$(date +%s) && echo -e "${URL_ADD}\t${URL_TIMESTAMP}\t直播\t\t\t" >> "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo -e "${LOG_PREFIX} add ${URL_ADD}\t${URL_TIMESTAMP}\t直播\t\t\t"
 		done
 	fi
 	if (echo "${1}" | grep -q "video"); then
+		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata https://www.youtube.com/channel/${PART_URL}/videos"
 		URL_ADD_LIST_VIDEO=$(wget -q -O- "https://www.youtube.com/channel/${PART_URL}/videos" | grep -o '<a href="/watch?v=[^"]*"' | awk -F'[="]' '{print $4}')
 		for URL_ADD in ${URL_ADD_LIST_VIDEO}; do 
 			URL_LIST=$(awk '{print $1}' "${DIR_LOG}") ; URL_EXIST=0
 			for URL in ${URL_LIST}; do [[ "${URL_ADD}" == "${URL}" ]] && let URL_EXIST++; done
-			if [[ "${URL_EXIST}" == 0 ]]; then URL_TIMESTAMP=$(date +%s); echo -e "${URL_ADD}\t${URL_TIMESTAMP}\t\t\t\t" >> "${DIR_LOG}"; fi
+			[[ "${URL_EXIST}" == 0 ]] && URL_TIMESTAMP=$(date +%s) && echo -e "${URL_ADD}\t${URL_TIMESTAMP}\t\t\t\t" >> "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo -e "${LOG_PREFIX} add ${URL_ADD}\t${URL_TIMESTAMP}\t直播\t\t\t"
 		done
 	fi
 	
@@ -57,86 +58,98 @@ while true; do
 		RECORD=$(echo "${LINE}" | awk -F'\t' '{print $4}')
 		THUMBNAIL=$(echo "${LINE}" | awk -F'\t' '{print $5}')
 		DESCRIPTION=$(echo "${LINE}" | awk -F'\t' '{print $6}')
-		echo $URL,$TIMESTAMP,$STATUS,$RECORD,$THUMBNAIL,$DESCRIPTION
+		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} read $URL,$TIMESTAMP,$STATUS,$RECORD,$THUMBNAIL,$DESCRIPTION"
+		
 		
 		
 		#不足两小时直播下播后立即录像
 		if [[ "${STATUS}" == "直播" ]] && [[ "${RECORD}" == "" ]]; then
+			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} fast metadata https://www.youtube.com/watch?v=${URL}"
 			URL_LIVE_STATUS=$(wget -q -O- "https://www.youtube.com/watch?v=${URL}" | grep "ytplayer" | grep -0 '\\"isLive\\":true')
 			URL_LIVE_DURATION=$(( $(date +%s)-${TIMESTAMP} ))
-			[[ "${URL_LIVE_STATUS}" != "" ]] && [[ "${URL_LIVE_DURATION}" -lt 7200 ]] && RECORD="录像下载待" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t${RECORD}\t\5\t\6/" "${DIR_LOG}"
+			[[ "${URL_LIVE_STATUS}" != "" ]] && [[ "${URL_LIVE_DURATION}" -lt 7200 ]] && RECORD="录像下载待" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t${RECORD}\t\5\t\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} fast change RECORD=${RECORD}" 
 		fi
 		
 		#状态
 		if [[ "${STATUS}" == "" ]] || [[ "${STATUS}" == "直播" ]] || [[ "${STATUS}" == "压制" ]]; then
+			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata https://www.youtube.com/watch?v=${URL}"
 			URL_STATUS=$(wget -q -O- "https://www.youtube.com/watch?v=${URL}" | grep -o '\\"lengthSeconds\\":\\"[0-9]*' | awk -F'"' '{print $4}' | head -n 1)
+			STATUS_BEDORE="${STATUS}"
 			[[ "${URL_STATUS}" == 0 ]] && STATUS="直播"
 			[[ "${URL_STATUS}" == 1 ]] && STATUS="压制"
 			[[ "${URL_STATUS}" -gt 1 ]] && STATUS="正常"
 			[[ "${URL_STATUS}" == "" ]] && STATUS="删除"
-			sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t${STATUS}\t\4\t\5\t\6/" "${DIR_LOG}"
+			[[ "${STATUS}" != "${STATUS_BEDORE}" ]] && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t${STATUS}\t\4\t\5\t\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} change STATUS=${STATUS}"
 		fi
 		
 		
 		
 		#录像，""→录像下载待/录像下载中→录像上传待/录像上传中→录像成功/录像失败
-		if [[ "${STATUS}" == "正常" ]] && [[ "${RECORD}" == "" ]] || [[ "${RECORD}" == *"待" ]]; then
+		if ([[ "${STATUS}" == "正常" ]] && [[ "${RECORD}" == "" ]]) || [[ "${RECORD}" == *"待" ]]; then
 			FNAME="youtube_${PART_URL}_$(date -d @${TIMESTAMP} +"%Y%m%d_%H%M%S")_${URL}.mkv" #注意不相同
 			if [[ "${RECORD}" == "" ]]; then
 				RECORD_NUM=$(grep -Eo "录像下载待|录像下载中|录像上传待|录像上传中" "${DIR_LOG}" | wc -l)
-				[[ ${RECORD_NUM} -lt ${RECORD_NUM_MAX} ]] && RECORD="录像下载待" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t${RECORD}\t\5\t\6/" "${DIR_LOG}"
+				[[ ${RECORD_NUM} -lt ${RECORD_NUM_MAX} ]] && RECORD="录像下载待" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t${RECORD}\t\5\t\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} change RECORD=${RECORD}"
 			fi
 			
 			if [[ "${RECORD}" == "录像下载待" ]]; then
-				RECORD="录像下载中" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t${RECORD}\t\5\t\6/" "${DIR_LOG}"
+				RECORD="录像下载中" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t${RECORD}\t\5\t\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} change RECORD=${RECORD}"
 				(
 				RETRY=1
 				until [[ ${RETRY} -gt ${RETRY_MAX} ]]; do
+					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} download ${DIR_LOCAL}/${FNAME} start url=https://www.youtube.com/watch?v=${URL} retry ${RETRY}"
 					youtube-dl -q --merge-output-format mkv -o "${DIR_LOCAL}/${FNAME}" "https://www.youtube.com/watch?v=${URL}"
-					[[ -f "${DIR_LOCAL}/${FNAME}" ]] && break
+					[[ -f "${DIR_LOCAL}/${FNAME}" ]] && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} download ${DIR_LOCAL}/${FNAME} success") && break
 					let RETRY++
 				done
+				[[ -f "${DIR_LOCAL}/${FNAME}" ]] || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} download ${DIR_LOCAL}/${FNAME} fail")
 				
 				if [[ -f "${DIR_LOCAL}/${FNAME}" ]]; then
 					RECORD="录像上传待"
 					[[ "${BACKUP}" == "nobackup" ]] && RECORD="录像下载成功"
 				else
 					RECORD="录像下载失败"
-					rm "${DIR_LOCAL}/${FNAME}"
+					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${FNAME}" ; rm "${DIR_LOCAL}/${FNAME}"
 				fi
-				sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t${RECORD}\t\5\t\6/" "${DIR_LOG}"
+				sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t${RECORD}\t\5\t\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} change RECORD=${RECORD}"
 				) &
 			fi
 			
 			if [[ "${RECORD}" == "录像上传待" ]]; then
-				RECORD="录像上传中" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t${RECORD}\t\5\t\6/"
+				RECORD="录像上传中" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t${RECORD}\t\5\t\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} change RECORD=${RECORD}"
 				(
 				RCLONE_RETRY=1 ; RCLONE_ERRFLAG=""
 				if [[ "${BACKUP_DISK}" == *"rclone"* ]]; then
 					until [[ ${RCLONE_RETRY} -gt ${RETRY_MAX} ]]; do
+						LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} start retry ${RCLONE_RETRY}"
 						RCLONE_ERRFLAG=$(rclone copy "${DIR_LOCAL}/${FNAME}" "${DIR_RCLONE}")
-						[[ "${RCLONE_ERRFLAG}" == "" ]] && break
+						[[ "${RCLONE_ERRFLAG}" == "" ]] && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} success") && break
 						let RCLONE_RETRY++
 					done
+					[[ "${RCLONE_ERRFLAG}" == "" ]] || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} success")
 				fi
 				
 				ONEDRIVE_RETRY=1 ; ONEDRIVE_ERRFLAG=0
 				if [[ "${BACKUP_DISK}" == *"onedrive"* ]]; then
 					until [[ ${ONEDRIVE_RETRY} -gt ${RETRY_MAX} ]]; do
+						LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} start retry ${ONEDRIVE_RETRY}"
 						onedrive -s -f "${DIR_ONEDRIVE}" "${DIR_LOCAL}/${FNAME}"
 						ONEDRIVE_ERRFLAG=$?
-						[[ "${ONEDRIVE_ERRFLAG}" == 0 ]] && break
+						[[ "${ONEDRIVE_ERRFLAG}" == 0 ]] && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} success") && break
 						let ONEDRIVE_RETRY++
 					done
+					[[ "${ONEDRIVE_ERRFLAG}" == 0 ]] || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} fail")
 				fi
 				
 				BAIDUPAN_RETRY=1 ; BAIDUPAN_ERRFLAG="成功"
 				if [[ "${BACKUP_DISK}" == *"baidupan"* ]]; then			
 					until [[ ${BAIDUPAN_RETRY} -gt ${RETRY_MAX} ]]; do
+						LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} start retry ${BAIDUPAN_RETRY}"
 						BAIDUPAN_ERRFLAG=$(BaiduPCS-Go upload "${DIR_LOCAL}/${FNAME}" "${DIR_BAIDUPAN}")
-						(echo "${BAIDUPAN_ERRFLAG}" | grep -q "成功") && break
+						(echo "${BAIDUPAN_ERRFLAG}" | grep -q "成功") && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} success") && break
 						let BAIDUPAN_RETRY++
 					done
+					(echo "${BAIDUPAN_ERRFLAG}" | grep -q "成功") || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} success")
 				fi
 				
 				if [[ "${RCLONE_ERRFLAG}" = "" ]] && [[ "${ONEDRIVE_ERRFLAG}" == 0 ]] && (echo "${BAIDUPAN_ERRFLAG}" | grep -q "成功"); then
@@ -144,70 +157,78 @@ while true; do
 				else
 					RECORD="录像上传失败"
 				fi
-				rm "${DIR_LOCAL}/${FNAME}"
-				sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t${RECORD}\t\5\t\6/" "${DIR_LOG}"
-				)&
+				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${FNAME}" ; rm "${DIR_LOCAL}/${FNAME}"
+				sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t${RECORD}\t\5\t\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} change RECORD=${RECORD}"
+				) &
 			fi
 		fi
 		
 		#图片
-		if [[ "${STATUS}" == "正常" ]] && [[ "${THUMBNAIL}" == "" ]] || [[ "${THUMBNAIL}" == *"待" ]]; then
+		if ([[ "${STATUS}" != "删除" ]] && [[ "${THUMBNAIL}" == "" ]]) || [[ "${THUMBNAIL}" == *"待" ]]; then
 			FNAME="youtube_${PART_URL}_$(date -d @${TIMESTAMP} +"%Y%m%d_%H%M%S")_${URL}.jpg"
 			if [[ "${THUMBNAIL}" == "" ]]; then
 				THUMBNAIL_NUM=$(grep -Eo "图片下载待|图片下载中|图片上传待|图片上传中" "${DIR_LOG}" | wc -l)
-				[[ ${THUMBNAIL_NUM} -lt ${THUMBNAIL_NUM_MAX} ]] && THUMBNAIL="图片下载待" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t${THUMBNAIL}\t\6/" "${DIR_LOG}"
+				[[ ${THUMBNAIL_NUM} -lt ${THUMBNAIL_NUM_MAX} ]] && THUMBNAIL="图片下载待" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t${THUMBNAIL}\t\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} change THUMBNAIL=${THUMBNAIL}"
 			fi
 			
 			if [[ "${THUMBNAIL}" == "图片下载待" ]]; then
-				THUMBNAIL="图片下载中" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t${THUMBNAIL}\t\6/" "${DIR_LOG}"
+				THUMBNAIL="图片下载中" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t${THUMBNAIL}\t\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} change THUMBNAIL=${THUMBNAIL}"
 				(
 				RETRY=1
 				until [[ ${RETRY} -gt ${RETRY_MAX} ]]; do
+					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} download ${DIR_LOCAL}/${FNAME} start url=https://i.ytimg.com/vi/${URL}/hqdefault.jpg retry ${RETRY}"
 					wget -q -O "${DIR_LOCAL}/${FNAME}" "https://i.ytimg.com/vi/${URL}/hqdefault.jpg"
-					[[ -f "${DIR_LOCAL}/${FNAME}" ]] && break
+					[[ -f "${DIR_LOCAL}/${FNAME}" ]] && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} download ${DIR_LOCAL}/${FNAME} success") && break
 					let RETRY++
 				done
+				[[ -f "${DIR_LOCAL}/${FNAME}" ]] || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} download ${DIR_LOCAL}/${FNAME} success")
 				
 				if [[ -f "${DIR_LOCAL}/${FNAME}" ]]; then
 					THUMBNAIL="图片上传待"
 					[[ "${BACKUP}" == "nobackup" ]] && THUMBNAIL="图片下载成功"
 				else
 					THUMBNAIL="图片下载失败"
-					rm "${DIR_LOCAL}/${FNAME}"
+					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${FNAME}" ; rm "${DIR_LOCAL}/${FNAME}"
 				fi
-				sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t${THUMBNAIL}\t\6/" "${DIR_LOG}"
+				sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t${THUMBNAIL}\t\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} change THUMBNAIL=${THUMBNAIL}"
 				) &
 			fi
 			
 			if [[ "${THUMBNAIL}" == "图片上传待" ]]; then
-				THUMBNAIL="图片上传中" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t${THUMBNAIL}\t\6/" "${DIR_LOG}"
+				THUMBNAIL="图片上传中" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t${THUMBNAIL}\t\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} change THUMBNAIL=${THUMBNAIL}"
 				(
 				RCLONE_RETRY=1 ; RCLONE_ERRFLAG=""
 				if [[ "${BACKUP_DISK}" == *"rclone"* ]]; then
 					until [[ ${RCLONE_RETRY} -gt ${RETRY_MAX} ]]; do
+						LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} start retry ${RCLONE_RETRY}"
 						RCLONE_ERRFLAG=$(rclone copy "${DIR_LOCAL}/${FNAME}" "${DIR_RCLONE}")
-						[[ "${RCLONE_ERRFLAG}" == "" ]] && break
+						[[ "${RCLONE_ERRFLAG}" == "" ]] && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} success") && break
 						let RCLONE_RETRY++
 					done
+					[[ "${RCLONE_ERRFLAG}" == "" ]] || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} success")
 				fi
 				
 				ONEDRIVE_RETRY=1 ; ONEDRIVE_ERRFLAG=0
 				if [[ "${BACKUP_DISK}" == *"onedrive"* ]]; then
 					until [[ ${ONEDRIVE_RETRY} -gt ${RETRY_MAX} ]]; do
+						LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} start retry ${ONEDRIVE_RETRY}"
 						onedrive -s -f "${DIR_ONEDRIVE}" "${DIR_LOCAL}/${FNAME}"
 						ONEDRIVE_ERRFLAG=$?
-						[[ "${ONEDRIVE_ERRFLAG}" == 0 ]] && break
+						[[ "${ONEDRIVE_ERRFLAG}" == 0 ]] && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} success") && break
 						let ONEDRIVE_RETRY++
 					done
+					[[ "${ONEDRIVE_ERRFLAG}" == 0 ]] || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} fail")
 				fi
 				
 				BAIDUPAN_RETRY=1 ; BAIDUPAN_ERRFLAG="成功"
 				if [[ "${BACKUP_DISK}" == *"baidupan"* ]]; then			
 					until [[ ${BAIDUPAN_RETRY} -gt ${RETRY_MAX} ]]; do
+						LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} start retry ${BAIDUPAN_RETRY}"
 						BAIDUPAN_ERRFLAG=$(BaiduPCS-Go upload "${DIR_LOCAL}/${FNAME}" "${DIR_BAIDUPAN}")
-						(echo "${BAIDUPAN_ERRFLAG}" | grep -q "成功") && break
+						(echo "${BAIDUPAN_ERRFLAG}" | grep -q "成功") && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} success") && break
 						let BAIDUPAN_RETRY++
 					done
+					(echo "${BAIDUPAN_ERRFLAG}" | grep -q "成功") || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} success")
 				fi
 				
 				if [[ "${RCLONE_ERRFLAG}" = "" ]] && [[ "${ONEDRIVE_ERRFLAG}" == 0 ]] && (echo "${BAIDUPAN_ERRFLAG}" | grep -q "成功"); then
@@ -215,71 +236,79 @@ while true; do
 				else
 					THUMBNAIL="图片上传失败"
 				fi
-				rm "${DIR_LOCAL}/${FNAME}"
-				sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t${THUMBNAIL}\t\6/" "${DIR_LOG}"
-				)&
+				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${FNAME}" ; rm "${DIR_LOCAL}/${FNAME}"
+				sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t${THUMBNAIL}\t\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} change THUMBNAIL=${THUMBNAIL}"
+				) &
 			fi
 		fi
 		
 		#简介
-		if [[ "${STATUS}" == "正常" ]] && [[ "${DESCRIPTION}" == "" ]] || [[ "${DESCRIPTION}" == *"待" ]]; then
+		if ([[ "${STATUS}" != "删除" ]] && [[ "${DESCRIPTION}" == "" ]]) || [[ "${DESCRIPTION}" == *"待" ]]; then
 			FNAME="youtube_${PART_URL}_$(date -d @${TIMESTAMP} +"%Y%m%d_%H%M%S")_${URL}.txt"
 			if [[ "${DESCRIPTION}" == "" ]]; then
 				DESCRIPTION_NUM=$(grep -Eo "简介下载待|简介下载中|简介上传待|简介上传中" "${DIR_LOG}" | wc -l)
-				[[ ${DESCRIPTION_NUM} -lt ${DESCRIPTION_NUM_MAX} ]] && DESCRIPTION="简介下载待" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t\5\t${DESCRIPTION}/" "${DIR_LOG}"
+				[[ ${DESCRIPTION_NUM} -lt ${DESCRIPTION_NUM_MAX} ]] && DESCRIPTION="简介下载待" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t\5\t${DESCRIPTION}/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} change DESCRIPTION=${DESCRIPTION}"
 			fi
 			
 			if [[ "${DESCRIPTION}" == "简介下载待" ]]; then
-				DESCRIPTION="简介下载中" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t\5\t${DESCRIPTION}/" "${DIR_LOG}"
+				DESCRIPTION="简介下载中" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t\5\t${DESCRIPTION}/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} change DESCRIPTION=${DESCRIPTION}"
 				(
 				RETRY=1
 				until [[ ${RETRY} -gt ${RETRY_MAX} ]]; do
+					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} download ${DIR_LOCAL}/${FNAME} start url=https://www.youtube.com/watch?v=${URL} retry ${RETRY}"
 					wget -q -O- "https://www.youtube.com/watch?v=${URL}" | grep -o '\\"videoTitle\\":\\"[^\\]*' | awk -F'"' '{print $4}' > "${DIR_LOCAL}/${FNAME}"
 					wget -q -O- "https://www.youtube.com/watch?v=${URL}" | grep -o '<div id="watch-description-text".*</div>' >> "${DIR_LOCAL}/${FNAME}"
-					[[ -f "${DIR_LOCAL}/${FNAME}" ]] && break
+					[[ -f "${DIR_LOCAL}/${FNAME}" ]] && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} download ${DIR_LOCAL}/${FNAME} success") && break
 					let RETRY++
 				done
+				[[ -f "${DIR_LOCAL}/${FNAME}" ]] || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} download ${DIR_LOCAL}/${FNAME} success")
 				
 				if [[ -f "${DIR_LOCAL}/${FNAME}" ]]; then
 					DESCRIPTION="简介上传待"
 					[[ "${BACKUP}" == "nobackup" ]] && DESCRIPTION="简介下载成功"
 				else
 					DESCRIPTION="简介下载失败"
-					rm "${DIR_LOCAL}/${FNAME}"
+					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${FNAME}" ; rm "${DIR_LOCAL}/${FNAME}"
 				fi
-				sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t\5\t${DESCRIPTION}/" "${DIR_LOG}"
+				sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t\5\t${DESCRIPTION}/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} change DESCRIPTION=${DESCRIPTION}"
 				) &
 			fi
 			
 			if [[ "${DESCRIPTION}" == "简介上传待" ]]; then
-				DESCRIPTION="简介上传中" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t\5\t${DESCRIPTION}/" "${DIR_LOG}"
+				DESCRIPTION="简介上传中" && sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t\5\t${DESCRIPTION}/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} change DESCRIPTION=${DESCRIPTION}"
 				(
 				RCLONE_RETRY=1 ; RCLONE_ERRFLAG=""
 				if [[ "${BACKUP_DISK}" == *"rclone"* ]]; then
 					until [[ ${RCLONE_RETRY} -gt ${RETRY_MAX} ]]; do
+						LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} start retry ${RCLONE_RETRY}"
 						RCLONE_ERRFLAG=$(rclone copy "${DIR_LOCAL}/${FNAME}" "${DIR_RCLONE}")
-						[[ "${RCLONE_ERRFLAG}" == "" ]] && break
+						[[ "${RCLONE_ERRFLAG}" == "" ]] && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} success") && break
 						let RCLONE_RETRY++
 					done
+					[[ "${RCLONE_ERRFLAG}" == "" ]] || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} success")
 				fi
 				
 				ONEDRIVE_RETRY=1 ; ONEDRIVE_ERRFLAG=0
 				if [[ "${BACKUP_DISK}" == *"onedrive"* ]]; then
 					until [[ ${ONEDRIVE_RETRY} -gt ${RETRY_MAX} ]]; do
+						LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} start retry ${ONEDRIVE_RETRY}"
 						onedrive -s -f "${DIR_ONEDRIVE}" "${DIR_LOCAL}/${FNAME}"
 						ONEDRIVE_ERRFLAG=$?
-						[[ "${ONEDRIVE_ERRFLAG}" == 0 ]] && break
+						[[ "${ONEDRIVE_ERRFLAG}" == 0 ]] && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} success") && break
 						let ONEDRIVE_RETRY++
 					done
+					[[ "${ONEDRIVE_ERRFLAG}" == 0 ]] || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} fail")
 				fi
 				
 				BAIDUPAN_RETRY=1 ; BAIDUPAN_ERRFLAG="成功"
 				if [[ "${BACKUP_DISK}" == *"baidupan"* ]]; then			
 					until [[ ${BAIDUPAN_RETRY} -gt ${RETRY_MAX} ]]; do
+						LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} start retry ${BAIDUPAN_RETRY}"
 						BAIDUPAN_ERRFLAG=$(BaiduPCS-Go upload "${DIR_LOCAL}/${FNAME}" "${DIR_BAIDUPAN}")
-						(echo "${BAIDUPAN_ERRFLAG}" | grep -q "成功") && break
+						(echo "${BAIDUPAN_ERRFLAG}" | grep -q "成功") && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} success") && break
 						let BAIDUPAN_RETRY++
 					done
+					(echo "${BAIDUPAN_ERRFLAG}" | grep -q "成功") || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} success")
 				fi
 				
 				if [[ "${RCLONE_ERRFLAG}" = "" ]] && [[ "${ONEDRIVE_ERRFLAG}" == 0 ]] && (echo "${BAIDUPAN_ERRFLAG}" | grep -q "成功"); then
@@ -287,9 +316,9 @@ while true; do
 				else
 					DESCRIPTION="简介上传失败"
 				fi
-				rm "${DIR_LOCAL}/${FNAME}"
-				sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t\5\t${DESCRIPTION}/" "${DIR_LOG}"
-				)&
+				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} remove ${DIR_LOCAL}/${FNAME}" ; rm "${DIR_LOCAL}/${FNAME}"
+				sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t\5\t${DESCRIPTION}/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} change DESCRIPTION=${DESCRIPTION}"
+				) &
 			fi
 		fi
 		#sed -i "/${URL}/s/\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)\t\([^\t]*\)/\1\t\2\t\3\t\4\t\5\t\6/" "${DIR_LOG}"
@@ -297,7 +326,8 @@ while true; do
 	
 	if [[ "${LOOP_TIME}" != "loop" ]]; then
 		[[ "${LOOP}" -gt "${LOOP_TIME}" ]] && break
+		let LOOP++
 	fi
-	let LOOP++
+	LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} detect loop end retry after ${LOOPINTERVAL} seconds..."
 	sleep ${LOOPINTERVAL}
 done
