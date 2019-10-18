@@ -2,7 +2,7 @@
 
 if [[ ! -n "${1}" ]]; then
 	echo "${0} none|live|video|livevideo[fast][触发下播后立即录像的最长直播时间][full] youtube频道号码 [loop|循环次数] [10,50|循环检测间隔,视频列表最大长度] [3,3,3|录像最大并发数,图片最大并发数,简介最大并发数] [\"download_video/other,download_log/other.log|本地目录,视频列表文件路径\"] [nobackup|rclone:网盘名称:|onedrive|baidupan[重试次数]]"
-	echo "示例：${0} livevideofastfull \"UCWCc8tO-uUl_7SJXIKJACMw\" loop 10,50 3,5,5 \"download_video/mea,download_log/mea.log\" rclone:vps:baidupan3"
+	echo "示例：${0} livevideofastfull \"UCWCc8tO-uUl_7SJXIKJACMw\" loop 10,50 3,3,3 \"download_video/mea,download_log/mea.log\" rclone:vps:baidupan3"
 	echo "第一个参数说明(其他参数用法基本同record.sh)：live与video为分别从直播和视频页面获取视频列表，设置为none则不更新视频列表，适用于手动提供视频列表的情况。fast为直播下播后立即录像，有机会在删档前开始下载。触发下播后立即录像的最长直播时间设置为7200可以避免下载到未压制完成的视频。full为确保下载到完整视频，防止因下播后立即录像功能导致无法下载到压制完成的视频。"
 	echo "必要模块为curl、youtube-dl"
 	echo "rclone上传基于\"https://github.com/rclone/rclone\"，onedrive上传基于\"https://github.com/0oVicero0/OneDrive\"，百度云上传基于BaiduPCS-Go，请登录后使用。"
@@ -15,7 +15,7 @@ URL_LIVE_DURATION_MAX=$(echo "${1}" | grep -o "[0-9]*") #触发下播后立即�
 PART_URL="${2}" #youtube频道号码
 LOOP_TIME="${3:-loop}" #是否循环或循环次数
 LOOPINTERVAL_LINEMAX="${4:-10,50}" ; LOOPINTERVAL="$(echo $LOOPINTERVAL_LINEMAX | awk -F"," '{print $1}')" ; LINEMAX="$(echo $LOOPINTERVAL_LINEMAX | awk -F"," '{print $2}')" #循环检测间隔与视频列表最大长度
-NUM_MAX="${5:-3,5,5}" #最大并发数
+NUM_MAX="${5:-3,3,3}" #最大并发数
 RECORD_NUM_MAX="$(echo $NUM_MAX | awk -F"," '{print $1}')" ; THUMBNAIL_NUM_MAX="$(echo $NUM_MAX | awk -F"," '{print $2}')" ; DESCRIPTION_NUM_MAX="$(echo $NUM_MAX | awk -F"," '{print $3}')"
 [[ "${THUMBNAIL_NUM_MAX}" == "" ]] && THUMBNAIL_NUM_MAX="${RECORD_NUM_MAX}" ; [[ "${DESCRIPTION_NUM_MAX}" == "" ]] && DESCRIPTION_NUM_MAX="${RECORD_NUM_MAX}"
 LOCAL_LOG="${6:-download_video/other,download_log/other.txt}" ; DIR_LOCAL="$(echo ${LOCAL_LOG} | awk -F"," '{print $1}')" ; DIR_LOG="$(echo ${LOCAL_LOG} | awk -F"," '{print $2}')" #本地目录,log文件路径
