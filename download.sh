@@ -42,8 +42,8 @@ while true; do
 		if (echo "${URL_ADD_LIST_LIVE_METADATA}" | grep -q '\\"qualityLabel\\":\\"[0-9]*p\\"'); then
 			URL_ADD_LIVE_URL=$(echo "${URL_ADD_LIST_LIVE_METADATA}" | grep -o '\\"liveStreamabilityRenderer\\":{\\"videoId\\":\\".*\\"' | head -n 1 | sed 's/\\//g' | awk -F'"' '{print $6}')
 			URL_ADD_LIVE_TIMESTAMP=$(echo "${URL_ADD_LIST_LIVE_METADATA}" | grep -o '\\"publishDate\\":\\"[^"]*\\"\|\\"startTimestamp\\":\\"[^"]*\\' | awk -F'"' '{print $4}' | sed -n 's/\\//p' | tail -n 1)
-			URL_ADD_LIVE_DATE=$(date -d "${URL_ADD_LIST_LIVE_TIMESTAMP}" +"%Y%m%d_%H%M%S")
-		
+			[[ "${URL_ADD_LIVE_TIMESTAMP}" == "" ]] && URL_ADD_LIVE_DATE=0 ; [[ "${URL_ADD_LIVE_TIMESTAMP}" != "" ]] && URL_ADD_LIVE_DATE=$(date -d "${URL_ADD_LIVE_TIMESTAMP}" +"%Y%m%d_%H%M%S")
+			
 			URL_LIST=$(awk -F"," '{print $1}' "${DIR_LOG}") ; URL_EXIST=0
 			for URL in ${URL_LIST}; do [[ "${URL_ADD_LIVE_URL}" == "${URL}" ]] && let URL_EXIST++ ; done
 			[[ "${URL_EXIST}" == 0 ]] && echo -e "${URL_ADD_LIVE_URL},${URL_ADD_LIVE_DATE},直播,,," >> "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo -e "${LOG_PREFIX} add live ${URL_ADD_LIVE_URL},${URL_ADD_LIVE_DATE},直播,,,"
@@ -81,7 +81,7 @@ while true; do
 		[[ "${SPLIT_NUM}" != 0 ]] && [[ "${SPLIT_NUM}" != 5 ]] && sed -i "/${URL},${DATE}/c ${URL},${DATE},,,," "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} fix ${URL},${DATE},,,," 
 		if [[ "${DATE}" == "" ]]; then
 			TIMESTAMP=$(wget -q -O- "https://www.youtube.com/watch?v=${URL}" | grep -o '\\"publishDate\\":\\"[^"]*\\"\|\\"startTimestamp\\":\\"[^"]*\\' | awk -F'"' '{print $4}' | sed -n 's/\\//p' | tail -n 1)
-			DATE=$(date -d "${TIMESTAMP}" +"%Y%m%d_%H%M%S") ; [[ "${DATE}" == "" ]] && DATE=0
+			[[ "${TIMESTAMP}" == "" ]] && DATE=0 ; [[ "${TIMESTAMP}" != "" ]] && DATE=$(date -d "${TIMESTAMP}" +"%Y%m%d_%H%M%S")
 			sed -i "/${URL},,/s/\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\)/\1,${DATE},\3,\4,\5,\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} fix DATE=${DATE}"
 		fi
 		
@@ -287,9 +287,9 @@ while true; do
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} download ${DIR_LOCAL}/${FNAME} start url=https://www.youtube.com/watch?v=${URL} retry ${RETRY}"
 					URL_DESCRIPTION=$(wget -q -O- "https://www.youtube.com/watch?v=${URL}")
 					URL_DESCRIPTION_STARTTIMESTAMP=$(echo "${URL_DESCRIPTION}" | grep -o '\\"publishDate\\":\\"[^"]*\\"\|\\"startTimestamp\\":\\"[^"]*\\' | awk -F'"' '{print $4}' | sed -n 's/\\//p' | tail -n 1)
-					URL_DESCRIPTION_STARTDATE=$(date -d "${URL_DESCRIPTION_STARTTIMESTAMP}" +"%Y%m%d_%H%M%S")
+					[[ "${URL_DESCRIPTION_STARTTIMESTAMP}" == "" ]] && URL_DESCRIPTION_STARTDATE=0 ; [[ "${URL_DESCRIPTION_STARTTIMESTAMP}" != "" ]] && URL_DESCRIPTION_STARTDATE=$(date -d "${URL_DESCRIPTION_STARTTIMESTAMP}" +"%Y%m%d_%H%M%S")
 					URL_DESCRIPTION_ENDTIMESTAMP=$(echo "${URL_DESCRIPTION}" | grep -o '\\"publishDate\\":\\"[^"]*\\"\|\\"endTimestamp\\":\\"[^"]*\\' | awk -F'"' '{print $4}' | sed -n 's/\\//p' | tail -n 1)
-					URL_DESCRIPTION_ENDDATE=$(date -d "${URL_DESCRIPTION_STARTTIMESTAMP}" +"%Y%m%d_%H%M%S")
+					[[ "${URL_DESCRIPTION_ENDTIMESTAMP}" == "" ]] && URL_DESCRIPTION_ENDDATE=0 ; [[ "${URL_DESCRIPTION_ENDTIMESTAMP}" != "" ]] && URL_DESCRIPTION_ENDDATE=$(date -d "${URL_DESCRIPTION_ENDTIMESTAMP}" +"%Y%m%d_%H%M%S")
 					URL_DESCRIPTION_TITLE=$(echo "${URL_DESCRIPTION}" | grep -o '\\"videoTitle\\":\\"[^\\]*' | awk -F'"' '{print $4}')
 					URL_DESCRIPTION_TEXT=$(echo "${URL_DESCRIPTION}" | grep -o '<div id="watch-description-text".*</div>')
 					echo -e "STARTDATE=${URL_DESCRIPTION_STARTDATE}\nENDDATE=${URL_DESCRIPTION_ENDDATE}\nTITLE=${URL_DESCRIPTION_TITLE}\nTEXT=${URL_DESCRIPTION_TEXT}" > "${DIR_LOCAL}/${FNAME}"
