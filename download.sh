@@ -1,10 +1,10 @@
 #!/bin/bash
 
 if [[ ! -n "${1}" ]]; then
-	echo "${0} none|live|video|livevideo[fast][触发下播后立即录像的最长直播时间][full] youtube频道号码 [loop|循环次数] [10,50|循环检测间隔,视频列表最大长度] [3,3,3|录像最大并发数,图片最大并发数,简介最大并发数] [\"download_video/other,download_log/other.log|本地目录,视频列表文件路径\"] [nobackup|rclone:网盘名称:|onedrive|baidupan[重试次数]]"
+	echo "${0} none|live|video|long[fast][触发下播后立即录像的最长直播时间][full] youtube频道号码 [loop|循环次数] [10,50|循环检测间隔,视频列表最大长度] [3,3,3|录像最大并发数,图片最大并发数,简介最大并发数] [\"download_video/other,download_log/other.log|本地目录,视频列表文件路径\"] [nobackup|rclone:网盘名称:|onedrive|baidupan[重试次数]]"
 	echo "示例：${0} livevideofastfull \"UCWCc8tO-uUl_7SJXIKJACMw\" loop 10,50 3,3,3 \"download_video/mea,download_log/mea.log\" rclone:vps:3"
-	echo "第一个参数说明(其他参数用法基本同record.sh)：live与video为分别从直播和视频页面获取视频列表，设置为none则不更新视频列表，适用于手动提供视频列表的情况。fast为直播下播后立即录像，有机会在删档前开始下载。触发下播后立即录像的最长直播时间设置为7200可以避免下载到未压制完成的视频。full为确保下载到完整视频，防止因下播后立即录像功能导致无法下载到压制完成的视频。"
-	echo "必要模块为curl、youtube-dl"
+	echo "第一个参数说明(其他参数用法基本同record.sh)：live、video、long分别为从直播、视频页面(前30个视频)、上传视频列表页面(前100个视频)获取视频列表(请务必将视频列表最大长度设置为更大的值)，设置为none则不更新视频列表，适用于手动提供视频列表的情况。fast为直播下播后立即录像，有机会在删档前开始下载。触发下播后立即录像的最长直播时间设置为7200可以避免下载到未压制完成的视频。full为确保下载到完整视频，防止因下播后立即录像功能导致无法下载到压制完成的视频。"
+	echo "必要模块为curl、youtube-dl、ffmpeg"
 	echo "rclone上传基于\"https://github.com/rclone/rclone\"，onedrive上传基于\"https://github.com/0oVicero0/OneDrive\"，百度云上传基于BaiduPCS-Go，请登录后使用。"
 	echo "注意文件路径不能带有\",\"，注意循环次数过少可能会导致下载与上传不能完成"
 fi
@@ -49,13 +49,22 @@ while true; do
 			[[ "${URL_EXIST}" == 0 ]] && echo -e "${URL_ADD_LIVE_URL},${URL_ADD_LIVE_DATE},直播,,," >> "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo -e "${LOG_PREFIX} add live ${URL_ADD_LIVE_URL},${URL_ADD_LIVE_DATE},直播,,,"
 		fi
 	fi
-	
 	if (echo "${1}" | grep -q "video"); then
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata https://www.youtube.com/channel/${PART_URL}/videos"
 		URL_ADD_VIDEO_LIST=$(wget -q -O- "https://www.youtube.com/channel/${PART_URL}/videos" | grep -o '<a href="/watch?v=[^"]*"' | awk -F'[="]' '{print $4}')
 		
 		URL_LIST=$(awk -F"," '{print $1}' "${DIR_LOG}")
 		for URL_ADD in ${URL_ADD_VIDEO_LIST}; do 
+			URL_EXIST=0
+			for URL in ${URL_LIST}; do [[ "${URL_ADD}" == "${URL}" ]] && let URL_EXIST++ ; done
+			[[ "${URL_EXIST}" == 0 ]] && echo -e "${URL_ADD},,,,," >> "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo -e "${LOG_PREFIX} add video ${URL_ADD},,,,,"
+		done
+	fi
+	if (echo "${1}" | grep -q "long"); then
+		URL_ADD_VIDEO_LIST_LONG=$(wget -q -O- "https://www.youtube.com/playlist?list=${PART_URL/UC/UU}" | grep -o '<a href="/watch?v=[^"]*"' | awk -F'[="&]' '{print $4}')
+			
+		URL_LIST=$(awk -F"," '{print $1}' "${DIR_LOG}")
+		for URL_ADD in ${URL_ADD_VIDEO_LIST_LONG}; do 
 			URL_EXIST=0
 			for URL in ${URL_LIST}; do [[ "${URL_ADD}" == "${URL}" ]] && let URL_EXIST++ ; done
 			[[ "${URL_EXIST}" == 0 ]] && echo -e "${URL_ADD},,,,," >> "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo -e "${LOG_PREFIX} add video ${URL_ADD},,,,,"
@@ -206,7 +215,7 @@ while true; do
 				RETRY=1
 				until [[ ${RETRY} -gt ${RETRY_MAX} ]]; do
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} download ${DIR_LOCAL}/${FNAME} start url=https://i.ytimg.com/vi/${URL}/hqdefault.jpg retry ${RETRY}"
-					wget -q -O "${DIR_LOCAL}/${FNAME}" "https://i.ytimg.com/vi/${URL}/hqdefault.jpg"
+					wget -q -O "${DIR_LOCAL}/${FNAME}" "https://i.ytimg.com/vi/${URL}/maxresdefault.jpg"
 					[[ -f "${DIR_LOCAL}/${FNAME}" ]] && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} download ${DIR_LOCAL}/${FNAME} success") && break
 					let RETRY++
 				done
