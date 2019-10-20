@@ -18,7 +18,7 @@ LOOPINTERVAL_LINEMAX="${4:-10,50}" ; LOOPINTERVAL="$(echo $LOOPINTERVAL_LINEMAX 
 NUM_MAX="${5:-3,3,3}" #最大并发数
 RECORD_NUM_MAX="$(echo $NUM_MAX | awk -F"," '{print $1}')" ; THUMBNAIL_NUM_MAX="$(echo $NUM_MAX | awk -F"," '{print $2}')" ; DESCRIPTION_NUM_MAX="$(echo $NUM_MAX | awk -F"," '{print $3}')"
 [[ "${THUMBNAIL_NUM_MAX}" == "" ]] && THUMBNAIL_NUM_MAX="${RECORD_NUM_MAX}" ; [[ "${DESCRIPTION_NUM_MAX}" == "" ]] && DESCRIPTION_NUM_MAX="${RECORD_NUM_MAX}"
-LOCAL_LOG="${6:-download_video/other,download_log/other.txt}" ; DIR_LOCAL="$(echo ${LOCAL_LOG} | awk -F"," '{print $1}')" ; DIR_LOG="$(echo ${LOCAL_LOG} | awk -F"," '{print $2}')" #本地目录,log文件路径
+LOCAL_LOG="${6:-download_video/other,download_log/other.log}" ; DIR_LOCAL="$(echo ${LOCAL_LOG} | awk -F"," '{print $1}')" ; DIR_LOG="$(echo ${LOCAL_LOG} | awk -F"," '{print $2}')" #本地目录,log文件路径
 mkdir -p "${DIR_LOCAL}" ; mkdir -p "$(echo ${DIR_LOG} | sed -n "s/\/[^\/]*$//p")" ; touch "${DIR_LOG}"
 BACKUP="${7:-nobackup}" #自动备份
 BACKUP_DISK="$(echo "${BACKUP}" | awk -F":" '{print $1}')$(echo "${BACKUP}" | awk -F":" '{print $NF}')" ; DIR_RCLONE="$(echo "${BACKUP}" | awk -F":" '{print $2}'):${DIR_LOCAL}" ; DIR_ONEDRIVE="${DIR_LOCAL}" ; DIR_BAIDUPAN="${DIR_LOCAL}" #选择网盘与网盘路径
@@ -97,27 +97,40 @@ while true; do
 		
 		
 		#状态
-		if [[ "${STATUS}" == "" ]] || [[ "${STATUS}" == "直播" ]] || [[ "${STATUS}" == "压制" ]]; then
+		#live:即将直播(qualityLabel-,isLive-,videoIsLivePremiere-,lengthSeconds=0)，直播(qualityLabel+,isLive+,videoIsLivePremiere-,lengthSeconds=0)，停止直播(qualityLabel-,isLive-,videoIsLivePremiere-,lengthSeconds=0)
+		#videos:即将首播(qualityLabel-,isLive-,videoIsLivePremiere+,lengthSeconds=0)，首播(qualityLabel+,isLive+,videoIsLivePremiere+,lengthSeconds>1)，停止首播(qualityLabel+,isLive-,videoIsLivePremiere+,lengthSeconds>1)，压制(qualityLabel+,isLive-,videoIsLivePremiere-,lengthSeconds=1)，正常(qualityLabel+,isLive-,videoIsLivePremiere-,lengthSeconds>1)
+		#playlist:正常(qualityLabel+,isLive-,lengthSeconds>1)
+		#other:删除("")
+		if [[ "${STATUS}" == "" ]] || [[ "${STATUS}" == "直播" ]] || [[ "${STATUS}" == "首播" ]] || [[ "${STATUS}" == "压制" ]]; then
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata https://www.youtube.com/watch?v=${URL}"
 			URL_METADATA=$(wget -q -O- "https://www.youtube.com/watch?v=${URL}")
 			
-			#fast为直播下播后立即录像，更新本次检测的record状态使之立即开始下载
-			if (echo "${1}" | grep -q "fast") && [[ "${STATUS}" == "直播" ]] && [[ "${RECORD}" == "" ]]; then
-				URL_LIVE_STATUS=$(echo ${URL_METADATA} | grep "ytplayer" | grep -0 '\\"isLive\\":true')
-				URL_LIVE_DURATION=$(( $(date +%s)-$(date -d "${DATE}" +%s) ))
-				[[ "${URL_LIVE_STATUS}" == "" ]] && ([[ "${URL_LIVE_DURATION_MAX}" == "" ]] || [[ "${URL_LIVE_DURATION}" -lt "${URL_LIVE_DURATION_MAX}" ]]) && RECORD="录像下载待" && sed -i "/${URL},${DATE}/s/\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\)/\1,\2,\3,${RECORD},\5,\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} fast change RECORD=${RECORD}" 
-			fi
-			
-			URL_STATUS=$(echo ${URL_METADATA} | grep -o '\\"lengthSeconds\\":\\"[0-9]*' | awk -F'"' '{print $4}' | head -n 1)
+			URL_STATUS_LIVE=$(echo ${URL_METADATA} | grep "ytplayer" | grep -o '\\"isLive\\":true')
+			URL_STATUS_PREMIERE=$(echo ${URL_METADATA} | grep -o '\\"videoIsLivePremiere\\":true')
+			URL_STATUS_LENGTH=$(echo ${URL_METADATA} | grep -o '\\"lengthSeconds\\":\\"[0-9]*' | awk -F'"' '{print $4}' | head -n 1)
 			STATUS_BEDORE="${STATUS}"
-			[[ "${URL_STATUS}" == 0 ]] && STATUS="直播"
-			[[ "${URL_STATUS}" == 1 ]] && STATUS="压制"
-			[[ "${URL_STATUS}" -gt 1 ]] && STATUS="正常"
-			[[ "${URL_STATUS}" == "" ]] && STATUS="删除"
+			
+			[[ "${URL_STATUS_PREMIERE}" == "" ]] && [[ "${URL_STATUS_LENGTH}" == 0 ]] && STATUS="直播"
+			[[ "${URL_STATUS_LENGTH}" == 1 ]] && STATUS="压制"
+			[[ "${URL_STATUS_PREMIERE}" == "" ]] && [[ "${URL_STATUS_LENGTH}" -gt 1 ]] && STATUS="正常"
+			
+			[[ "${URL_STATUS_PREMIERE}" != "" ]] && [[ "${URL_STATUS_LENGTH}" == 0 ]] && STATUS="首播"
+			[[ "${URL_STATUS_PREMIERE}" != "" ]] && [[ "${URL_STATUS_LIVE}" != "" ]] && [[ "${URL_STATUS_LENGTH}" -gt 1 ]] && STATUS="首播"
+			[[ "${URL_STATUS_PREMIERE}" != "" ]] && [[ "${URL_STATUS_LIVE}" == "" ]] && [[ "${URL_STATUS_LENGTH}" -gt 1 ]] && STATUS="正常"
+			
+			[[ "${URL_STATUS_LENGTH}" == "" ]] && STATUS="删除"
+			
 			[[ "${STATUS_BEDORE}" != "${STATUS}" ]] && sed -i "/${URL},${DATE}/s/\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\)/\1,\2,${STATUS},\4,\5,\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} change STATUS=${STATUS}"
 			
+			#fast为直播下播后立即录像，更新本次检测的record状态使之立即开始下载
+			if (echo "${1}" | grep -q "fast") && [[ "${STATUS}" == "直播" ]] && [[ "${URL_STATUS_LIVE}" == "" ]] && [[ "${RECORD}" == "" ]]; then
+				URL_LIVE_DURATION=$(( $(date +%s)-$(date -d "${DATE}" +%s) ))
+				 ([[ "${URL_LIVE_DURATION_MAX}" == "" ]] || [[ "${URL_LIVE_DURATION}" -lt "${URL_LIVE_DURATION_MAX}" ]]) && RECORD="录像下载待" && sed -i "/${URL},${DATE}/s/\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\)/\1,\2,\3,${RECORD},\5,\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} fast change RECORD=${RECORD}" 
+			fi
 			#full为确保下载到完整视频，在压制转为正常时如果已经开始录像，说明之前下载的为未压制完成的版本，则向列表另外添加timestamp和下载状态不同的新行来在压制完成后新建下载，同时更新本次检测的timestamp和下载状态使之立即开始下载
-			(echo "${1}" | grep -q "full") && [[ "${STATUS_BEDORE}" == "压制" ]] && [[ "${STATUS}" == "正常" ]] && [[ "${RECORD}" == "录像"* ]] && DATE=$(date +"%Y%m%d_%H%M%S") && RECORD="" && THUMBNAIL="" && DESCRIPTION="" && echo -e "${URL},${DATE},${STATUS},${RECORD},${THUMBNAIL},${DESCRIPTION}" >> "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo -e "${LOG_PREFIX} full add ${URL},${DATE},${STATUS},${RECORD},${THUMBNAIL},${DESCRIPTION}"
+			if (echo "${1}" | grep -q "full") && [[ "${STATUS_BEDORE}" == "压制" ]] && [[ "${STATUS}" == "正常" ]] && [[ "${RECORD}" == "录像"* ]]; then
+				DATE=$(date +"%Y%m%d_%H%M%S") && RECORD="" && THUMBNAIL="" && DESCRIPTION="" && echo -e "${URL},${DATE},${STATUS},${RECORD},${THUMBNAIL},${DESCRIPTION}" >> "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo -e "${LOG_PREFIX} full add ${URL},${DATE},${STATUS},${RECORD},${THUMBNAIL},${DESCRIPTION}"
+			fi
 		fi
 		
 		
