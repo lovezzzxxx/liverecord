@@ -228,7 +228,8 @@ while true; do
 				RETRY=1
 				until [[ ${RETRY} -gt ${RETRY_MAX} ]]; do
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} download ${DIR_LOCAL}/${FNAME} start url=https://i.ytimg.com/vi/${URL}/hqdefault.jpg retry ${RETRY}"
-					wget -q -O "${DIR_LOCAL}/${FNAME}" "https://i.ytimg.com/vi/${URL}/maxresdefault.jpg"
+					THUMBNAIL_ERRORFLAG=$(wget -o- -O "${DIR_LOCAL}/${FNAME}" "https://i.ytimg.com/vi/${URL}/maxresdefault.jpg")
+					(echo "${THUMBNAIL_ERRORFLAG}" | grep -q "ERROR") && wget -q -O "${DIR_LOCAL}/${FNAME}" "https://i.ytimg.com/vi/${URL}/hqdefault.jpg"
 					[[ -f "${DIR_LOCAL}/${FNAME}" ]] && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} download ${DIR_LOCAL}/${FNAME} success") && break
 					let RETRY++
 				done
