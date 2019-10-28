@@ -123,7 +123,7 @@ while true; do
 			[[ "${STATUS_BEDORE}" != "${STATUS}" ]] && sed -i "/${URL},${DATE}/s/\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\)/\1,\2,${STATUS},\4,\5,\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} change STATUS=${STATUS}"
 			
 			#fast为直播下播后立即录像，更新本次检测的record状态使之立即开始下载
-			if (echo "${1}" | grep -q "fast") && [[ "${STATUS}" == "直播" ]] && [[ "${URL_STATUS_LIVE}" == "" ]] && [[ "${RECORD}" == "" ]]; then
+			if (echo "${1}" | grep -q "fast") && [[ "${STATUS_BEDORE}" == "直播" ]] && ([[ "${STATUS}" != "直播" ]] || [[ "${URL_STATUS_LIVE}" == "" ]]) && [[ "${RECORD}" == "" ]]; then
 				URL_LIVE_DURATION=$(( $(date +%s)-$(date -d "${DATE}" +%s) ))
 				 ([[ "${URL_LIVE_DURATION_MAX}" == "" ]] || [[ "${URL_LIVE_DURATION}" -lt "${URL_LIVE_DURATION_MAX}" ]]) && RECORD="录像下载待" && sed -i "/${URL},${DATE}/s/\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\)/\1,\2,\3,${RECORD},\5,\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} fast change RECORD=${RECORD}" 
 			fi
@@ -173,7 +173,7 @@ while true; do
 				if [[ "${BACKUP_DISK}" == *"rclone"* ]]; then
 					until [[ ${RCLONE_RETRY} -gt ${RETRY_MAX} ]]; do
 						LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} start retry ${RCLONE_RETRY}"
-						RCLONE_ERRFLAG=$(rclone copy "${DIR_LOCAL}/${FNAME}" "${DIR_RCLONE}")
+						RCLONE_ERRFLAG=$(rclone copy "${DIR_LOCAL}/${FNAME}" "${DIR_RCLONE}" 2>&1)
 						[[ "${RCLONE_ERRFLAG}" == "" ]] && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} success") && break
 						let RCLONE_RETRY++
 					done
@@ -253,7 +253,7 @@ while true; do
 				if [[ "${BACKUP_DISK}" == *"rclone"* ]]; then
 					until [[ ${RCLONE_RETRY} -gt ${RETRY_MAX} ]]; do
 						LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} start retry ${RCLONE_RETRY}"
-						RCLONE_ERRFLAG=$(rclone copy "${DIR_LOCAL}/${FNAME}" "${DIR_RCLONE}")
+						RCLONE_ERRFLAG=$(rclone copy "${DIR_LOCAL}/${FNAME}" "${DIR_RCLONE}" 2>&1)
 						[[ "${RCLONE_ERRFLAG}" == "" ]] && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} success") && break
 						let RCLONE_RETRY++
 					done
@@ -339,7 +339,7 @@ while true; do
 				if [[ "${BACKUP_DISK}" == *"rclone"* ]]; then
 					until [[ ${RCLONE_RETRY} -gt ${RETRY_MAX} ]]; do
 						LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} start retry ${RCLONE_RETRY}"
-						RCLONE_ERRFLAG=$(rclone copy "${DIR_LOCAL}/${FNAME}" "${DIR_RCLONE}")
+						RCLONE_ERRFLAG=$(rclone copy "${DIR_LOCAL}/${FNAME}" "${DIR_RCLONE}" 2>&1)
 						[[ "${RCLONE_ERRFLAG}" == "" ]] && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} success") && break
 						let RCLONE_RETRY++
 					done
