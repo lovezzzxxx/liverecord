@@ -350,9 +350,9 @@ while true; do
 	
 	
 	
-	if [[ ! -f "${DIR_LOCAL}/${FNAME}" ]]; then #判断是否无录像
+	if [[ ! -f "${DIR_LOCAL}/${FNAME}" ]] || [[ $(ls -l "${DIR_LOCAL}/${FNAME}" | awk '{print $5}') == 0 ]]; then #判断是否无录像
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} ${DIR_LOCAL}/${FNAME} file not exist remove log"
-		rm -f "${DIR_LOCAL}/${FNAME}.log"
+		rm -f "${DIR_LOCAL}/${FNAME}" ; rm -f "${DIR_LOCAL}/${FNAME}.log"
 	else
 		RCLONE_FILE_RETRY=1 ; RCLONE_FILE_ERRFLAG=""
 		if [[ "${BACKUP_DISK}" == *"rclone"* ]]; then
