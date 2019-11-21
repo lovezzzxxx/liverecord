@@ -224,8 +224,7 @@ while true; do
 		else
 			if ! (curl -s --proxy "${STREAM_PROXY}" "https://api.live.bilibili.com/room/v1/Room/playUrl?cid=12235923&quality=0&platform=web" | grep -q "\"code\":0"); then #验证代理可行性
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} proxy ${STREAM_PROXY} not available try get new"
-				STREAM_PROXY=$(curl -s "http://http.tiqu.alicdns.com/getip3?num=1&type=1&pro=&city=0&yys=0&port=11&time=1&ts=0&ys=0&cs=0&lb=4&sb=0&pb=4&mr=1&regions=")
-				#STREAM_PROXY=$(curl -s "http://ip.11jsq.com/index.php/api/entry?method=proxyServer.generate_api_url&packid=0&fa=0&fetch_key=&groupid=0&qty=1&time=1&pro=&city=&port=1&format=txt&ss=1&css=&dt=1&specialTxt=3&specialJson=&usertype=14") #可替换为任意代理获取方法
+				STREAM_PROXY=$(curl -s "") #可替换为任意代理获取方法
 			fi
 		fi
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} proxy ${STREAM_PROXY} get url"
@@ -243,6 +242,7 @@ while true; do
 		if [[ "${1}" == "youtube" ]]; then
 			streamlink --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "https://www.youtube.com/watch?v=${ID}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
+		
 		if [[ "${1}" == "twitcast" ]]; then
 			livedl/livedl -tcas "${PART_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
@@ -258,6 +258,9 @@ while true; do
 			fi
 		fi
 		
+		if [[ "${1}" == "bilibili" || "${1}" == "bilibiliproxy" || "${1}" == "bilibiliproxy,"* ]]; then
+			ffmpeg -user_agent "Mozilla/5.0" -headers "referer: https://www.bilibili.com/" -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
+		fi
 		if [[ "${1}" == "bilibiliwget" || "${1}" == "bilibiliproxywget"* ]]; then
 			wget -O "${DIR_LOCAL}/${FNAME}" "${STREAM_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
@@ -266,7 +269,7 @@ while true; do
 			wget -Y on -e "-https_proxy=${STREAM_PROXY}" -O "${DIR_LOCAL}/${FNAME}" "${STREAM_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
 		
-		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "17live" || "${1}" == "streamlink" || "${1}" == "bilibili" || "${1}" == "bilibiliproxy" || "${1}" == "bilibiliproxy,"* || "${1}" == "m3u8" ]]; then
+		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "17live" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
 			ffmpeg -user_agent "Mozilla/5.0" -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
 		fi
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} record stopped"
@@ -290,6 +293,9 @@ while true; do
 			fi
 		fi
 		
+		if [[ "${1}" == "bilibili" || "${1}" == "bilibiliproxy" || "${1}" == "bilibiliproxy,"* ]]; then
+			(ffmpeg -user_agent "Mozilla/5.0" -headers "referer: https://www.bilibili.com/" -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+		fi
 		if [[ "${1}" == "bilibiliwget" || "${1}" == "bilibiliproxywget"* ]]; then
 			(wget -O "${DIR_LOCAL}/${FNAME}" "${STREAM_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
@@ -298,7 +304,7 @@ while true; do
 			(wget -Y on -e "-https_proxy=${STREAM_PROXY}" -O "${DIR_LOCAL}/${FNAME}" "${STREAM_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1)&
 		fi
 		
-		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "17live" || "${1}" == "streamlink" || "${1}" == "bilibili" || "${1}" == "bilibiliproxy" || "${1}" == "bilibiliproxy,"* || "${1}" == "m3u8" ]]; then
+		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "17live" || "${1}" == "streamlink" || "${1}" == "bilibiliproxy,"* || "${1}" == "m3u8" ]]; then
 			(ffmpeg -user_agent "Mozilla/5.0" -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
 		
