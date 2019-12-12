@@ -3,7 +3,7 @@ record.sh为自动录播脚本。
   * 支持youtube频道、twitcast频道、twitch频道、openrec频道、niconico生放送、niconico社区、niconico频道（支持登陆niconico账号进行录制）、mirrativ频道、reality频道、17live频道、bilibili频道、streamlink支持的直播网址、ffmpeg支持的m3u8地址  
   * bilibili录制支持在上述频道有直播时不进行录制，从而简单的排除转播的录制；支持在请求或下载bilibili直播媒体流链接时使用代理  
   * 支持定时分段  
-  * 支持rclone上传、onedrive一键脚本上传、百度云上传；支持可指定次数的上传出错重试；支持根据上传结果选择是否保留本地文件  
+  * 支持rclone上传、百度云上传；支持可指定次数的上传出错重试；支持根据上传结果选择是否保留本地文件  
   * 如果因为偶发的检测异常导致没有直播时开始录制，进而产生没有相应录像文件的log文件，脚本将会自动删除这个没有对应录像文件的log文件  
 
 record_twitcast.py为可选，是一个可以录制websocket的精简脚本。因为twitcast分别提供了基于h5与websocket的流，但部分直播的最高清晰度仅能通过websocket获取，而ffmpeg并不能支持websocket，所以提供一个可以录制websocket的脚本。也可单独使用，方法为`python3 record_twitcast.py "ws或wss网址" "输出文件目录"`。  
@@ -18,13 +18,12 @@ download.sh与录制功能无关，是一个完全独立的小脚本。本质是
   * [livedl(可选)](https://github.com/himananiito/livedl)(基于go)， __请将编译完成的livedl文件放置于运行时目录的livedl/文件夹内__ 。否则无法使用twitcast参数与niconico相关参数进行twitcast高清录制与niconico录制。  
   * [record_twitcast.py文件(可选)](https://github.com/lovezzzxxx/liverecord/blob/master/record_twitcast.py)(基于python3 websocket库)， __请将record_twitcast.py文件放置于运行时目录的record/文件夹内__ 。否则无法使用twitcastpy参数进行twitcast高清录制。  
 
-  * [rclone(可选)](https://github.com/rclone/rclone)(需登陆后使用)，否则无法使用rclone参数上传。  
-  * [OneDrive for Business on Bash(可选)](https://github.com/0oVicero0/OneDrive)(需登陆后使用)，否则无法使用onedrive参数上传。    
+  * [rclone(可选)](https://github.com/rclone/rclone)(需登陆后使用)，否则无法使用rclone参数上传。    
   * [BaiduPCS-Go(可选)](https://github.com/iikira/BaiduPCS-Go)(需登陆后使用)，否则无法使用paidupan参数上传。    
 
 # 使用方法
 ### 方法
-`record.sh youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitcastpy|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|bilibiliwget|bilibiliproxy[,代理ip:代理端口]|bilibiliproxywget[,代理ip:代理端口]|bilibiliproxydlwget[,代理ip:代理端口]|streamlink|m3u8 频道号码 [best|其他清晰度] [loop|once|视频分段时间] [10|循环检测间隔,最短录制间隔] [record_video/other|其他本地目录] [nobackup|rclone:网盘名称:|onedrive|baidupan[重试次数][keep|del]] [noexcept|排除转播的youtube频道号码] [noexcept|排除转播的twitcast频道号码] [noexcept|排除转播的twitch频道号码] [noexcept|排除转播的openrec频道号码] [noexcept|排除转播的nicolv频道号码] [noexcept|排除转播的nicoco频道号码] [noexcept|排除转播的nicoch频道号码] [noexcept|排除转播的mirrativ频道号码] [noexcept|排除转播的reality频道号码] [noexcept|排除转播的17live频道号码] [noexcept|排除转播的streamlink支持的频道网址]`  
+`record.sh youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitcastpy|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|bilibiliwget|bilibiliproxy[,代理ip:代理端口]|bilibiliproxywget[,代理ip:代理端口]|bilibiliproxydlwget[,代理ip:代理端口]|streamlink|m3u8 频道号码 [best|其他清晰度] [loop|once|视频分段时间] [10|循环检测间隔,最短录制间隔] [record_video/other|其他本地目录] [nobackup|rclone:网盘名称:|baidupan[重试次数][keep|del]] [noexcept|排除转播的youtube频道号码] [noexcept|排除转播的twitcast频道号码] [noexcept|排除转播的twitch频道号码] [noexcept|排除转播的openrec频道号码] [noexcept|排除转播的nicolv频道号码] [noexcept|排除转播的nicoco频道号码] [noexcept|排除转播的nicoch频道号码] [noexcept|排除转播的mirrativ频道号码] [noexcept|排除转播的reality频道号码] [noexcept|排除转播的17live频道号码] [noexcept|排除转播的streamlink支持的频道网址]`  
 ### 示例
 ```
 record.sh youtube "UCWCc8tO-uUl_7SJXIKJACMw"   #使用默认参数录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw
@@ -54,5 +53,5 @@ bilibili|`bilibili`、`bilibiliwget`、`bilibiliproxy`、`bilibiliproxywget`、`
 第四个参数|是否循环和录制分段时间|`loop`|`once`或`分段秒数`|如果指定为once则会在检测到直播并进行一次录制后终止，如果指定为数字则会以loop模式进行录制并在在录制进行相应秒数时分段。 __注意分段时可能会导致十秒左右的视频缺失__
 第五个参数|循环检测间隔和最短录制间隔|`10`|`循环检测间隔秒数,最短录制间隔秒数`，如果不以,分隔则两者皆为指定值|循环检测间隔是指如果未检测到直播，则等待相应时间进行下一次检测；最短录制间隔是指如果一次录制结束后，如果距离录制开始小于最短录制间隔，则等待到最短录制间隔进行下一次检测。最短录制间隔主要是为了防止检测到直播但录制出错的情况，此时一次录制结束如果立即进行下一次检测可能会因为检测过于频繁导致被封禁IP或者导致高系统占用，这种情况可能出现在网站改版等特殊时期。需要注意的是如果一次直播时间过短或者频繁断流也能触发等待。
 第六个参数|本地录像存放目录|`record_video/other`|`本地目录`||
-第七个参数|是否自动备份|`nobackup`|`rclone:网盘名称:/onedrive/baidupan` + `重试次数` + `无/keep/del`，不需要/与空格直接连接在一起(如onedrive1del或rclone:vps:baidupan3keep)|其中第一项中的onedrive、baidupan、both分别指上传rclone相应名称的网盘、onedrive一键脚本、百度云。第二项为重试次数，如果不指定则默认为尝试一次。第三项为上传完成后是否保留本地文件，如果不指定则上传成功将删除本地文件，上传失败将保留本地文件，keep参数为不论结果始终保留本地文件，del参数为不论结果始终删除本地文件
+第七个参数|是否自动备份|`nobackup`|`rclone:网盘名称:/baidupan` + `重试次数` + `无/keep/del`，不需要/与空格直接连接在一起(如rclone1del或rclone:vps:baidupan3keep)|其中第一项中的rclone、baidupan分别指上传rclone相应名称的网盘、百度云。第二项为重试次数，如果不指定则默认为尝试一次。第三项为上传完成后是否保留本地文件，如果不指定则上传成功将删除本地文件，上传失败将保留本地文件，keep参数为不论结果始终保留本地文件，del参数为不论结果始终删除本地文件
 第八至十四个参数|bilibili的录制需要排除的转播|`noexcept`|`相应频道号码`，具体同第二个参数，顺序分别为youtube、twitcast、twitch、openrec、nicolv、nicoco、nicoch、mirrativ、reality、17live、streamlink|仅bilibili录制有效，检测到相应频道正在直播时不进行bilibili的录制
