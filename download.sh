@@ -1,11 +1,11 @@
 #!/bin/bash
 
 if [[ ! -n "${1}" ]]; then
-	echo "${0} none|live|video|long[fast][触发下播后立即录像的最长直播时间][full] youtube频道号码 [loop|循环次数] [10,50|循环检测间隔,视频列表最大长度] [3,3,3|录像最大并发数,图片最大并发数,简介最大并发数] [\"download_video/other,download_log/other.log|本地目录,视频列表文件路径\"] [nobackup|rclone:网盘名称:|onedrive|baidupan[重试次数]]"
+	echo "${0} none|live|video|long[fast][触发下播后立即录像的最长直播时间][full] youtube频道号码 [loop|循环次数] [10,50|循环检测间隔,视频列表最大长度] [3,3,3|录像最大并发数,图片最大并发数,简介最大并发数] [\"download_video/other,download_log/other.log|本地目录,视频列表文件路径\"] [nobackup|rclone:网盘名称:|baidupan[重试次数]]"
 	echo "示例：${0} livevideofastfull \"UCWCc8tO-uUl_7SJXIKJACMw\" loop 10,100 3,3,3 \"download_video/mea,download_log/mea.log\" rclone:vps:3"
 	echo "第一个参数说明(其他参数用法基本同record.sh)：live、video、long分别为从直播、视频页面(前30个视频)、上传视频列表页面(前100个视频)获取视频列表(请务必将视频列表最大长度设置为更大的值)，设置为none则不更新视频列表，适用于手动提供视频列表的情况。fast为直播下播后立即录像，有机会在删档前开始下载。触发下播后立即录像的最长直播时间设置为7200可以避免下载到未压制完成的视频。full为确保下载到完整视频，防止因下播后立即录像功能导致无法下载到压制完成的视频。"
 	echo "必要模块为curl、youtube-dl、ffmpeg"
-	echo "rclone上传基于\"https://github.com/rclone/rclone\"，onedrive上传基于\"https://github.com/0oVicero0/OneDrive\"，百度云上传基于BaiduPCS-Go，请登录后使用。"
+	echo "rclone上传基于\"https://github.com/rclone/rclone\"，百度云上传基于BaiduPCS-Go，请登录后使用。"
 	echo "注意文件路径不能带有\",\"，注意循环次数过少可能会导致下载与上传不能完成"
 	exit 1
 fi
@@ -22,7 +22,7 @@ RECORD_NUM_MAX="$(echo $NUM_MAX | awk -F"," '{print $1}')" ; THUMBNAIL_NUM_MAX="
 LOCAL_LOG="${6:-download_video/other,download_log/other.log}" ; DIR_LOCAL="$(echo ${LOCAL_LOG} | awk -F"," '{print $1}')" ; DIR_LOG="$(echo ${LOCAL_LOG} | awk -F"," '{print $2}')" #本地目录,log文件路径
 mkdir -p "${DIR_LOCAL}" ; mkdir -p "$(echo ${DIR_LOG} | sed -n "s/\/[^\/]*$//p")" ; touch "${DIR_LOG}"
 BACKUP="${7:-nobackup}" #自动备份
-BACKUP_DISK="$(echo "${BACKUP}" | awk -F":" '{print $1}')$(echo "${BACKUP}" | awk -F":" '{print $NF}')" ; DIR_RCLONE="$(echo "${BACKUP}" | awk -F":" '{print $2}'):${DIR_LOCAL}" ; DIR_ONEDRIVE="${DIR_LOCAL}" ; DIR_BAIDUPAN="${DIR_LOCAL}" #选择网盘与网盘路径
+BACKUP_DISK="$(echo "${BACKUP}" | awk -F":" '{print $1}')$(echo "${BACKUP}" | awk -F":" '{print $NF}')" ; DIR_RCLONE="$(echo "${BACKUP}" | awk -F":" '{print $2}'):${DIR_LOCAL}" ; DIR_BAIDUPAN="${DIR_LOCAL}" #选择网盘与网盘路径
 RETRY_MAX=$(echo "${BACKUP}" | awk -F":" '{print $NF}' | grep -o "[0-9]*") ; [[ ! -n "${RETRY_MAX}" ]] && RETRY_MAX=1 #自动备份重试次数
 
 
@@ -182,18 +182,6 @@ while true; do
 					[[ "${RCLONE_ERRFLAG}" == "" ]] || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} ${LINE} upload rclone ${DIR_LOCAL}/${FNAME} success")
 				fi
 				
-				ONEDRIVE_RETRY=1 ; ONEDRIVE_ERRFLAG=0
-				if [[ "${BACKUP_DISK}" == *"onedrive"* ]]; then
-					until [[ ${ONEDRIVE_RETRY} -gt ${RETRY_MAX} ]]; do
-						LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} ${LINE} upload onedrive ${DIR_LOCAL}/${FNAME} start retry ${ONEDRIVE_RETRY}"
-						onedrive -s -f "${DIR_ONEDRIVE}" "${DIR_LOCAL}/${FNAME}"
-						ONEDRIVE_ERRFLAG=$?
-						[[ "${ONEDRIVE_ERRFLAG}" == 0 ]] && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} ${LINE} upload onedrive ${DIR_LOCAL}/${FNAME} success") && break
-						let ONEDRIVE_RETRY++
-					done
-					[[ "${ONEDRIVE_ERRFLAG}" == 0 ]] || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} ${LINE} upload onedrive ${DIR_LOCAL}/${FNAME} fail")
-				fi
-				
 				BAIDUPAN_RETRY=1 ; BAIDUPAN_ERRFLAG="成功"
 				if [[ "${BACKUP_DISK}" == *"baidupan"* ]]; then			
 					until [[ ${BAIDUPAN_RETRY} -gt ${RETRY_MAX} ]]; do
@@ -205,7 +193,7 @@ while true; do
 					(echo "${BAIDUPAN_ERRFLAG}" | grep -q "成功") || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} ${LINE} upload baidupan ${DIR_LOCAL}/${FNAME} success")
 				fi
 				
-				if [[ "${RCLONE_ERRFLAG}" = "" ]] && [[ "${ONEDRIVE_ERRFLAG}" == 0 ]] && (echo "${BAIDUPAN_ERRFLAG}" | grep -q "成功"); then
+				if [[ "${RCLONE_ERRFLAG}" = "" ]] && (echo "${BAIDUPAN_ERRFLAG}" | grep -q "成功"); then
 					RECORD="录像上传成功"
 				else
 					RECORD="录像上传失败"
@@ -263,18 +251,6 @@ while true; do
 					[[ "${RCLONE_ERRFLAG}" == "" ]] || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} ${LINE} upload rclone ${DIR_LOCAL}/${FNAME} success")
 				fi
 				
-				ONEDRIVE_RETRY=1 ; ONEDRIVE_ERRFLAG=0
-				if [[ "${BACKUP_DISK}" == *"onedrive"* ]]; then
-					until [[ ${ONEDRIVE_RETRY} -gt ${RETRY_MAX} ]]; do
-						LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} ${LINE} upload onedrive ${DIR_LOCAL}/${FNAME} start retry ${ONEDRIVE_RETRY}"
-						onedrive -s -f "${DIR_ONEDRIVE}" "${DIR_LOCAL}/${FNAME}"
-						ONEDRIVE_ERRFLAG=$?
-						[[ "${ONEDRIVE_ERRFLAG}" == 0 ]] && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} ${LINE} upload onedrive ${DIR_LOCAL}/${FNAME} success") && break
-						let ONEDRIVE_RETRY++
-					done
-					[[ "${ONEDRIVE_ERRFLAG}" == 0 ]] || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} ${LINE} upload onedrive ${DIR_LOCAL}/${FNAME} fail")
-				fi
-				
 				BAIDUPAN_RETRY=1 ; BAIDUPAN_ERRFLAG="成功"
 				if [[ "${BACKUP_DISK}" == *"baidupan"* ]]; then			
 					until [[ ${BAIDUPAN_RETRY} -gt ${RETRY_MAX} ]]; do
@@ -286,7 +262,7 @@ while true; do
 					(echo "${BAIDUPAN_ERRFLAG}" | grep -q "成功") || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} ${LINE} upload baidupan ${DIR_LOCAL}/${FNAME} success")
 				fi
 				
-				if [[ "${RCLONE_ERRFLAG}" = "" ]] && [[ "${ONEDRIVE_ERRFLAG}" == 0 ]] && (echo "${BAIDUPAN_ERRFLAG}" | grep -q "成功"); then
+				if [[ "${RCLONE_ERRFLAG}" = "" ]] && (echo "${BAIDUPAN_ERRFLAG}" | grep -q "成功"); then
 					THUMBNAIL="图片上传成功"
 				else
 					THUMBNAIL="图片上传失败"
@@ -350,18 +326,6 @@ while true; do
 					[[ "${RCLONE_ERRFLAG}" == "" ]] || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} ${LINE} upload rclone ${DIR_LOCAL}/${FNAME} success")
 				fi
 				
-				ONEDRIVE_RETRY=1 ; ONEDRIVE_ERRFLAG=0
-				if [[ "${BACKUP_DISK}" == *"onedrive"* ]]; then
-					until [[ ${ONEDRIVE_RETRY} -gt ${RETRY_MAX} ]]; do
-						LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} ${LINE} upload onedrive ${DIR_LOCAL}/${FNAME} start retry ${ONEDRIVE_RETRY}"
-						onedrive -s -f "${DIR_ONEDRIVE}" "${DIR_LOCAL}/${FNAME}"
-						ONEDRIVE_ERRFLAG=$?
-						[[ "${ONEDRIVE_ERRFLAG}" == 0 ]] && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} ${LINE} upload onedrive ${DIR_LOCAL}/${FNAME} success") && break
-						let ONEDRIVE_RETRY++
-					done
-					[[ "${ONEDRIVE_ERRFLAG}" == 0 ]] || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} ${LINE} upload onedrive ${DIR_LOCAL}/${FNAME} fail")
-				fi
-				
 				BAIDUPAN_RETRY=1 ; BAIDUPAN_ERRFLAG="成功"
 				if [[ "${BACKUP_DISK}" == *"baidupan"* ]]; then			
 					until [[ ${BAIDUPAN_RETRY} -gt ${RETRY_MAX} ]]; do
@@ -373,7 +337,7 @@ while true; do
 					(echo "${BAIDUPAN_ERRFLAG}" | grep -q "成功") || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} ${LINE} upload baidupan ${DIR_LOCAL}/${FNAME} success")
 				fi
 				
-				if [[ "${RCLONE_ERRFLAG}" = "" ]] && [[ "${ONEDRIVE_ERRFLAG}" == 0 ]] && (echo "${BAIDUPAN_ERRFLAG}" | grep -q "成功"); then
+				if [[ "${RCLONE_ERRFLAG}" = "" ]] && (echo "${BAIDUPAN_ERRFLAG}" | grep -q "成功"); then
 					DESCRIPTION="简介上传成功"
 				else
 					DESCRIPTION="简介上传失败"
