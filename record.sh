@@ -73,7 +73,7 @@ while true; do
 	while true; do
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata ${FULL_URL}"
 		if [[ "${1}" == "youtube"* ]]; then
-			if [[  ${LIVE_YOUTUBE} -gt 0 ]]; then
+			if [[ ${LIVE_YOUTUBE} -gt 0 ]]; then
 				(wget -q -O- "${FULL_URL}" | grep "ytplayer" | grep -q '\\"isLive\\":true') && break #isLive开播晚下播早会在开播时晚录，qualityLabel开播早下播晚会在下播时多录
 				let LIVE_YOUTUBE--
 			else
@@ -236,97 +236,62 @@ while true; do
 	
 	
 	
-	RECORD_ENDTIME=$(( $(date +%s)+${ENDINTERVAL} )) #录制循环结束的最早时间
-	
-	if [[ "${LOOP_TIME}" == "once" || "${LOOP_TIME}" == "loop" ]]; then
-		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} record start url=${STREAM_URL}" #开始录制
-		if [[ "${1}" == "youtube" ]]; then
-			streamlink --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "https://www.youtube.com/watch?v=${ID}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
-		fi
-		
-		if [[ "${1}" == "twitcast" ]]; then
-			livedl/livedl -tcas "${PART_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
-		fi
-		if [[ "${1}" == "twitcastpy" ]]; then
-			python3 record/record_twitcast.py "${STREAM_URL}" "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
-		fi
-		
-		if [[ "${1}" == "nico"* ]]; then
-			if [[ -n "${NICO_ID_PSW}" ]]; then
-				livedl/livedl -nico-login-only=on -nico-login "${NICO_ID_PSW}" -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
-			else
-				livedl/livedl -nico-login-only=off -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
-			fi
-		fi
-		
-		if [[ "${1}" == "bilibili" || "${1}" == "bilibiliproxy" || "${1}" == "bilibiliproxy,"* ]]; then
-			ffmpeg -user_agent "Mozilla/5.0" -headers "referer: https://www.bilibili.com/" -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
-		fi
-		if [[ "${1}" == "bilibiliwget" || "${1}" == "bilibiliproxywget"* ]]; then
-			wget -O "${DIR_LOCAL}/${FNAME}" "${STREAM_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
-		fi
-		if [[ "${1}" == "bilibiliproxydlwget"* ]]; then
-			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} proxy ${STREAM_PROXY} wget"
-			wget -Y on -e "-https_proxy=${STREAM_PROXY}" -O "${DIR_LOCAL}/${FNAME}" "${STREAM_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
-		fi
-		
-		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "17live" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
-			ffmpeg -user_agent "Mozilla/5.0" -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1
-		fi
-		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} record stopped"
-		
-	else
-		if [[ "${1}" == "youtube" ]]; then
+	if [[ "${1}" == "youtube" ]]; then
+		if [[ ${LIVE_YOUTUBE} -gt 0 ]]; then
 			(streamlink --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "https://www.youtube.com/watch?v=${ID}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+		else
+			(streamlink --loglevel trace --hls-live-restart -o "${DIR_LOCAL}/${FNAME}" "https://www.youtube.com/watch?v=${ID}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
-		if [[ "${1}" == "twitcast" ]]; then
-			(livedl/livedl -tcas "${PART_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
-		fi
-		if [[ "${1}" == "twitcastpy" ]]; then
-			(python3 record/record_twitcast.py "${STREAM_URL}" "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
-		fi
-		
-		if [[ "${1}" == "nico"* ]]; then
-			if [[ -n "${NICO_ID_PSW}" ]]; then
-				(livedl/livedl -nico-login-only=on -nico-login "${NICO_ID_PSW}" -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
-			else
-				(livedl/livedl -nico-login-only=off -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
-			fi
-		fi
-		
-		if [[ "${1}" == "bilibili" || "${1}" == "bilibiliproxy" || "${1}" == "bilibiliproxy,"* ]]; then
-			(ffmpeg -user_agent "Mozilla/5.0" -headers "referer: https://www.bilibili.com/" -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
-		fi
-		if [[ "${1}" == "bilibiliwget" || "${1}" == "bilibiliproxywget"* ]]; then
-			(wget -O "${DIR_LOCAL}/${FNAME}" "${STREAM_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
-		fi
-		if [[ "${1}" == "bilibiliproxydlwget"* ]]; then
-			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} proxy ${STREAM_PROXY} wget"
-			(wget -Y on -e "-https_proxy=${STREAM_PROXY}" -O "${DIR_LOCAL}/${FNAME}" "${STREAM_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1)&
-		fi
-		
-		if [[ "${1}" == "youtubeffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "17live" || "${1}" == "streamlink" || "${1}" == "bilibiliproxy,"* || "${1}" == "m3u8" ]]; then
-			(ffmpeg -user_agent "Mozilla/5.0" -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
-		fi
-		
-		RECORD_PID=$! #录制进程PID
-		RECORD_STOPTIME=$(( $(date +%s)+${LOOP_TIME} )) #录制结束时间戳
-		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} record start pid=${RECORD_PID} stoptimestamp=${RECORD_STOPTIME} url=${STREAM_URL}" #开始录制
-		while true; do
-			sleep 15
-			PID_EXIST=$(ps aux | awk '{print $2}'| grep -w ${RECORD_PID})
-			if [[ ! $PID_EXIST ]]; then
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} record already stopped"
-				break
-			else
-				if [[ $(date +%s) -gt ${RECORD_STOPTIME} ]]; then #录制时间到达则终止录制
-					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} time up kill record process ${RECORD_PID}"
-					kill ${RECORD_PID}
-					break
-				fi
-			fi
-		done
 	fi
+	
+	if [[ "${1}" == "twitcast" ]]; then
+		(livedl/livedl -tcas "${PART_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+	fi
+	if [[ "${1}" == "twitcastpy" ]]; then
+		(python3 record/record_twitcast.py "${STREAM_URL}" "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+	fi
+	
+	if [[ "${1}" == "nico"* ]]; then
+		if [[ -n "${NICO_ID_PSW}" ]]; then
+			(livedl/livedl -nico-login-only=on -nico-login "${NICO_ID_PSW}" -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+		else
+			(livedl/livedl -nico-login-only=off -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+		fi
+	fi
+	
+	if [[ "${1}" == "bilibili" || "${1}" == "bilibiliproxy" || "${1}" == "bilibiliproxy,"* ]]; then
+		(ffmpeg -user_agent "Mozilla/5.0" -headers "referer: https://www.bilibili.com/" -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+	fi
+	if [[ "${1}" == "bilibiliwget" || "${1}" == "bilibiliproxywget"* ]]; then
+		(wget -O "${DIR_LOCAL}/${FNAME}" "${STREAM_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+	fi
+	if [[ "${1}" == "bilibiliproxydlwget"* ]]; then
+		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} proxy ${STREAM_PROXY} wget"
+		(wget -Y on -e "-https_proxy=${STREAM_PROXY}" -O "${DIR_LOCAL}/${FNAME}" "${STREAM_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1)&
+	fi
+	
+	if [[ "${1}" == "youtubeffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "17live" || "${1}" == "streamlink" || "${1}" == "bilibiliproxy,"* || "${1}" == "m3u8" ]]; then
+		(ffmpeg -user_agent "Mozilla/5.0" -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+	fi
+	
+	RECORD_PID=$! #录制进程PID
+	RECORD_STOPTIME=$(( $(date +%s)+${LOOP_TIME} )) #录制结束时间戳
+	RECORD_ENDTIME=$(( $(date +%s)+${ENDINTERVAL} )) #录制循环结束的最早时间
+	LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} record start pid=${RECORD_PID} looptime=${LOOP_TIME} url=${STREAM_URL}" #开始录制
+	while true; do
+		sleep 15
+		PID_EXIST=$(ps aux | awk '{print $2}'| grep -w ${RECORD_PID})
+		if [[ ! $PID_EXIST ]]; then
+			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} record already stopped"
+			break
+		else
+			if [[ "${LOOP_TIME}" != "once" ]] && [[ "${LOOP_TIME}" != "loop" ]] && [[ $(date +%s) -gt ${RECORD_STOPTIME} ]]; then #录制时间到达则终止录制
+				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} time up kill record process ${RECORD_PID}"
+				kill ${RECORD_PID}
+				break
+			fi
+		fi
+	done
 	
 	
 	
