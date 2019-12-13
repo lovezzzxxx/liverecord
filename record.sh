@@ -73,8 +73,9 @@ while true; do
 	while true; do
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata ${FULL_URL}"
 		if [[ "${1}" == "youtube"* ]]; then
+			LIVE_YOUTUBE_BEFORE="${LIVE_YOUTUBE}"
 			if [[ ${LIVE_YOUTUBE} -gt 0 ]]; then
-				(wget -q -O- "${FULL_URL}" | grep "ytplayer" | grep -q '\\"isLive\\":true') && break #isLive开播晚下播早会在开播时晚录，qualityLabel开播早下播晚会在下播时多录
+				(wget -q -O- "${FULL_URL}" | grep "ytplayer" | grep -q '\\"isLive\\":true') && LIVE_YOUTUBE=3 && break #isLive开播晚下播早会在开播时晚录，qualityLabel开播早下播晚会在下播时多录
 				let LIVE_YOUTUBE--
 			else
 				(wget -q -O- "${FULL_URL}" | grep -q '\\"qualityLabel\\":\\"[0-9]*p\\"') && LIVE_YOUTUBE=3 && break
@@ -237,7 +238,7 @@ while true; do
 	
 	
 	if [[ "${1}" == "youtube" ]]; then
-		if [[ ${LIVE_YOUTUBE} -gt 0 ]]; then
+		if [[ ${LIVE_YOUTUBE_BEFORE} -gt 0 ]]; then
 			(streamlink --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "https://www.youtube.com/watch?v=${ID}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		else
 			(streamlink --loglevel trace --hls-live-restart -o "${DIR_LOCAL}/${FNAME}" "https://www.youtube.com/watch?v=${ID}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
