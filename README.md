@@ -22,17 +22,23 @@ download.sh与录制功能无关，是一个完全独立的小脚本。本质是
 
 # 使用方法
 ### 方法
-```
+```bash
 record.sh youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitcastpy|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|bilibiliwget|bilibiliproxy[,代理ip:代理端口]|bilibiliproxywget[,代理ip:代理端口]|bilibiliproxydlwget[,代理ip:代理端口]|streamlink|m3u8 频道号码 [best|其他清晰度] [loop|once|视频分段时间] [10|循环检测间隔,最短录制间隔] [record_video/other|其他本地目录] [nobackup|rclone:网盘名称:|baidupan[重试次数][keep|del]] [noexcept|排除转播的youtube频道号码] [noexcept|排除转播的twitcast频道号码] [noexcept|排除转播的twitch频道号码] [noexcept|排除转播的openrec频道号码] [noexcept|排除转播的nicolv频道号码] [noexcept|排除转播的nicoco频道号码] [noexcept|排除转播的nicoch频道号码] [noexcept|排除转播的mirrativ频道号码] [noexcept|排除转播的reality频道号码] [noexcept|排除转播的17live频道号码] [noexcept|排除转播的streamlink支持的频道网址]
 ```  
 ### 示例
-`record.sh youtube "UCWCc8tO-uUl_7SJXIKJACMw"` 
+```bash
+record.sh youtube "UCWCc8tO-uUl_7SJXIKJACMw"
+```
 使用默认参数录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw 
 
-`record.sh youtubeffmpeg "UCWCc8tO-uUl_7SJXIKJACMw" 1080p,720p,480p,360p,worst once 30 "record_video/mea" rclone:vps:baidupan3`  
+```bash
+record.sh youtubeffmpeg "UCWCc8tO-uUl_7SJXIKJACMw" 1080p,720p,480p,360p,worst once 30 "record_video/mea" rclone:vps:baidupan3
+```  
 使用ffmpeg录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw，依次获取1080p 720p 480p 360p worst第一个可用的清晰度，在检测到直播并进行一次录制后终止，间隔30秒检测，录像保存于record_video/mea文件夹中并在录制完成后自动上传到rclone中名称为vps的网盘和百度云网盘的相同路径 如果出错则重试最多三次 上传结束后根据上传情况删除本地录像，如果上传失败则会保留本地录像  
 
-`nohup record.sh bilibiliproxywget,127.0.0.1:1080 "12235923" best 7200 30,5 "record_video/mea_bilibili" rclone:vps:baidupan3keep "UCWCc8tO-uUl_7SJXIKJACMw" "kaguramea" "kagura0mea" "KaguraMea" > mea_bilibili.log &`  
+```bash
+nohup record.sh bilibiliproxywget,127.0.0.1:1080 "12235923" best 7200 30,5 "record_video/mea_bilibili" rclone:vps:baidupan3keep "UCWCc8tO-uUl_7SJXIKJACMw" "kaguramea" "kagura0mea" "KaguraMea" > mea_bilibili.log &
+```  
 后台运行，使用wget方法录制https://live.bilibili.com/12235923并使用代理服务器127.0.0.1:1080获取直播媒体流链接，最高清晰度，循环检测并在录制进行7200秒时分段，间隔30秒检测并且每次录制从开始到结束最短间隔5秒，录像保存于record_video/mea文件夹中并在录制完成后自动上传到rclone中名称为vps的网盘和百度云网盘的相同路径 如果出错则重试最多三次 上传完成后无论成功与否都保留本地录像，log记录保存于mea_bilibili.log文件
 
 ### 参数说明
