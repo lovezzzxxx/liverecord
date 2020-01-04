@@ -189,13 +189,10 @@ while true; do
 					(echo "${EXCEPT_STREAM_STREAM_URL}" | grep -Eq ".m3u8|.flv|rtmp:") && echo "${LOG_PREFIX} restream from ${EXCEPT_STREAM_FULL_URL}. retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
 				fi
 				
-				if [[ ${LIVE_BILIBILI} -gt 0 ]]; then #连续两次bilibili直播中而其他频道没有直播才进行录制
-					break
-				else
-					let LIVE_BILIBILI++
-					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata livestatus=${LIVE_BILIBILI}"
-					sleep $(( ${LOOPINTERVAL}/2 )) && continue
-				fi
+				let LIVE_BILIBILI++
+				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata livestatus=${LIVE_BILIBILI}"
+				[[ ${LIVE_BILIBILI} -gt 0 ]] && break #连续三次bilibili直播中而其他频道没有直播才进行录制
+				sleep ${LOOPINTERVAL} && continue
 			else
 				LIVE_BILIBILI=-2
 			fi
@@ -232,9 +229,9 @@ while true; do
 			STREAM_PROXY="${STREAM_PROXY_HARD}"
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} proxy ${STREAM_PROXY}"
 		else
-			STREAM_PROXY=$(curl -s "http://http.tiqu.alicdns.com/getip3?num=1&type=1&pro=&city=0&yys=0&port=1&time=2&ts=0&ys=0&cs=0&lb=4&sb=0&pb=4&mr=1&regions=&gm=4")
+			#STREAM_PROXY=$(curl -s "http://http.tiqu.alicdns.com/getip3?num=1&type=1&pro=&city=0&yys=0&port=1&time=2&ts=0&ys=0&cs=0&lb=4&sb=0&pb=4&mr=1&regions=&gm=4")
+			STREAM_PROXY=$(curl -s "http://ip.11jsq.com/index.php/api/entry?method=proxyServer.generate_api_url&packid=0&fa=0&fetch_key=&groupid=0&qty=1&time=3&pro=&city=&port=1&format=txt&ss=3&css=&dt=1&specialTxt=3&specialJson=&usertype=14") #可替换为任意代理获取方法
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} proxy renew ${STREAM_PROXY}"
-			#STREAM_PROXY=$(curl -s "http://ip.11jsq.com/index.php/api/entry?method=proxyServer.generate_api_url&packid=0&fa=0&fetch_key=&groupid=0&qty=1&time=3&pro=&city=&port=1&format=txt&ss=3&css=&dt=1&specialTxt=3&specialJson=&usertype=14") #可替换为任意代理获取方法
 		fi
 	fi
 	#STREAM_URL=$(wget -q -O- "https://api.live.bilibili.com/room/v1/Room/playUrl?cid=${PART_URL}&qn=10000&platform=web" | grep -o "\"url\":\"[^\"]*\"" | head -n 1 | awk -F"\"" '{print $4}' | sed 's/\\u0026/\&/g'); fi
@@ -293,6 +290,14 @@ while true; do
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} time up kill record process ${RECORD_PID}"
 				kill ${RECORD_PID}
 				break
+			fi
+			if [[ "${1}" == "bilibiliproxy"* ]]; then
+				proxy_status=$(tail -n 1 "${DIR_LOCAL}/${FNAME}.log" | grep "Found matching plugin bilibili for URL")
+				if [[ -n "${proxy_status}" ]]; then
+					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} proxy timeout kill record process ${RECORD_PID}"
+					kill ${RECORD_PID}
+					break
+				fi
 			fi
 		fi
 	done
