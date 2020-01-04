@@ -1,7 +1,7 @@
 # 功能介绍
 record.sh为自动录播脚本。
   * 支持youtube频道、twitcast频道、twitch频道、openrec频道、niconico生放送、niconico社区、niconico频道（支持登陆niconico账号进行录制）、mirrativ频道、reality频道、17live频道、bilibili频道、streamlink支持的直播网址、ffmpeg支持的m3u8地址  
-  * bilibili录制支持在上述频道有直播时不进行录制，从而简单的排除转播的录制；支持在请求或下载bilibili直播媒体流链接时使用代理  
+  * bilibili录制支持在上述频道有直播时不进行录制，从而简单的排除转播的录制；支持使用代理录制bilibili直播
   * 支持定时分段  
   * 支持rclone上传、百度云上传；支持可指定次数的上传出错重试；支持根据上传结果选择是否保留本地文件  
 
@@ -22,7 +22,7 @@ download.sh与录制功能无关，是一个完全独立的小脚本。本质是
 
 # 使用方法
 ### 方法
-`./record.sh youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitcastpy|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|bilibiliwget|bilibiliproxy[,代理ip:代理端口]|bilibiliproxywget[,代理ip:代理端口]|bilibiliproxydlwget[,代理ip:代理端口]|streamlink|m3u8 频道号码 [best|其他清晰度] [loop|once|视频分段时间] [10|循环检测间隔,最短录制间隔] [record_video/other|其他本地目录] [nobackup|rclone:网盘名称:|baidupan[重试次数][keep|del]] [noexcept|排除转播的youtube频道号码] [noexcept|排除转播的twitcast频道号码] [noexcept|排除转播的twitch频道号码] [noexcept|排除转播的openrec频道号码] [noexcept|排除转播的nicolv频道号码] [noexcept|排除转播的nicoco频道号码] [noexcept|排除转播的nicoch频道号码] [noexcept|排除转播的mirrativ频道号码] [noexcept|排除转播的reality频道号码] [noexcept|排除转播的17live频道号码] [noexcept|排除转播的streamlink支持的频道网址]`
+`./record.sh youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitcastpy|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|bilibiliproxy[,代理ip:代理端口]|streamlink|m3u8 频道号码 [best|其他清晰度] [loop|once|视频分段时间] [10|循环检测间隔,最短录制间隔] [record_video/other|其他本地目录] [nobackup|rclone:网盘名称:|baidupan[重试次数][keep|del]] [noexcept|排除转播的youtube频道号码] [noexcept|排除转播的twitcast频道号码] [noexcept|排除转播的twitch频道号码] [noexcept|排除转播的openrec频道号码] [noexcept|排除转播的nicolv频道号码] [noexcept|排除转播的nicoco频道号码] [noexcept|排除转播的nicoch频道号码] [noexcept|排除转播的mirrativ频道号码] [noexcept|排除转播的reality频道号码] [noexcept|排除转播的17live频道号码] [noexcept|排除转播的streamlink支持的频道网址]`
 
 ### 示例
   * 使用默认参数录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw   
@@ -32,7 +32,7 @@ download.sh与录制功能无关，是一个完全独立的小脚本。本质是
 `record.sh youtubeffmpeg "UCWCc8tO-uUl_7SJXIKJACMw" 1080p,720p,480p,360p,worst once 30 "record_video/mea" rclone:vps:baidupan3`  
 
   * 后台运行，使用wget方法录制https://live.bilibili.com/12235923 使用代理服务器127.0.0.1:1080获取直播媒体流链接，最高清晰度，循环检测并在录制进行7200秒时分段，间隔30秒检测 每次录制从开始到结束最短间隔5秒，录像保存于record_video/mea文件夹中并在录制完成后自动上传到rclone中名称为vps的网盘和百度云网盘的相同路径 如果出错则重试最多三次 上传完成后无论成功与否都保留本地录像，在https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw https://twitcasting.tv/kaguramea_vov 有直播时不进行录制，log记录保存于mea_bilibili.log文件  
-`nohup record.sh bilibiliproxywget,127.0.0.1:1080 "12235923" best 7200 30,5 "record_video/mea_bilibili" rclone:vps:baidupan3keep "UCWCc8tO-uUl_7SJXIKJACMw" "kaguramea_vov" > mea_bilibili.log &`  
+`nohup record.sh bilibiliproxy,127.0.0.1:1080 "12235923" best 7200 30,5 "record_video/mea_bilibili" rclone:vps:baidupan3keep "UCWCc8tO-uUl_7SJXIKJACMw" "kaguramea_vov" > mea_bilibili.log &`  
 
 
 ### 参数说明
@@ -44,7 +44,7 @@ download.sh与录制功能无关，是一个完全独立的小脚本。本质是
 youtube|`youtube`、`youtubeffmpeg`|`个人主页网址中的ID部分`(如UCWCc8tO-uUl_7SJXIKJACMw)|youtubeffmpeg为使用ffmpeg进行录制|请不要将第三个清晰度参数指定为best或1080p60及以上的分辨率
 twitcast|`twitcast`、`twitcastffmpeg`、`twitcastpy`|`个人主页网址中的ID部分`(如kaguramea_vov)|twitcastffmpeg为使用ffmpeg进行录制，twitcastpy为使用record_twitcast.py进行录制|如果未安装相应依赖，则仅能使用twitcast参数，无法录制twitcast最高清晰度。 __请不要对同一场直播进行多个录制，会导致文件命名问题__
 niconico|`nicolv`、`nicoco`、`nicoch`|分别为`niconico生放送号码`(如lv320447549)，`niconico社区号码`(如co41030)，`niconico频道号码`(如macoto2525)|可以在后方添加`:用户名,密码`来登陆nico账号进行录制(如nicolv:user@mail.com,password)|如果未安装相应依赖，则无法录制niconico。 __请不要对同一场直播使用同一账号进行多个录制，会产生websocket链接冲突导致录像卡顿或反复断连__
-bilibili|`bilibili`、`bilibiliwget`、`bilibiliproxy`、`bilibiliproxywget`、`bilibiliproxydlwget`|`直播间网址中的ID部分`(如12235923)|bilibiliwget与bilibiliproxywget为使用wget进行录制。bilibiliproxy与bilibiliproxywget为通过代理获取直播媒体流网址，bilibiliproxydlwget为通过代理获取直播媒体流网址并通过代理进行录制，可以直接在后方添加`,代理ip:代理端口`指定代理服务器(如bilibiliproxy,127.0.0.1:1080)，也可以在脚本内相应部分添加代理获取方法
+bilibili|`bilibili`、`bilibiliproxy`|`直播间网址中的ID部分`(如12235923)|bilibiliproxy为通过代理进行录制，可以直接在后方添加`,代理ip:代理端口`指定代理服务器(如bilibiliproxy,127.0.0.1:1080)，也可以在脚本内相应部分添加代理获取方法
 其他网站| `twitch`、`openrec`、`mirrativ`、`reality`、`17live`|`个人主页网址中的ID部分`，其中reality为频道名称(如果为部分名字则匹配含有这些文字的其中一个频道)或vlive_id(获取方法可于脚本内查找)|其中twitch使用streamlink检测直播状态，系统占用较高||
 其他|`streamlink`、`m3u8`|`streamlink支持的个人主页网址或直播网址`、`直播媒体流的m3u8网址`||
 
