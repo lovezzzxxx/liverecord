@@ -189,7 +189,7 @@ while true; do
 					(echo "${EXCEPT_STREAM_STREAM_URL}" | grep -Eq ".m3u8|.flv|rtmp:") && echo "${LOG_PREFIX} restream from ${EXCEPT_STREAM_FULL_URL}. retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
 				fi
 				
-				if [[ ${LIVE_YOUTUBE} -gt 0 ]]; then #连续两次bilibili直播中而其他频道没有直播才进行录制
+				if [[ ${LIVE_BILIBILI} -gt 0 ]]; then #连续两次bilibili直播中而其他频道没有直播才进行录制
 					break
 				else
 					let LIVE_BILIBILI++
