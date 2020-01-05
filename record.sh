@@ -2,8 +2,8 @@
 
 if [[ ! -n "${1}" ]]; then
 	echo "${0} youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitcastpy|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|bilibiliproxy[,代理ip:代理端口]|streamlink|m3u8 \"频道号码\" [best|其他清晰度] [loop|once|视频分段时间] [10|循环检测间隔,最短录制间隔] [\"record_video/other|其他本地目录\"] [nobackup|rclone:网盘名称:|baidupan[重试次数][keep|del]] [\"noexcept|排除转播的youtube频道号码\"] [\"noexcept|排除转播的twitcast频道号码\"] [\"noexcept|排除转播的twitch频道号码\"] [\"noexcept|排除转播的openrec频道号码\"] [\"noexcept|排除转播的nicolv频道号码\"] [\"noexcept|排除转播的nicoco频道号码\"] [\"noexcept|排除转播的nicoch频道号码\"] [\"noexcept|排除转播的mirrativ频道号码\"] [\"noexcept|排除转播的reality频道号码\"] [\"noexcept|排除转播的17live频道号码\"] [\"noexcept|排除转播的streamlink支持的频道网址\"]"
-	echo "示例：${0} bilibiliproxywget,127.0.0.1:1080 \"12235923\" best,1080p60,1080p,720p,480p,360p,worst 14400 30,5 \"record_video/mea_bilibili\" rclone:vps:baidupan3keep \"UCWCc8tO-uUl_7SJXIKJACMw\" \"kaguramea\" \"kagura0mea\" \"KaguraMea\" "
-	echo "必要模块为curl、streamlink、ffmpeg，可选模块为livedl与python3、请将livedl文件放置于运行时目录的livedl文件夹内、请将record_twitcast.py文件放置于运行时目录的record文件夹内。"
+	echo "示例：${0} bilibiliproxy,127.0.0.1:1080 \"12235923\" best,1080p60,1080p,720p,480p,360p,worst 14400 30,5 \"record_video/mea_bilibili\" rclone:vps:baidupan3keep \"UCWCc8tO-uUl_7SJXIKJACMw\" \"kaguramea\" \"kagura0mea\" \"KaguraMea\" "
+	echo "必要模块为curl、streamlink、ffmpeg，可选模块为livedl、python3、you-get，请将livedl文件放置于运行时目录的livedl文件夹内、请将record_twitcast.py文件放置于运行时目录的record文件夹内。"
 	echo "rclone上传基于\"https://github.com/rclone/rclone\"，百度云上传基于BaiduPCS-Go，请登录后使用。"
 	echo "注意使用youtube直播仅支持1080p以下的清晰度，请不要使用best和1080p60及以上的参数"
 	echo "仅bilibili支持排除转播功能"
@@ -223,14 +223,14 @@ while true; do
 	if [[ "${1}" == "17live" ]]; then STREAM_URL=$(curl -s -X POST 'http://api-dsa.17app.co/api/v1/liveStreams/getLiveStreamInfo' --data "{\"liveStreamID\": ${PART_URL}}" | grep -o '\\"webUrl\\":\\"[^\\]*' | awk -F'\"' '{print $4}') ; FNAME="17live_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "streamlink" ]]; then FNAME="stream_$(date +"%Y%m%d_%H%M%S").ts"; fi
 
-	if [[ "${1}" == "bilibili"* ]]; then FNAME="bilibili_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
+	if [[ "${1}" == "bilibili"* ]]; then DLNAME="bilibili_${PART_URL}_$(date +"%Y%m%d_%H%M%S")" ; FNAME="bilibili_${PART_URL}_$(date +"%Y%m%d_%H%M%S").flv"; fi
 	if [[ "${1}" == "bilibiliproxy"* ]]; then
 		if [[ -n "${STREAM_PROXY_HARD}" ]]; then
 			STREAM_PROXY="${STREAM_PROXY_HARD}"
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} proxy ${STREAM_PROXY}"
 		else
-			#STREAM_PROXY=$(curl -s "http://http.tiqu.alicdns.com/getip3?num=1&type=1&pro=&city=0&yys=0&port=1&time=2&ts=0&ys=0&cs=0&lb=4&sb=0&pb=4&mr=1&regions=&gm=4")
 			STREAM_PROXY=$(curl -s "http://ip.11jsq.com/index.php/api/entry?method=proxyServer.generate_api_url&packid=0&fa=0&fetch_key=&groupid=0&qty=1&time=3&pro=&city=&port=1&format=txt&ss=3&css=&dt=1&specialTxt=3&specialJson=&usertype=14") #可替换为任意代理获取方法
+			#STREAM_PROXY=$(curl -s "http://http.tiqu.alicdns.com/getip3?num=1&type=1&pro=&city=0&yys=0&port=1&time=2&ts=0&ys=0&cs=0&lb=4&sb=0&pb=4&mr=1&regions=&gm=4")
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} proxy renew ${STREAM_PROXY}"
 		fi
 	fi
@@ -249,13 +249,6 @@ while true; do
 		fi
 	fi
 	
-	if [[ "${1}" == "bilibili" ]]; then
-		(streamlink --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "${FULL_URL}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
-	fi
-	if [[ "${1}" == "bilibiliproxy"* ]]; then
-		(streamlink --loglevel trace --http-proxy "${STREAM_PROXY}" -o "${DIR_LOCAL}/${FNAME}" "${FULL_URL}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
-	fi
-	
 	if [[ "${1}" == "twitcast" ]]; then
 		(livedl/livedl -tcas "${PART_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 	fi
@@ -269,6 +262,13 @@ while true; do
 		else
 			(livedl/livedl -nico-login-only=off -nico-force-reservation=on -nico-limit-bw 0 -nico-format "${DLNAME}" -nico "${LIVE_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
+	fi
+	
+	if [[ "${1}" == "bilibili" ]]; then
+		(you-get --debug -O "${DIR_LOCAL}/${DLNAME}" "${FULL_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+	fi
+	if [[ "${1}" == "bilibiliproxy"* ]]; then
+		(you-get --debug --http-proxy "${STREAM_PROXY}" -O "${DIR_LOCAL}/${DLNAME}" "${FULL_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 	fi
 	
 	if [[ "${1}" == "youtubeffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "17live" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
@@ -290,14 +290,6 @@ while true; do
 				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} time up kill record process ${RECORD_PID}"
 				kill ${RECORD_PID}
 				break
-			fi
-			if [[ "${1}" == "bilibiliproxy"* ]]; then
-				proxy_status=$(tail -n 1 "${DIR_LOCAL}/${FNAME}.log" | grep "Found matching plugin bilibili for URL")
-				if [[ -n "${proxy_status}" ]]; then
-					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} proxy timeout kill record process ${RECORD_PID}"
-					kill ${RECORD_PID}
-					break
-				fi
 			fi
 		fi
 	done
