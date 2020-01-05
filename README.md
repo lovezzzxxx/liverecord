@@ -12,13 +12,13 @@ download.sh与录制功能无关，是一个完全独立的小脚本。本质是
 感谢[live-stream-recorder](https://github.com/printempw/live-stream-recorder)、[GiGaFotress/Vtuber-recorder](https://github.com/GiGaFotress/Vtuber-recorder)。  
 
 # 环境依赖
-  * [ffmpeg](https://github.com/FFmpeg/FFmpeg)
   * [streamlink](https://github.com/streamlink/streamlink)(基于python3)
+  * [ffmpeg](https://github.com/FFmpeg/FFmpeg)
   * [livedl(可选)](https://github.com/himananiito/livedl)(基于go)， __请将编译完成的livedl文件放置于运行时目录的livedl/文件夹内__ 。否则无法使用twitcast参数与niconico相关参数进行twitcast高清录制与niconico录制。  
   * [record_twitcast.py文件(可选)](https://github.com/lovezzzxxx/liverecord/blob/master/record_twitcast.py)(基于python3 websocket库)， __请将record_twitcast.py文件放置于运行时目录的record/文件夹内__ 。否则无法使用twitcastpy参数进行twitcast高清录制。  
-
-  * [rclone(可选)](https://github.com/rclone/rclone)(需登陆后使用)，否则无法使用rclone参数上传。    
-  * [BaiduPCS-Go(可选)](https://github.com/iikira/BaiduPCS-Go)(需登陆后使用)，否则无法使用paidupan参数上传。    
+  * [you-get(可选)](https://github.com/soimort/you-get)(基于python3)，否则无法使用bilibili相关参数进行bilibili录制。  
+  * [rclone(可选)](https://github.com/rclone/rclone)(需登陆后使用)，否则无法使用rclone参数上传。  
+  * [BaiduPCS-Go(可选)](https://github.com/iikira/BaiduPCS-Go)(需登陆后使用)，否则无法使用paidupan参数上传。  
 
 # 使用方法
 ### 方法
@@ -31,7 +31,7 @@ download.sh与录制功能无关，是一个完全独立的小脚本。本质是
   * 使用ffmpeg录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw ，依次获取1080p 720p 480p 360p worst中第一个可用的清晰度，在检测到直播并进行一次录制后终止，间隔30秒检测，录像保存于record_video/mea文件夹中并在录制完成后自动上传到rclone中名称为vps的网盘和百度云网盘的相同路径 如果出错则重试最多三次 上传结束后根据上传情况删除本地录像，如果上传失败则会保留本地录像  
 `record.sh youtubeffmpeg "UCWCc8tO-uUl_7SJXIKJACMw" 1080p,720p,480p,360p,worst once 30 "record_video/mea" rclone:vps:baidupan3`  
 
-  * 后台运行，使用wget方法录制https://live.bilibili.com/12235923 使用代理服务器127.0.0.1:1080获取直播媒体流链接，最高清晰度，循环检测并在录制进行7200秒时分段，间隔30秒检测 每次录制从开始到结束最短间隔5秒，录像保存于record_video/mea文件夹中并在录制完成后自动上传到rclone中名称为vps的网盘和百度云网盘的相同路径 如果出错则重试最多三次 上传完成后无论成功与否都保留本地录像，在https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw https://twitcasting.tv/kaguramea_vov 有直播时不进行录制，log记录保存于mea_bilibili.log文件  
+  * 后台运行，使用代理服务器127.0.0.1:1080录制https://live.bilibili.com/12235923 ，最高清晰度，循环检测并在录制进行7200秒时分段，间隔30秒检测 每次录制从开始到结束最短间隔5秒，录像保存于record_video/mea文件夹中并在录制完成后自动上传到rclone中名称为vps的网盘和百度云网盘的相同路径 如果出错则重试最多三次 上传完成后无论成功与否都保留本地录像，在https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw https://twitcasting.tv/kaguramea_vov 有直播时不进行录制，log记录保存于mea_bilibili.log文件  
 `nohup record.sh bilibiliproxy,127.0.0.1:1080 "12235923" best 7200 30,5 "record_video/mea_bilibili" rclone:vps:baidupan3keep "UCWCc8tO-uUl_7SJXIKJACMw" "kaguramea_vov" > mea_bilibili.log &`  
 
 
