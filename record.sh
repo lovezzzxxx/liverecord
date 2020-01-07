@@ -68,7 +68,7 @@ EXCEPT_STREAM_PART_URL="${18:-noexcept}"
 
 
 LIVE_YOUTUBE=0
-LIVE_BILIBILI=-2
+LIVE_BILIBILI=-3
 
 while true; do
 	while true; do
@@ -194,7 +194,7 @@ while true; do
 				[[ ${LIVE_BILIBILI} -gt 0 ]] && break #连续三次bilibili直播中而其他频道没有直播才进行录制
 				sleep ${LOOPINTERVAL} && continue
 			else
-				LIVE_BILIBILI=-2
+				LIVE_BILIBILI=-3
 			fi
 		fi
 		
@@ -229,8 +229,8 @@ while true; do
 			STREAM_PROXY="${STREAM_PROXY_HARD}"
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} proxy ${STREAM_PROXY}"
 		else
-			STREAM_PROXY=$(curl -s "http://ip.11jsq.com/index.php/api/entry?method=proxyServer.generate_api_url&packid=0&fa=0&fetch_key=&groupid=0&qty=1&time=3&pro=&city=&port=1&format=txt&ss=3&css=&dt=1&specialTxt=3&specialJson=&usertype=14") #可替换为任意代理获取方法
-			#STREAM_PROXY=$(curl -s "http://http.tiqu.alicdns.com/getip3?num=1&type=1&pro=&city=0&yys=0&port=1&time=2&ts=0&ys=0&cs=0&lb=4&sb=0&pb=4&mr=1&regions=&gm=4")
+			STREAM_PROXY=$(curl -s "http://http.tiqu.alicdns.com/getip3?num=1&type=1&pro=&city=0&yys=0&port=1&time=2&ts=0&ys=0&cs=0&lb=4&sb=0&pb=4&mr=1&regions=&gm=4")
+			#STREAM_PROXY=$(curl -s "http://ip.11jsq.com/index.php/api/entry?method=proxyServer.generate_api_url&packid=0&fa=0&fetch_key=&groupid=0&qty=1&time=3&pro=&city=&port=1&format=txt&ss=3&css=&dt=1&specialTxt=3&specialJson=&usertype=14") #可替换为任意代理获取方法
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} proxy renew ${STREAM_PROXY}"
 		fi
 	fi
