@@ -1,8 +1,8 @@
 #!/bin/bash
 
 if [[ ! -n "${1}" ]]; then
-	echo "${0} none|live|video|long[fast][触发下播后立即录像的最长直播时间][full] youtube频道号码 [loop|循环次数] [15,150,60|循环检测间隔,视频列表最大长度,最短视频下载间隔] [3,3,3|录像最大并发数,图片最大并发数,简介最大并发数] [\"download_video/other,download_log/other.log|本地目录,视频列表文件路径\"] [nobackup|rclone:网盘名称:|baidupan[重试次数]]"
-	echo "示例：${0} livevideofastfull \"UCWCc8tO-uUl_7SJXIKJACMw\" loop 15,150,60 2,3,3 \"download_video/mea,download_log/mea.log\" rclone:vps:3"
+	echo "${0} none|live|video|long[fast][触发下播后立即录像的最长直播时间][full] youtube频道号码 [loop|循环次数] [15,150,60|循环检测间隔,视频列表最大长度,最短下载间隔] [3,3,3|录像最大并发数,图片最大并发数,简介最大并发数] [\"download_video/other,download_log/other.log|本地目录,视频列表文件路径\"] [nobackup|rclone:网盘名称:|baidupan[重试次数]]"
+	echo "示例：${0} livevideofastfull \"UCWCc8tO-uUl_7SJXIKJACMw\" loop 15,150,60 2,3,3 \"download_video/mea,download_log/mea.log\" rclone:vpsb:3"
 	echo "第一个参数说明(其他参数用法基本同record.sh)：live、video、long分别为从直播、视频页面(前30个视频)、上传视频列表页面(前100个视频)获取视频列表(请务必将视频列表最大长度设置为更大的值)，设置为none则不更新视频列表，适用于手动提供视频列表的情况。fast为直播下播后立即录像，有机会在删档前开始下载。触发下播后立即录像的最长直播时间设置为7200可以避免下载到未压制完成的视频。full为确保下载到完整视频，防止因下播后立即录像功能导致无法下载到压制完成的视频。"
 	echo "必要模块为curl、youtube-dl、ffmpeg"
 	echo "rclone上传基于\"https://github.com/rclone/rclone\"，百度云上传基于BaiduPCS-Go，请登录后使用。"
@@ -15,7 +15,7 @@ fi
 URL_LIVE_DURATION_MAX=$(echo "${1}" | grep -o "[0-9]*") #触发下播后立即录像的最长直播时间
 PART_URL="${2}" #youtube频道号码
 LOOP_TIME="${3:-loop}" #是否循环或循环次数
-LOOPINTERVAL_LINEMAX_DLMININTERVAL="${4:-15,150,60}" ; LOOPINTERVAL="$(echo $LOOPINTERVAL_LINEMAX_DLMININTERVAL | awk -F"," '{print $1}')" ; LINEMAX="$(echo $LOOPINTERVAL_LINEMAX_DLMININTERVAL | awk -F"," '{print $2}')" ; DLMININTERVAL="$(echo $LOOPINTERVAL_LINEMAX_DLMININTERVAL | awk -F"," '{print $3}')" #循环检测间隔,视频列表最大长度,最短视频下载间隔
+LOOPINTERVAL_LINEMAX_MINDLINTERVAL="${4:-15,150,60}" ; LOOPINTERVAL="$(echo $LOOPINTERVAL_LINEMAX_MINDLINTERVAL | awk -F"," '{print $1}')" ; LINEMAX="$(echo $LOOPINTERVAL_LINEMAX_MINDLINTERVAL | awk -F"," '{print $2}')" ; MINDLINTERVAL="$(echo $LOOPINTERVAL_LINEMAX_MINDLINTERVAL | awk -F"," '{print $3}')" #循环检测间隔,视频列表最大长度,最短视频下载间隔
 NUM_MAX="${5:-3,3,3}" #最大并发数
 RECORD_NUM_MAX="$(echo $NUM_MAX | awk -F"," '{print $1}')" ; THUMBNAIL_NUM_MAX="$(echo $NUM_MAX | awk -F"," '{print $2}')" ; DESCRIPTION_NUM_MAX="$(echo $NUM_MAX | awk -F"," '{print $3}')"
 [[ "${THUMBNAIL_NUM_MAX}" == "" ]] && THUMBNAIL_NUM_MAX="${RECORD_NUM_MAX}" ; [[ "${DESCRIPTION_NUM_MAX}" == "" ]] && DESCRIPTION_NUM_MAX="${RECORD_NUM_MAX}"
@@ -28,7 +28,9 @@ RETRY_MAX=$(echo "${BACKUP}" | awk -F":" '{print $NF}' | grep -o "[0-9]*") ; [[ 
 
 
 LOOP=1
-DLTIME=1
+RECORD_DLTIME=1
+THUMBNAIL_DLTIME=1
+DESCRIPTION_DLTIME=1
 
 while true; do
 	#添加末尾换行符，清理多余行
@@ -143,14 +145,14 @@ while true; do
 			FNAME="youtube_${PART_URL}_${FNAME_DATE}_${URL}.mkv" #注意不相同
 			if [[ "${RECORD}" == "" ]]; then
 				RECORD_NUM=$(grep -Eo "录像下载待|录像下载中|录像上传待|录像上传中" "${DIR_LOG}" | wc -l)
-				DLINTERVAL=$(( $(date +%s)-${DLTIME} ))
-				[[ ${RECORD_NUM} -lt ${RECORD_NUM_MAX} ]] && [[ ${DLINTERVAL} -gt ${DLMININTERVAL} ]] && RECORD="录像下载待" && sed -i "/${URL},${DATE}/s/\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\)/\1,\2,\3,${RECORD},\5,\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} ${LINE} change RECORD=${RECORD}"
-				[[ ${RECORD_NUM} -lt ${RECORD_NUM_MAX} ]] && [[ ! ${DLINTERVAL} -gt ${DLMININTERVAL} ]] && echo "${LOG_PREFIX} ${LINE} record download wait"
+				RECORD_DLINTERVAL=$(( $(date +%s)-${RECORD_DLTIME} ))
+				[[ ${RECORD_NUM} -lt ${RECORD_NUM_MAX} ]] && [[ ${RECORD_DLINTERVAL} -gt ${MINDLINTERVAL} ]] && RECORD="录像下载待" && sed -i "/${URL},${DATE}/s/\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\)/\1,\2,\3,${RECORD},\5,\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} ${LINE} change RECORD=${RECORD}"
+				[[ ${RECORD_NUM} -lt ${RECORD_NUM_MAX} ]] && [[ ! ${RECORD_DLINTERVAL} -gt ${MINDLINTERVAL} ]] && echo "${LOG_PREFIX} ${LINE} record download wait"
 			fi
 			
 			if [[ "${RECORD}" == "录像下载待" ]]; then
 				RECORD="录像下载中" && sed -i "/${URL},${DATE}/s/\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\)/\1,\2,\3,${RECORD},\5,\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} ${LINE} change RECORD=${RECORD}"
-				DLTIME=$(date +%s)
+				RECORD_DLTIME=$(date +%s)
 				(
 				RETRY=1
 				until [[ ${RETRY} -gt ${RETRY_MAX} ]]; do
@@ -214,11 +216,14 @@ while true; do
 			FNAME="youtube_${PART_URL}_${FNAME_DATE}_${URL}.jpg"
 			if [[ "${THUMBNAIL}" == "" ]]; then
 				THUMBNAIL_NUM=$(grep -Eo "图片下载待|图片下载中|图片上传待|图片上传中" "${DIR_LOG}" | wc -l)
-				[[ ${THUMBNAIL_NUM} -lt ${THUMBNAIL_NUM_MAX} ]] && THUMBNAIL="图片下载待" && sed -i "/${URL},${DATE}/s/\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\)/\1,\2,\3,\4,${THUMBNAIL},\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} ${LINE} change THUMBNAIL=${THUMBNAIL}"
+				THUMBNAIL_DLINTERVAL=$(( $(date +%s)-${THUMBNAIL_DLTIME} ))
+				[[ ${THUMBNAIL_NUM} -lt ${THUMBNAIL_NUM_MAX} ]] && [[ ${THUMBNAIL_DLINTERVAL} -gt ${MINDLINTERVAL} ]] && THUMBNAIL="图片下载待" && sed -i "/${URL},${DATE}/s/\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\)/\1,\2,\3,\4,${THUMBNAIL},\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} ${LINE} change THUMBNAIL=${THUMBNAIL}"
+				[[ ${THUMBNAIL_NUM} -lt ${THUMBNAIL_NUM_MAX} ]] && [[ ! ${THUMBNAIL_DLINTERVAL} -gt ${MINDLINTERVAL} ]] && echo "${LOG_PREFIX} ${LINE} thumbnail download wait"
 			fi
 			
 			if [[ "${THUMBNAIL}" == "图片下载待" ]]; then
 				THUMBNAIL="图片下载中" && sed -i "/${URL},${DATE}/s/\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\)/\1,\2,\3,\4,${THUMBNAIL},\6/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} ${LINE} change THUMBNAIL=${THUMBNAIL}"
+				THUMBNAIL_DLTIME=$(date +%s)
 				(
 				RETRY=1
 				until [[ ${RETRY} -gt ${RETRY_MAX} ]]; do
@@ -283,11 +288,14 @@ while true; do
 			FNAME="youtube_${PART_URL}_${FNAME_DATE}_${URL}.txt"
 			if [[ "${DESCRIPTION}" == "" ]]; then
 				DESCRIPTION_NUM=$(grep -Eo "简介下载待|简介下载中|简介上传待|简介上传中" "${DIR_LOG}" | wc -l)
-				[[ ${DESCRIPTION_NUM} -lt ${DESCRIPTION_NUM_MAX} ]] && DESCRIPTION="简介下载待" && sed -i "/${URL},${DATE}/s/\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\)/\1,\2,\3,\4,\5,${DESCRIPTION}/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} ${LINE} change DESCRIPTION=${DESCRIPTION}"
+				DESCRIPTION_DLINTERVAL=$(( $(date +%s)-${DESCRIPTION_DLTIME} ))
+				[[ ${DESCRIPTION_NUM} -lt ${DESCRIPTION_NUM_MAX} ]] && [[ ${DESCRIPTION_DLINTERVAL} -gt ${MINDLINTERVAL} ]] && DESCRIPTION="简介下载待" && sed -i "/${URL},${DATE}/s/\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\)/\1,\2,\3,\4,\5,${DESCRIPTION}/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} ${LINE} change DESCRIPTION=${DESCRIPTION}"
+				[[ ${DESCRIPTION_NUM} -lt ${DESCRIPTION_NUM_MAX} ]] && [[ ! ${DESCRIPTION_DLINTERVAL} -gt ${MINDLINTERVAL} ]] && echo "${LOG_PREFIX} ${LINE} description download wait"
 			fi
 			
 			if [[ "${DESCRIPTION}" == "简介下载待" ]]; then
 				DESCRIPTION="简介下载中" && sed -i "/${URL},${DATE}/s/\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\),\([^,]*\)/\1,\2,\3,\4,\5,${DESCRIPTION}/" "${DIR_LOG}" && LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") && echo "${LOG_PREFIX} ${LINE} change DESCRIPTION=${DESCRIPTION}"
+				DESCRIPTION_DLTIME=$(date +%s)
 				(
 				RETRY=1
 				until [[ ${RETRY} -gt ${RETRY_MAX} ]]; do
