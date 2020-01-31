@@ -12,11 +12,11 @@ download.sh与录制功能无关，是一个完全独立的小脚本。本质是
 感谢[live-stream-recorder](https://github.com/printempw/live-stream-recorder)、[GiGaFotress/Vtuber-recorder](https://github.com/GiGaFotress/Vtuber-recorder)。  
 
 # 环境依赖
-  * [streamlink](https://github.com/streamlink/streamlink)(基于python3)
-  * [ffmpeg](https://github.com/FFmpeg/FFmpeg)
-  * [livedl(可选)](https://github.com/himananiito/livedl)(基于go)， __请将编译完成的livedl文件放置于运行时目录的livedl/文件夹内__ 。否则无法使用twitcast参数与niconico相关参数进行twitcast高清录制与niconico录制。  
-  * [record_twitcast.py文件(可选)](https://github.com/lovezzzxxx/liverecord/blob/master/record_twitcast.py)(基于python3 websocket库)， __请将record_twitcast.py文件放置于运行时目录的record/文件夹内__ 。否则无法使用twitcastpy参数进行twitcast高清录制。  
-  * [you-get(可选)](https://github.com/soimort/you-get)(基于python3)，否则无法使用bilibili相关参数进行bilibili录制。  
+  * [streamlink](https://github.com/streamlink/streamlink)(基于python3)。否则无法使用youtube、youtubeffmpeg、twitch、streamlink、17live参数。
+  * [ffmpeg](https://github.com/FFmpeg/FFmpeg)。否则无法使用除了youtube、twitcast、twitcastpy、nicolv、nicoco、nicoch、bilibili、bilibiliproxy以外的参数。
+  * [livedl(可选)](https://github.com/himananiito/livedl)(基于go)， __请将编译完成的livedl文件放置于运行时目录的livedl/文件夹内__ 。否则无法使用twitcast、nicolv、nicoco、nicoch参数。  
+  * [record_twitcast.py文件(可选)](https://github.com/lovezzzxxx/liverecord/blob/master/record_twitcast.py)(基于python3 websocket库)， __请将record_twitcast.py文件放置于运行时目录的record/文件夹内__ 。否则无法使用twitcastpy参数。  
+  * [you-get(可选)](https://github.com/soimort/you-get)(基于python3)，否则无法使用bilibili、bilibiliproxy参数。  
   * [rclone(可选)](https://github.com/rclone/rclone)(需登陆后使用)，否则无法使用rclone参数上传。  
   * [OneDriveUploader(可选)](https://github.com/MoeClub/OneList/tree/master/OneDriveUploader)(需登陆后使用)，支持世纪互联版onedrive网盘，更详细的安装方法可以参考[Rat's Blog](https://www.moerats.com/archives/1006)，否则无法使用onedrive参数上传。  
   * [BaiduPCS-Go(可选)](https://github.com/iikira/BaiduPCS-Go)(需登陆后使用)，否则无法使用baidupan参数上传。  
