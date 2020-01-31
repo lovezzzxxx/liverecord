@@ -34,7 +34,7 @@ echo 'export PATH=$PATH:'`echo ~`'/go/bin'>>~/.bashrc
 source ~/.bashrc
 
 #提示登陆
-echo '请手动运行`source ~/.bashrc`或者重新链接ssh使下列命令生效'
+echo '请手动运行`source ~/.bashrc`或者重新链接ssh更新环境变量使下列命令生效'
 echo '使用`rclone config`登陆rclone'
 echo '使用`OneDriveUploader -cn -a "打开https://github.com/MoeClub/OneList/tree/master/OneDriveUploader中的相应网页并登录后浏览器地址栏返回的url"`登陆rclone'
 echo '使用`BaiduPCS-Go login -bduss="百度网盘网页cookie中bduss项的值"`登陆BaiduPCS-Go，'
