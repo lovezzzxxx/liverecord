@@ -1,4 +1,8 @@
-[[ -d livedl ]] || [[ -f livedl ]] && echo "请删除livedl文件或文件夹后重试" && exit 1
+if [[ -d livedl ]] || [[ -f livedl ]]; then
+	read -p "是否删除livedl文件或文件夹(y/n)" DELFLAG
+	if [[ $DELFLAG == "y" ]]; then sudo rm -rf livedl
+	else exit 1; fi
+fi
 
 sudo apt update #更新库
 sudo apt -y install curl #安装curl
@@ -8,13 +12,13 @@ sudo apt -y install ffmpeg #安装ffmpeg
 sudo apt -y install python3 ; sudo apt -y install python3-pip ; sudo apt -y install python3-setuptools #安装python3
 pip3 install streamlink ; pip3 install youtube-dl ; pip3 install you-get #安装基于python3的下载工具
 echo 'export PATH=$PATH:/usr/local/bin'>>~/.bashrc
-source ~/.bashrc
+export PATH=$PATH:/usr/local/bin
 
 #安装go相关下载工具
 wget https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz #安装go环境
 sudo tar -C /usr/local -xzf go1.12.7.linux-amd64.tar.gz ; rm go1.12.7.linux-amd64.tar.gz
 echo 'export PATH=$PATH:/usr/local/go/bin'>>~/.bashrc
-source ~/.bashrc
+export PATH=$PATH:/usr/local/go/bin
 sudo apt -y install git ; sudo apt -y install build-essential
 echo "此处可能需要较长时间，请耐心等待"
 go get github.com/gorilla/websocket ; go get golang.org/x/crypto/sha3 ; go get github.com/mattn/go-sqlite3 ; go get github.com/gin-gonic/gin #安装必要的go库
