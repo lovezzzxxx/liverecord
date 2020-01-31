@@ -4,6 +4,8 @@ record.sh为自动录播脚本。
   * bilibili录制支持在上述频道有直播时不进行录制，从而简单的排除转播的录制；支持使用代理录制bilibili直播
   * 支持定时分段  
   * 支持rclone上传、onedrive上传(含世纪互联版)、百度云上传；支持可指定次数的上传出错重试；支持根据上传结果选择是否保留本地文件  
+  
+install.sh为一键安装脚本。目前仅在ubuntu18.04与19.10系统测试过，理论上较新的linux应该都可以使用。注意一键安装脚本会修改环境变量和覆盖安装go环境，如果有需要可以注释掉相应的脚本命令或者手动安装环境依赖。
 
 record_twitcast.py为可选，是一个可以录制websocket的精简脚本。因为twitcast分别提供了基于h5与websocket的流，但部分直播的最高清晰度仅能通过websocket获取，而ffmpeg并不能支持websocket，所以提供一个可以录制websocket的脚本。也可单独使用，方法为`python3 record_twitcast.py "ws或wss网址" "输出文件目录"`。  
 
@@ -12,6 +14,12 @@ download.sh与录制功能无关，是一个完全独立的小脚本。本质是
 感谢[live-stream-recorder](https://github.com/printempw/live-stream-recorder)、[GiGaFotress/Vtuber-recorder](https://github.com/GiGaFotress/Vtuber-recorder)。  
 
 # 安装方法
+`curl https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/install.sh | bash`  
+一键脚本将会自动安装下列所有环境依赖，其中自动录播脚本会保存于运行时目录的record文件夹下，可以使用`record/record.sh`调用  
+一键脚本运行结束后会提示仍需要手动进行的操作，如更新环境变量和登录网盘账号  
+
+# 环境依赖
+此处列举自动录播脚本运行所需的所有程序，如果一键脚本安装失败或希望手动安装环境可以参考  
   * 自动录播脚本，安装方法为`mkdir record ; wget -O "record/record.sh" "https://github.com/lovezzzxxx/liverecord/raw/master/record.sh" ; chmod +x record/record.sh`
   * [ffmpeg](https://github.com/FFmpeg/FFmpeg)，安装方法为`sudo apt install ffmpeg`。否则无法使用除了youtube、twitcast、twitcastpy、nicolv、nicoco、nicoch、bilibili、bilibiliproxy以外的参数。
   * [streamlink](https://github.com/streamlink/streamlink)(基于python3)，安装方法为`pip3 install streamlink`。否则无法使用youtube、youtubeffmpeg、twitch、streamlink、17live参数。
