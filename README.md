@@ -11,11 +11,12 @@ download.sh与录制功能无关，是一个完全独立的小脚本。本质是
 
 感谢[live-stream-recorder](https://github.com/printempw/live-stream-recorder)、[GiGaFotress/Vtuber-recorder](https://github.com/GiGaFotress/Vtuber-recorder)。  
 
-# 环境依赖
-  * [streamlink](https://github.com/streamlink/streamlink)(基于python3)，安装方法为`pip3 install streamlink`。否则无法使用youtube、youtubeffmpeg、twitch、streamlink、17live参数。
+# 安装方法
+  * 自动录播脚本，安装方法为`mkdir record ; wget -O "record/record.sh" "https://github.com/lovezzzxxx/liverecord/raw/master/record.sh" ; chmod +x record/record.sh`
   * [ffmpeg](https://github.com/FFmpeg/FFmpeg)，安装方法为`sudo apt install ffmpeg`。否则无法使用除了youtube、twitcast、twitcastpy、nicolv、nicoco、nicoch、bilibili、bilibiliproxy以外的参数。
+  * [streamlink](https://github.com/streamlink/streamlink)(基于python3)，安装方法为`pip3 install streamlink`。否则无法使用youtube、youtubeffmpeg、twitch、streamlink、17live参数。
   * [livedl(可选)](https://github.com/himananiito/livedl)(基于go)，具体编译安装方法可以参考作者的说明， __请将编译完成的livedl文件放置于运行时目录的livedl/文件夹内__ 。否则无法使用twitcast、nicolv、nicoco、nicoch参数。
-  * [record_twitcast.py文件(可选)](https://github.com/lovezzzxxx/liverecord/blob/master/record_twitcast.py)(基于python3 websocket库)， __将record_twitcast.py文件放置于运行时目录的record/文件夹内并给予可执行权限即可__ 。否则无法使用twitcastpy参数。
+  * [record_twitcast.py文件(可选)](https://github.com/lovezzzxxx/liverecord/blob/master/record_twitcast.py)(基于python3 websocket库)，安装方法为`mkdir record ; wget -O "record/record_twitcast.py" "https://github.com/lovezzzxxx/liverecord/raw/master/record_twitcast.py" ; chmod +x "record/record_twitcast.py"`， __如果手动安装请将record_twitcast.py文件放置于运行时目录的record/文件夹内并给予可执行权限即可__ 。否则无法使用twitcastpy参数。
   * [you-get(可选)](https://github.com/soimort/you-get)(基于python3)，安装方法为`pip3 install you-get`。否则无法使用bilibili、bilibiliproxy参数。
  安装方法为`pip3 install you-get`
   * [rclone(可选)](https://github.com/rclone/rclone)(支持onedrive、dropbox、googledrive等多种网盘，需登录后使用)，安装方法为`curl https://rclone.org/install.sh | sudo bash`，配置方法为`rclone config`后根据说明进行。否则无法使用rclone参数上传。
