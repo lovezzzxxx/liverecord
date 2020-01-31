@@ -26,7 +26,7 @@
  安装方法为`pip3 install you-get`
   * [rclone](https://github.com/rclone/rclone)(支持onedrive、dropbox、googledrive等多种网盘，需登录后使用)，安装方法为`curl https://rclone.org/install.sh | sudo bash`，配置方法为`rclone config`后根据说明进行。否则无法使用rclone参数上传。
   * [OneDriveUploader](https://github.com/MoeClub/OneList/tree/master/OneDriveUploader)(支持包括世纪互联版在内的各种onedrive网盘，需登录后使用)，安装和登录方法可以参考[Rat's Blog](https://www.moerats.com/archives/1006)。否则无法使用onedrive参数上传。
-  * [BaiduPCS-Go](https://github.com/iikira/BaiduPCS-Go)(支持百度云网盘，需登录后使用)，安装和登录方法可以参考作者的说明。否则无法使用baidupan参数上传。
+  * [BaiduPCS-Go](https://github.com/iikira/BaiduPCS-Go)(给予go，支持百度云网盘，需登录后使用)，安装和登录方法可以参考作者的说明。否则无法使用baidupan参数上传。
 
 # 使用方法
 ### 方法
