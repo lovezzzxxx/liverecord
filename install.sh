@@ -1,11 +1,11 @@
 [[ -d livedl ]] || [[ -f livedl ]] && echo "请删除livedl文件或文件夹后重试" && exit 1
 
 sudo apt update #更新库
-sudo apt install curl #安装curl
-sudo apt install ffmpeg #安装ffmpeg
+sudo apt -y install curl #安装curl
+sudo apt -y install ffmpeg #安装ffmpeg
 
 #安装python3相关下载工具
-sudo apt install python3 ; sudo apt install python3-pip ; sudo apt install python3-setuptools #安装python3
+sudo apt -y install python3 ; sudo apt -y install python3-pip ; sudo apt -y install python3-setuptools #安装python3
 pip3 install streamlink ; pip3 install youtube-dl ; pip3 install you-get #安装基于python3的下载工具
 echo 'export PATH=$PATH:/usr/local/bin'>>~/.bashrc
 source ~/.bashrc
