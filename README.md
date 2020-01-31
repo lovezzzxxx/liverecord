@@ -18,7 +18,7 @@ download.sh与录制功能无关，是一个完全独立的小脚本。本质是
   * [record_twitcast.py文件(可选)](https://github.com/lovezzzxxx/liverecord/blob/master/record_twitcast.py)(基于python3 websocket库)， __请将record_twitcast.py文件放置于运行时目录的record/文件夹内__ 。否则无法使用twitcastpy参数进行twitcast高清录制。  
   * [you-get(可选)](https://github.com/soimort/you-get)(基于python3)，否则无法使用bilibili相关参数进行bilibili录制。  
   * [rclone(可选)](https://github.com/rclone/rclone)(需登陆后使用)，否则无法使用rclone参数上传。  
-  * [BaiduPCS-Go(可选)](https://github.com/iikira/BaiduPCS-Go)(需登陆后使用)，否则无法使用paidupan参数上传。  
+  * [BaiduPCS-Go(可选)](https://github.com/iikira/BaiduPCS-Go)(需登陆后使用)，否则无法使用baidupan参数上传。  
 
 # 使用方法
 ### 方法
