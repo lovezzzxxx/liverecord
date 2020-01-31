@@ -337,6 +337,7 @@ while true; do
 				RCLONE_FILE_ERRFLAG=$(rclone copy "${DIR_LOCAL}/${FNAME}" "${DIR_RCLONE}" 2>&1)
 				[[ "${RCLONE_FILE_ERRFLAG}" == "" ]] && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} success") && break
 				let RCLONE_FILE_RETRY++
+				sleep 30
 			done
 			[[ "${RCLONE_FILE_ERRFLAG}" == "" ]] || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} fail" ; echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME} fail" > "${DIR_LOCAL}/${FNAME}.rclonefail.log" ; echo "${RCLONE_FILE_ERRFLAG}" >> "${DIR_LOCAL}/${FNAME}.rclonefail.log")
 		fi
@@ -347,6 +348,7 @@ while true; do
 				RCLONE_LOG_ERRFLAG=$(rclone copy "${DIR_LOCAL}/${FNAME}.log" "${DIR_RCLONE}" 2>&1)
 				[[ "${RCLONE_LOG_ERRFLAG}" == "" ]] && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME}.log success") && break
 				let RCLONE_LOG_RETRY++
+				sleep 30
 			done
 			[[ "${RCLONE_LOG_ERRFLAG}" == "" ]] || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME}.log fail" ; echo "${LOG_PREFIX} upload rclone ${DIR_LOCAL}/${FNAME}.log fail" > "${DIR_LOCAL}/${FNAME}.log.rclonefail.log" ; echo "${RCLONE_LOG_ERRFLAG}" >> "${DIR_LOCAL}/${FNAME}.log.rclonefail.log")
 		fi
@@ -359,6 +361,7 @@ while true; do
 				ONEDRIVE_FILE_ERRFLAG=$?
 				[[ "${ONEDRIVE_FILE_ERRFLAG}" == 0 ]] && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} success") && break
 				let ONEDRIVE_FILE_RETRY++
+				sleep 30
 			done
 			[[ "${ONEDRIVE_FILE_ERRFLAG}" == 0 ]] || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} fail" ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME} fail" > "${DIR_LOCAL}/${FNAME}.onedrivefail.log" ; echo "${ONEDRIVE_FILE_ERRFLAG}" >> "${DIR_LOCAL}/${FNAME}.onedrivefail.log" ; echo "${ONEDRIVE_FILE_ERRLOG}" >> "${DIR_LOCAL}/${FNAME}.onedrivefail.log")
 		fi
@@ -370,6 +373,7 @@ while true; do
 				ONEDRIVE_LOG_ERRFLAG=$?
 				[[ "${ONEDRIVE_LOG_ERRFLAG}" == 0 ]] && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log success") && break
 				let ONEDRIVE_LOG_RETRY++
+				sleep 30
 			done
 			[[ "${ONEDRIVE_LOG_ERRFLAG}" == 0 ]] || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log fail" ; echo "${LOG_PREFIX} upload onedrive ${DIR_LOCAL}/${FNAME}.log fail" > "${DIR_LOCAL}/${FNAME}.log.onedrivefail.log" ; echo "${ONEDRIVE_LOG_ERRFLAG}" >> "${DIR_LOCAL}/${FNAME}.log.onedrivefail.log" ; echo "${ONEDRIVE_LOG_ERRLOG}" >> "${DIR_LOCAL}/${FNAME}.onedrivefail.log")
 		fi
@@ -381,6 +385,7 @@ while true; do
 				BAIDUPAN_FILE_ERRFLAG=$(BaiduPCS-Go upload "${DIR_LOCAL}/${FNAME}" "${DIR_BAIDUPAN}")
 				(echo "${BAIDUPAN_FILE_ERRFLAG}" | grep -q "成功") && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} success") && break
 				let BAIDUPAN_FILE_RETRY++
+				sleep 30
 			done
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]")
 			(echo "${BAIDUPAN_FILE_ERRFLAG}" | grep -q "成功") || (echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} fail" ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME} fail" > "${DIR_LOCAL}/${FNAME}.baidupanfail.log" ; echo "${BAIDUPAN_FILE_ERRFLAG}" >> "${DIR_LOCAL}/${FNAME}.baidupanfail.log")
@@ -392,6 +397,7 @@ while true; do
 				BAIDUPAN_LOG_ERRFLAG=$(BaiduPCS-Go upload "${DIR_LOCAL}/${FNAME}.log" "${DIR_BAIDUPAN}")
 				(echo "${BAIDUPAN_LOG_ERRFLAG}" | grep -q "成功") && (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log success") && break
 				let BAIDUPAN_LOG_RETRY++
+				sleep 30
 			done
 			(echo "${BAIDUPAN_FILE_ERRFLAG}" | grep -q "成功") || (LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log fail" ; echo "${LOG_PREFIX} upload baidupan ${DIR_LOCAL}/${FNAME}.log fail" > "${DIR_LOCAL}/${FNAME}.log.baidupanfail.log" ; echo "${BAIDUPAN_LOG_ERRFLAG}" >> "${DIR_LOCAL}/${FNAME}.log.baidupanfail.log")
 		fi
