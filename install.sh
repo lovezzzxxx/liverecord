@@ -1,8 +1,4 @@
-if [[ -d livedl ]] || [[ -f livedl ]]; then
-	read -p "是否删除livedl文件或文件夹(y/n)" DELFLAG
-	if [[ $DELFLAG == "y" ]]; then sudo rm -rf livedl
-	else exit 1; fi
-fi
+[[ -d livedl ]] || [[ -f livedl ]] && echo "请使用`sudo rm -rf livedl`指令删除livedl文件或文件夹后重试" && exit 1
 
 sudo apt update #更新库
 sudo apt -y install curl #安装curl
