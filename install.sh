@@ -30,7 +30,7 @@ curl https://rclone.org/install.sh | bash #配置rclone自动上传
 sudo wget https://raw.githubusercontent.com/MoeClub/OneList/master/OneDriveUploader/amd64/linux/OneDriveUploader -P /usr/local/bin/ #配置onedrive自动上传
 sudo chmod +x /usr/local/bin/OneDriveUploader
 go get github.com/iikira/BaiduPCS-Go #配置百度云自动上传
-echo "export PATH=$PATH:~/go/bin">>~/.bashrc
+echo 'export PATH=$PATH:'`echo ~`'/go/bin'>>~/.bashrc
 source ~/.bashrc
 
 #提示登陆
