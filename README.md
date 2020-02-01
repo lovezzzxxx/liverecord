@@ -12,7 +12,7 @@
 # 安装方法
 ### 一键安装
 `curl https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/install.sh | bash`  
-  * 一键脚本将会自动安装下列所有环境依赖，其中自动录播脚本会保存于运行时目录的record文件夹下，可以使用`record/record.sh`调用  
+  * 一键脚本将会自动安装下列所有环境依赖，其中自动录播脚本和record_twitcast.py会保存于运行时目录的record文件夹下，livedl会保存于运行时目录的livedl文件夹下， __脚本调用方式应为`record/record.sh`__  
   * 一键脚本运行结束后会提示仍需要手动进行的操作，如更新环境变量和登录网盘账号  
 
 ### 环境依赖
@@ -31,16 +31,17 @@
 # 使用方法
 ### 方法
 `./record.sh youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitcastpy|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|bilibiliproxy[,代理ip:代理端口]|streamlink|m3u8 频道号码 [best|其他清晰度] [loop|once|视频分段时间] [10|循环检测间隔,最短录制间隔] [record_video/other|其他本地目录] [nobackup|rclone:网盘名称:|onedrive|baidupan[重试次数][keep|del]] [noexcept|排除转播的youtube频道号码] [noexcept|排除转播的twitcast频道号码] [noexcept|排除转播的twitch频道号码] [noexcept|排除转播的openrec频道号码] [noexcept|排除转播的nicolv频道号码] [noexcept|排除转播的nicoco频道号码] [noexcept|排除转播的nicoch频道号码] [noexcept|排除转播的mirrativ频道号码] [noexcept|排除转播的reality频道号码] [noexcept|排除转播的17live频道号码] [noexcept|排除转播的streamlink支持的频道网址]`
+__注意使用一键脚本安装后脚本调用方式应为`record/record.sh`__  
 
 ### 示例
   * 使用默认参数录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw   
-`record.sh youtube "UCWCc8tO-uUl_7SJXIKJACMw"`  
+`./record.sh youtube "UCWCc8tO-uUl_7SJXIKJACMw"`  
 
   * 使用ffmpeg录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw ，依次获取1080p 720p 480p 360p worst中第一个可用的清晰度，在检测到直播并进行一次录制后终止，间隔30秒检测，录像保存于record_video/mea文件夹中并在录制完成后自动上传到rclone中名称为vps的网盘和百度云网盘的相同路径 如果出错则重试最多三次 上传结束后根据上传情况删除本地录像，如果上传失败则会保留本地录像  
-`record.sh youtubeffmpeg "UCWCc8tO-uUl_7SJXIKJACMw" 1080p,720p,480p,360p,worst once 30 "record_video/mea" rclone:vps:baidupan3`  
+`./record.sh youtubeffmpeg "UCWCc8tO-uUl_7SJXIKJACMw" 1080p,720p,480p,360p,worst once 30 "record_video/mea" rclone:vps:baidupan3`  
 
   * 后台运行，使用代理服务器127.0.0.1:1080录制https://live.bilibili.com/12235923 ，最高清晰度，循环检测并在录制进行7200秒时分段，间隔30秒检测 每次录制从开始到结束最短间隔5秒，录像保存于record_video/mea文件夹中并在录制完成后自动上传到rclone中名称为vps的网盘和onedrive和百度云网盘的相同路径 如果出错则重试最多三次 上传完成后无论成功与否都保留本地录像，在https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw https://twitcasting.tv/kaguramea_vov 有直播时不进行录制，log记录保存于mea_bilibili.log文件  
-`nohup record.sh bilibiliproxy,127.0.0.1:1080 "12235923" best 7200 30,5 "record_video/mea_bilibili" rclone:vps:onedrivebaidupan3keep "UCWCc8tO-uUl_7SJXIKJACMw" "kaguramea_vov" > mea_bilibili.log &`  
+`nohup ./record.sh bilibiliproxy,127.0.0.1:1080 "12235923" best 7200 30,5 "record_video/mea_bilibili" rclone:vps:onedrivebaidupan3keep "UCWCc8tO-uUl_7SJXIKJACMw" "kaguramea_vov" > mea_bilibili.log &`  
 
 
 ### 参数说明
