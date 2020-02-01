@@ -1,18 +1,19 @@
 # 功能介绍
   * record.sh为自动录播脚本。支持youtube频道、twitcast频道、twitch频道、openrec频道、niconico生放送、niconico社区、niconico频道（支持登录niconico账号进行录制）、mirrativ频道、reality频道、17live频道、bilibili频道、streamlink支持的直播网址、ffmpeg支持的m3u8地址。bilibili录制支持在上述频道有直播时不进行录制，从而简单的排除转播的录制；支持使用代理录制bilibili直播。支持定时分段。支持rclone上传、onedrive上传(含世纪互联版)、百度云上传；支持可指定次数的上传出错重试；支持根据上传结果选择是否保留本地文件。
   
-  * install.sh为一键安装脚本。目前仅在ubuntu18.04与19.10系统测试过，理论上较新的linux系统应该都可以使用(centos系统应该把apt替换为yum就行了)。 __注意一键安装脚本会修改环境变量和覆盖安装go环境__ ，如果有需要可以注释掉相应的命令或者手动安装环境依赖。
+  * install.sh为一键安装脚本。目前仅在ubuntu18.04与19.10系统测试过，理论上较新的linux系统应该都可以使用(centos系统应该把apt替换为yum就行了)。
 
   * record_twitcast.py为可选，是一个可以录制websocket的精简脚本。因为twitcast分别提供了基于h5与websocket的流，但部分直播的最高清晰度仅能通过websocket获取，而ffmpeg并不能支持websocket，所以提供一个可以录制websocket的脚本。也可单独使用，方法为`python3 record_twitcast.py "ws或wss网址" "输出文件目录"`。  
 
   * download.sh与录制功能无关，是一个完全独立的小脚本。本质是轮询检测youtube频道的直播和视频页第一页，产生一个youtube视频列表，并对列表中视频的录像、封面图、标题与简介进行备份。支持尝试在下播后立即下载直播录像，因为直播结束后到删档前仍有一段时间可以下载完整的录像，而且一旦开始下载则下载过程不受删档影响。支持设置触发下播后下载的最长直播时长，因为大于两个小时的直播需要等待压制下载的录像可能不全。支持在下载到未压制完成的录像的情况下等待压制完成后建立新的下载，确保下载到压制完成的未删档视频。具体用法可直接不加参数运行`download.sh`查看。（另外由于脚本的工作状态完全取决于视频列表的内容，所以直接指定或修改视频列表大概会有奇怪的作用）
 
-感谢[live-stream-recorder](https://github.com/printempw/live-stream-recorder)、[GiGaFotress/Vtuber-recorder](https://github.com/GiGaFotress/Vtuber-recorder)。  
+感谢[live-stream-recorder](https://github.com/printempw/live-stream-recorder)、[GiGaFotress/Vtuber-recorder](https://github.com/GiGaFotress/Vtuber-recorder)  
 
 # 安装方法
 ### 一键安装
 `curl https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/install.sh | bash`  
-  * 一键脚本将会自动安装下列所有环境依赖，其中record.sh和record_twitcast.py会保存于运行时目录的record文件夹下，livedl会保存于运行时目录的livedl文件夹下， __脚本调用方式应为`record/record.sh`而非后续示例中的`./record.sh`__  
+  * 一键脚本将会自动安装下列所有环境依赖， __同时会覆盖安装go环境并添加一些环境变量__ ，如果有需要可以注释掉相应的命令或者手动安装环境依赖。其中record.sh和record_twitcast.py会保存于运行时命令行所在目录的record文件夹下，livedl会保存于运行时命令行所在目录的livedl文件夹下  
+  * __一键脚本安装后脚本调用方式应为`record/record.sh`而非下文示例中的`./record.sh`__  
   * 一键脚本运行结束后会提示仍需要手动进行的操作，如更新环境变量和登录网盘账号  
 
 ### 环境依赖
@@ -20,8 +21,8 @@
   * 自动录播脚本，安装方法为`mkdir record ; wget -O "record/record.sh" "https://github.com/lovezzzxxx/liverecord/raw/master/record.sh" ; chmod +x record/record.sh`
   * [ffmpeg](https://github.com/FFmpeg/FFmpeg)，安装方法为`sudo apt install ffmpeg`。否则无法使用除了youtube、twitcast、twitcastpy、nicolv、nicoco、nicoch、bilibili、bilibiliproxy以外的参数。
   * [streamlink](https://github.com/streamlink/streamlink)(基于python3)，安装方法为`pip3 install streamlink`。否则无法使用youtube、youtubeffmpeg、twitch、streamlink、17live参数。
-  * [livedl](https://github.com/himananiito/livedl)(基于go)，具体编译安装方法可以参考作者的说明， __请将编译完成的livedl文件放置于运行时目录的livedl/文件夹内__ 。否则无法使用twitcast、nicolv、nicoco、nicoch参数。
-  * [record_twitcast.py文件](https://github.com/lovezzzxxx/liverecord/blob/master/record_twitcast.py)(基于python3 websocket库)，安装方法为`mkdir record ; wget -O "record/record_twitcast.py" "https://github.com/lovezzzxxx/liverecord/raw/master/record_twitcast.py" ; chmod +x "record/record_twitcast.py"`， __如果手动安装请将record_twitcast.py文件放置于运行时目录的record/文件夹内并给予可执行权限即可__ 。否则无法使用twitcastpy参数。
+  * [livedl](https://github.com/himananiito/livedl)(基于go)，具体编译安装方法可以参考作者的说明， __请将编译完成的livedl文件放置于运行时命令行所在目录的livedl/文件夹内__ 。否则无法使用twitcast、nicolv、nicoco、nicoch参数。
+  * [record_twitcast.py文件](https://github.com/lovezzzxxx/liverecord/blob/master/record_twitcast.py)(基于python3 websocket库)，安装方法为`mkdir record ; wget -O "record/record_twitcast.py" "https://github.com/lovezzzxxx/liverecord/raw/master/record_twitcast.py" ; chmod +x "record/record_twitcast.py"`， __如果手动安装请将record_twitcast.py文件放置于运行时命令行所在目录的record/文件夹内并给予可执行权限即可__ 。否则无法使用twitcastpy参数。
   * [you-get](https://github.com/soimort/you-get)(基于python3)，安装方法为`pip3 install you-get`。否则无法使用bilibili、bilibiliproxy参数。
  安装方法为`pip3 install you-get`
   * [rclone](https://github.com/rclone/rclone)(支持onedrive、dropbox、googledrive等多种网盘，需登录后使用)，安装方法为`curl https://rclone.org/install.sh | sudo bash`，配置方法为`rclone config`后根据说明进行。否则无法使用rclone参数上传。
@@ -61,7 +62,7 @@ bilibili|`bilibili`、`bilibiliproxy`|`直播间网址中的ID部分`(如1223592
 参数|功能|默认值|其他可选值|说明
 :---|:---|:---|:---|:---
 第三个参数|清晰度|`best`|`清晰度1,清晰度2`，可以用,分隔来指定多个清晰度|仅支持streamlink含有的清晰度，将会依次获取尝试直到获取第一个可用的清晰度
-第四个参数|是否循环和录制分段时间|`loop`|`once`或`分段秒数`|如果指定为once则会在检测到直播并进行一次录制后终止，如果指定为数字则会以loop模式进行录制并在在录制进行相应秒数时分段。 __注意分段时可能会导致十秒左右的视频缺失__
+第四个参数|是否循环和录制分段时间|`loop`|`once`或`分段秒数`|如果指定为once则会在检测到直播并进行一次录制后终止，如果指定为数字则会以loop模式进行录制并在在录制进行相应秒数时分段。 __注意分段时可能会有十秒左右的视频缺失__
 第五个参数|循环检测间隔和最短录制间隔|`10`|`循环检测间隔秒数,最短录制间隔秒数`，如果不以,分隔则两者皆为指定值|循环检测间隔是指如果未检测到直播，则等待相应时间进行下一次检测；最短录制间隔是指如果一次录制结束后，如果距离录制开始小于最短录制间隔，则等待到最短录制间隔进行下一次检测。最短录制间隔主要是为了防止检测到直播但录制出错的情况，此时一次录制结束如果立即进行下一次检测可能会因为检测过于频繁导致被封禁IP或者导致高系统占用，这种情况可能出现在网站改版等特殊时期。需要注意的是如果一次直播时间过短或者频繁断流也能触发等待。
 第六个参数|本地录像存放目录|`record_video/other`|`本地目录`||
 第七个参数|是否自动备份|`nobackup`|`rclone:网盘名称:` + `onedrive` + `baidupan` + `重试次数` + `无/keep/del`，不需要空格直接连接在一起即可(如rclone1del或rclone:vps:onedrivebaidupan3keep)|其中前三项的rclone、onedrive、baidupan分别指上传rclone相应名称的网盘、OneDriveUploader登录的onedrive网盘、BaiduPCS-Go登录的百度云网盘。第四项为重试次数，如果不指定则默认为尝试一次。第五项为上传完成后是否保留本地文件，如果不指定则上传成功将删除本地文件，上传失败将保留本地文件，keep参数为不论结果始终保留本地文件，del参数为不论结果始终删除本地文件。如果因为偶发的检测异常导致没有直播时开始录制，进而产生没有相应录像文件的log文件，脚本将会自动删除这个没有对应录像文件的log文件
