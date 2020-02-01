@@ -12,7 +12,7 @@
 # 安装方法
 ### 一键安装
 `curl https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/install.sh | bash`  
-  * 一键脚本将会自动安装下列所有环境依赖，其中自动录播脚本和record_twitcast.py会保存于运行时目录的record文件夹下，livedl会保存于运行时目录的livedl文件夹下， __脚本调用方式应为`record/record.sh`__  
+  * 一键脚本将会自动安装下列所有环境依赖，其中record.sh和record_twitcast.py会保存于运行时目录的record文件夹下，livedl会保存于运行时目录的livedl文件夹下， __脚本调用方式应为`record/record.sh`而非后续示例中的`./record.sh`__  
   * 一键脚本运行结束后会提示仍需要手动进行的操作，如更新环境变量和登录网盘账号  
 
 ### 环境依赖
@@ -31,7 +31,6 @@
 # 使用方法
 ### 方法
 `./record.sh youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitcastpy|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|bilibiliproxy[,代理ip:代理端口]|streamlink|m3u8 频道号码 [best|其他清晰度] [loop|once|视频分段时间] [10|循环检测间隔,最短录制间隔] [record_video/other|其他本地目录] [nobackup|rclone:网盘名称:|onedrive|baidupan[重试次数][keep|del]] [noexcept|排除转播的youtube频道号码] [noexcept|排除转播的twitcast频道号码] [noexcept|排除转播的twitch频道号码] [noexcept|排除转播的openrec频道号码] [noexcept|排除转播的nicolv频道号码] [noexcept|排除转播的nicoco频道号码] [noexcept|排除转播的nicoch频道号码] [noexcept|排除转播的mirrativ频道号码] [noexcept|排除转播的reality频道号码] [noexcept|排除转播的17live频道号码] [noexcept|排除转播的streamlink支持的频道网址]`
-__注意使用一键脚本安装后脚本调用方式应为`record/record.sh`__  
 
 ### 示例
   * 使用默认参数录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw   
