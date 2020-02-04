@@ -31,7 +31,7 @@
 
 # 使用方法
 ### 方法
-`./record.sh youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitcastpy|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|bilibiliproxy[,代理ip:代理端口]|streamlink|m3u8 频道号码 [best|其他清晰度] [loop|once|视频分段时间] [10|循环检测间隔,最短录制间隔] [record_video/other|其他本地目录] [nobackup|rclone:网盘名称:|onedrive|baidupan[重试次数][keep|del]] [noexcept|排除转播的youtube频道号码] [noexcept|排除转播的twitcast频道号码] [noexcept|排除转播的twitch频道号码] [noexcept|排除转播的openrec频道号码] [noexcept|排除转播的nicolv频道号码] [noexcept|排除转播的nicoco频道号码] [noexcept|排除转播的nicoch频道号码] [noexcept|排除转播的mirrativ频道号码] [noexcept|排除转播的reality频道号码] [noexcept|排除转播的17live频道号码] [noexcept|排除转播的streamlink支持的频道网址]`
+`./record.sh youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitcastpy|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|bilibiliproxy[,代理ip:代理端口]|streamlink|m3u8 频道号码 [best|其他清晰度] [loop|once|视频分段时间] [10,10,1|循环检测间隔,最短录制间隔,录制开始所需连续检测开播次数] [record_video/other|其他本地目录] [nobackup|rclone:网盘名称:|onedrive|baidupan[重试次数][keep|del]] [noexcept|排除转播的youtube频道号码] [noexcept|排除转播的twitcast频道号码] [noexcept|排除转播的twitch频道号码] [noexcept|排除转播的openrec频道号码] [noexcept|排除转播的nicolv频道号码] [noexcept|排除转播的nicoco频道号码] [noexcept|排除转播的nicoch频道号码] [noexcept|排除转播的mirrativ频道号码] [noexcept|排除转播的reality频道号码] [noexcept|排除转播的17live频道号码] [noexcept|排除转播的streamlink支持的频道网址]`
 
 ### 示例
   * 使用默认参数录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw   
@@ -63,7 +63,7 @@ bilibili|`bilibili`、`bilibiliproxy`|`直播间网址中的ID部分`(如1223592
 :---|:---|:---|:---|:---
 第三个参数|清晰度|`best`|`清晰度1,清晰度2`，可以用,分隔来指定多个清晰度|仅支持streamlink含有的清晰度，将会依次获取尝试直到获取第一个可用的清晰度
 第四个参数|是否循环和录制分段时间|`loop`|`once`或`分段秒数`|如果指定为once则会在检测到直播并进行一次录制后终止，如果指定为数字则会以loop模式进行录制并在在录制进行相应秒数时分段。 __注意分段时可能会有十秒左右的视频缺失__
-第五个参数|循环检测间隔和最短录制间隔|`10`|`循环检测间隔秒数,最短录制间隔秒数`，如果不以,分隔则两者皆为指定值|循环检测间隔是指如果未检测到直播，则等待相应时间进行下一次检测；最短录制间隔是指如果一次录制结束后，如果距离录制开始小于最短录制间隔，则等待到最短录制间隔进行下一次检测。最短录制间隔主要是为了防止检测到直播但录制出错的情况，此时一次录制结束如果立即进行下一次检测可能会因为检测过于频繁导致被封禁IP或者导致高系统占用，这种情况可能出现在网站改版等特殊时期。需要注意的是如果一次直播时间过短或者频繁断流也能触发等待。
+第五个参数|循环检测间隔和最短录制间隔|`10,10,1`|`循环检测间隔秒数,最短录制间隔秒数,录制开始所需连续检测开播次数`，如果不以,分隔则两者皆为指定值|循环检测间隔是指如果未检测到直播，则等待相应时间进行下一次检测；最短录制间隔是指如果一次录制结束后，如果距离录制开始小于最短录制间隔，则等待到最短录制间隔进行下一次检测。最短录制间隔主要是为了防止检测到直播但录制出错的情况，此时一次录制结束如果立即进行下一次检测可能会因为检测过于频繁导致被封禁IP或者导致高系统占用，这种情况可能出现在网站改版等特殊时期，需要注意的是如果一次直播时间过短或者频繁断流也能触发等待；录制开始所需连续检测开播次数是指需要连续检测到相应次数的开播才会开始录制，可以用于预防一些检测到直播状态实际却并没有直播的情况。
 第六个参数|本地录像存放目录|`record_video/other`|`本地目录`||
 第七个参数|是否自动备份|`nobackup`|`rclone:网盘名称:` + `onedrive` + `baidupan` + `重试次数` + `无/keep/del`，不需要空格直接连接在一起即可(如rclone1del或rclone:vps:onedrivebaidupan3keep)|其中前三项的rclone、onedrive、baidupan分别指上传rclone相应名称的网盘、OneDriveUploader登录的onedrive网盘、BaiduPCS-Go登录的百度云网盘。第四项为重试次数，如果不指定则默认为尝试一次。第五项为上传完成后是否保留本地文件，如果不指定则上传成功将删除本地文件，上传失败将保留本地文件，keep参数为不论结果始终保留本地文件，del参数为不论结果始终删除本地文件。如果因为偶发的检测异常导致没有直播时开始录制，进而产生没有相应录像文件的log文件，脚本将会自动删除这个没有对应录像文件的log文件
 第八至十四个参数|bilibili的录制需要排除的转播|`noexcept`|`相应频道号码`，具体同第二个参数，顺序分别为youtube、twitcast、twitch、openrec、nicolv、nicoco、nicoch、mirrativ、reality、17live、streamlink|仅bilibili录制有效，检测到相应频道正在直播时不进行bilibili的录制
