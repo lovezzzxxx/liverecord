@@ -1,8 +1,8 @@
 #!/bin/bash
 
 if [[ ! -n "${1}" ]]; then
-	echo "${0} youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitcastpy|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|bilibiliproxy[,代理ip:代理端口]|streamlink|m3u8 \"频道号码\" [best|其他清晰度] [loop|once|视频分段时间] [10|循环检测间隔,最短录制间隔] [\"record_video/other|其他本地目录\"] [nobackup|rclone:网盘名称:|onedrive|baidupan[重试次数][keep|del]] [\"noexcept|排除转播的youtube频道号码\"] [\"noexcept|排除转播的twitcast频道号码\"] [\"noexcept|排除转播的twitch频道号码\"] [\"noexcept|排除转播的openrec频道号码\"] [\"noexcept|排除转播的nicolv频道号码\"] [\"noexcept|排除转播的nicoco频道号码\"] [\"noexcept|排除转播的nicoch频道号码\"] [\"noexcept|排除转播的mirrativ频道号码\"] [\"noexcept|排除转播的reality频道号码\"] [\"noexcept|排除转播的17live频道号码\"] [\"noexcept|排除转播的streamlink支持的频道网址\"]"
-	echo "示例：${0} bilibiliproxy,127.0.0.1:1080 \"12235923\" best,1080p60,1080p,720p,480p,360p,worst 14400 30,5 \"record_video/mea_bilibili\" rclone:vps:onedrivebaidupan3keep \"UCWCc8tO-uUl_7SJXIKJACMw\" \"kaguramea\" \"kagura0mea\" \"KaguraMea\" "
+	echo "${0} youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitcastpy|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|bilibili|bilibiliproxy[,代理ip:代理端口]|streamlink|m3u8 \"频道号码\" [best|其他清晰度] [loop|once|视频分段时间] [10,10,1|循环检测间隔,最短录制间隔,录制开始所需连续检测开播次数] [\"record_video/other|其他本地目录\"] [nobackup|rclone:网盘名称:|onedrive|baidupan[重试次数][keep|del]] [\"noexcept|排除转播的youtube频道号码\"] [\"noexcept|排除转播的twitcast频道号码\"] [\"noexcept|排除转播的twitch频道号码\"] [\"noexcept|排除转播的openrec频道号码\"] [\"noexcept|排除转播的nicolv频道号码\"] [\"noexcept|排除转播的nicoco频道号码\"] [\"noexcept|排除转播的nicoch频道号码\"] [\"noexcept|排除转播的mirrativ频道号码\"] [\"noexcept|排除转播的reality频道号码\"] [\"noexcept|排除转播的17live频道号码\"] [\"noexcept|排除转播的streamlink支持的频道网址\"]"
+	echo "示例：${0} bilibiliproxy,127.0.0.1:1080 \"12235923\" best,1080p60,1080p,720p,480p,360p,worst 14400 15,5,2 \"record_video/mea_bilibili\" rclone:vps:onedrivebaidupan3keep \"UCWCc8tO-uUl_7SJXIKJACMw\" \"kaguramea\" \"kagura0mea\" \"KaguraMea\" "
 	echo "必要模块为curl、streamlink、ffmpeg，可选模块为livedl、python3、you-get，请将livedl文件放置于运行时目录的livedl文件夹内、请将record_twitcast.py文件放置于运行时目录的record文件夹内。"
 	echo "rclone上传基于\"https://github.com/rclone/rclone\"，onedrive上传基于\"https://github.com/MoeClub/OneList/tree/master/OneDriveUploader\"，百度云上传基于\"https://github.com/iikira/BaiduPCS-Go\"，请登录后使用。"
 	echo "注意使用youtube直播仅支持1080p以下的清晰度，请不要使用best和1080p60及以上的参数"
@@ -23,7 +23,7 @@ STREAM_PROXY_HARD=$(echo "${1}" | awk -F"," '{print $2}')
 PART_URL="${2}" #频道号码
 FORMAT="${3:-best}" #清晰度
 LOOP_TIME="${4:-loop}" #是否循环或视频分段时间
-LOOPINTERVAL_ENDINTERVAL="${5:-10}" ; LOOPINTERVAL=$(echo "${LOOPINTERVAL_ENDINTERVAL}" | grep -o "^[0-9]*") ; ENDINTERVAL=$(echo "${LOOPINTERVAL_ENDINTERVAL}" | grep -o "[0-9]*$") #循环检测间隔,最短录制间隔
+LOOPINTERVAL_ENDINTERVAL_LIVESTATUSMIN="${5:-10,10,1}" ; LOOPINTERVAL=$(echo "${LOOPINTERVAL_ENDINTERVAL_LIVESTATUSMIN}" | awk -F"," '{print $1}'); ENDINTERVAL=$(echo "${LOOPINTERVAL_ENDINTERVAL_LIVESTATUSMIN}" | awk -F"," '{print $2}'); [[ "${ENDINTERVAL}" == "" ]] && ENDINTERVAL=${LOOPINTERVAL} ; LIVESTATUSMIN=$(echo "${LOOPINTERVAL_ENDINTERVAL_LIVESTATUSMIN}" | awk -F"," '{print $3}') ; [[ "${LIVESTATUSMIN}" == "" ]] && LIVESTATUSMIN=1 #循环检测间隔,最短录制间隔,录制开始所需连续检测开播次数
 DIR_LOCAL="${6:-record_video/other}" ; mkdir -p "${DIR_LOCAL}" #本地目录
 BACKUP="${7:-nobackup}" #自动备份
 BACKUP_DISK="$(echo "${BACKUP}" | awk -F":" '{print $1}')$(echo "${BACKUP}" | awk -F":" '{print $NF}')" ; DIR_RCLONE="$(echo "${BACKUP}" | awk -F":" '{print $2}'):${DIR_LOCAL}" ; DIR_ONEDRIVE="${DIR_LOCAL}" ; DIR_BAIDUPAN="${DIR_LOCAL}" #选择网盘与网盘路径
@@ -67,65 +67,70 @@ EXCEPT_STREAM_PART_URL="${18:-noexcept}"
 
 
 
-LIVE_YOUTUBE=0
-LIVE_BILIBILI=-3
-
+LIVE_STATUS=0
+ISLIVE_YOUTUBE=0
 while true; do
 	while true; do
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata ${FULL_URL}"
 		if [[ "${1}" == "youtube"* ]]; then
-			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata livestatusbefore=${LIVE_YOUTUBE}"
-			LIVE_YOUTUBE_BEFORE="${LIVE_YOUTUBE}"
-			if [[ ${LIVE_YOUTUBE} -gt 0 ]]; then
-				(wget -q -O- "${FULL_URL}" | grep "ytplayer" | grep -q '\\"isLive\\":true') && LIVE_YOUTUBE=3 && break #isLive开播晚下播早会在开播时晚录，qualityLabel开播早下播晚会在下播时多录
-				let LIVE_YOUTUBE--
+			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata islive_youtube=${ISLIVE_YOUTUBE}"
+			if [[ ${ISLIVE_YOUTUBE} -gt 0 ]]; then
+				if (wget -q -O- "${FULL_URL}" | grep "ytplayer" | grep -q '\\"isLive\\":true'); then
+					let LIVE_STATUS++ ; ISLIVE_YOUTUBE=3 #qualityLabel开播早下播晚会在下播时多录，isLive开播晚下播早会在开播时晚录
+				else
+					LIVE_STATUS=0 ; let ISLIVE_YOUTUBE--
+				fi
 			else
-				(wget -q -O- "${FULL_URL}" | grep -q '\\"qualityLabel\\":\\"[0-9]*p\\"') && LIVE_YOUTUBE=3 && break
+				if (wget -q -O- "${FULL_URL}" | grep -q '\\"qualityLabel\\":\\"[0-9]*p\\"'); then
+					let LIVE_STATUS++ ; ISLIVE_YOUTUBE=3
+				else
+					LIVE_STATUS=0
+				fi
 			fi
 			#(wget -q -O- "${FULL_URL}" | grep -q '\\"playabilityStatus\\":{\\"status\\":\\"OK\\"') && break
 		fi
 		if [[ "${1}" == "twitcast"* ]]; then
-			(wget -q -O- "https://twitcasting.tv/streamserver.php?target=${PART_URL}&mode=client" | grep -q '"live":true') && break
+			if (wget -q -O- "https://twitcasting.tv/streamserver.php?target=${PART_URL}&mode=client" | grep -q '"live":true'); then let LIVE_STATUS++; else LIVE_STATUS=0; fi
 		fi
 		if [[ "${1}" == "twitch" ]]; then
 			STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}")
-			(echo "${STREAM_URL}" | grep -q ".m3u8") && break
+			if (echo "${STREAM_URL}" | grep -q ".m3u8"); then let LIVE_STATUS++; else LIVE_STATUS=0; fi
 		fi
 		if [[ "${1}" == "openrec" ]]; then
 			LIVE_URL=$(wget -q -O- "${FULL_URL}" | grep -o 'href="https://www.openrec.tv/live/.*" class' | head -n 1 | awk -F'"' '{print $2}')
-			[[ -n "${LIVE_URL}" ]] && break
+			if [[ -n "${LIVE_URL}" ]]; then let LIVE_STATUS++; else LIVE_STATUS=0; fi
 		fi
 		
 		if [[ "${1}" == "nicolv"* ]]; then
 			LIVE_URL=$(curl -s -I "https://live.nicovideo.jp/gate/${PART_URL}" | grep -o "https://live2.nicovideo.jp/watch/lv[0-9]*")
-			[[ -n "${LIVE_URL}" ]] && break
+			if [[ -n "${LIVE_URL}" ]]; then let LIVE_STATUS++; else LIVE_STATUS=0; fi
 		fi
 		if [[ "${1}" == "nicoco"* ]]; then
 			LIVE_URL=$(wget -q -O- "https://com.nicovideo.jp/community/${PART_URL}" | grep -o '<a class="now_live_inner" href="https://live.nicovideo.jp/watch/lv[0-9]*' | head -n 1 | awk -F'"?' '{print $4}')
-			[[ -n "${LIVE_URL}" ]] && break
+			if [[ -n "${LIVE_URL}" ]]; then let LIVE_STATUS++; else LIVE_STATUS=0; fi
 		fi
 		if [[ "${1}" == "nicoch"* ]]; then
 			LIVE_URL=$(wget -q -O- "https://ch.nicovideo.jp/${PART_URL}/live" | awk 'BEGIN{RS="<section class=";FS="\n";ORS="\n";OFS="\t"} $1 ~ /sub now/ {LIVE_POS=match($0,"https://live.nicovideo.jp/watch/lv[0-9]*");LIVE=substr($0,LIVE_POS,RLENGTH);print LIVE}' | head -n 1)
-			[[ -n "${LIVE_URL}" ]] && break
+			if [[ -n "${LIVE_URL}" ]]; then let LIVE_STATUS++; else LIVE_STATUS=0; fi
 			LIVE_ID=$(wget -q -O- "https://ch.nicovideo.jp/${PART_URL}" | grep -o "data-live_id=\"[0-9]*\" data-live_status=\"onair\"" | head -n 1 | awk -F'"' '{print $2}') ; LIVE_URL="https://live.nicovideo.jp/watch/lv${LIVE_ID}"
-			[[ -n "${LIVE_ID}" ]] && break
+			if [[ -n "${LIVE_ID}" ]]; then let LIVE_STATUS++; else LIVE_STATUS=0; fi
 		fi
 		
 		if [[ "${1}" == "mirrativ" ]]; then
 			LIVE_URL=$(wget -q -O- "https://www.mirrativ.com/api/user/profile?user_id=${PART_URL}" | grep -o '"live_id":".*"' | awk -F'"' '{print $4}')
-			[[ -n "${LIVE_URL}" ]] && break
+			if [[ -n "${LIVE_URL}" ]]; then let LIVE_STATUS++; else LIVE_STATUS=0; fi
 		fi
 		if [[ "${1}" == "reality" ]]; then
 			STREAM_ID=$(curl -s -X POST "https://media-prod-dot-vlive-prod.appspot.com/api/v1/media/lives_user" | awk -v PART_URL="${PART_URL}" 'BEGIN{RS="\"StreamingServer\"";FS=",";ORS="\n";OFS="\t"} {M3U8_POS=match($0,"\"view_endpoint\":\"[^\"]*\"");M3U8=substr($0,M3U8_POS,RLENGTH) ; ID_POS=match($0,"\"vlive_id\":\"[^\"]*\"");ID=substr($0,ID_POS,RLENGTH) ; if(match($0,"\"nickname\":\"[^\"]*"PART_URL"[^\"]*\"|\"vlive_id\":\""PART_URL"\"")) print M3U8,ID}' | head -n 1)
-			[[ -n "${STREAM_ID}" ]] && break
+			if [[ -n "${STREAM_ID}" ]]; then let LIVE_STATUS++; else LIVE_STATUS=0; fi
 		fi
 		if [[ "${1}" == "17live" ]]; then
 			LIVE_STATUS=$(curl -s -X POST 'http://api-dsa.17app.co/api/v1/liveStreams/getLiveStreamInfo' --data "{\"liveStreamID\": ${PART_URL}}" | grep -o '\\"closeBy\\":\\"\\"')
-			[[ -n "${LIVE_STATUS}" ]] && break
+			if [[ -n "${LIVE_STATUS}" ]]; then let LIVE_STATUS++; else LIVE_STATUS=0; fi
 		fi
 		if [[ "${1}" == "streamlink" ]]; then
 			STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}")
-			(echo "${STREAM_URL}" | grep -Eq ".m3u8|.flv|rtmp:") && break
+			if (echo "${STREAM_URL}" | grep -Eq ".m3u8|.flv|rtmp:"); then let LIVE_STATUS++; else LIVE_STATUS=0; fi
 		fi
 		
 		if [[ "${1}" == "bilibili"* ]]; then
@@ -189,12 +194,9 @@ while true; do
 					(echo "${EXCEPT_STREAM_STREAM_URL}" | grep -Eq ".m3u8|.flv|rtmp:") && echo "${LOG_PREFIX} restream from ${EXCEPT_STREAM_FULL_URL}. retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
 				fi
 				
-				let LIVE_BILIBILI++
-				LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata livestatus=${LIVE_BILIBILI}"
-				[[ ${LIVE_BILIBILI} -gt 0 ]] && break #连续三次bilibili直播中而其他频道没有直播才进行录制
-				sleep ${LOOPINTERVAL} && continue
+				let LIVE_STATUS++
 			else
-				LIVE_BILIBILI=-3
+				LIVE_STATUS=0
 			fi
 		fi
 		
@@ -202,7 +204,8 @@ while true; do
 			break
 		fi
 		
-		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata no live retry after ${LOOPINTERVAL} seconds..."
+		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata livestatus=${LIVE_STATUS}"
+		[[ ! ${LIVE_STATUS} -lt ${LIVESTATUSMIN} ]] && break #连续检测到直播才进行录制
 		sleep ${LOOPINTERVAL}
 	done
 	
@@ -242,7 +245,7 @@ while true; do
 	
 	
 	if [[ "${1}" == "youtube" ]]; then
-		if [[ ${LIVE_YOUTUBE_BEFORE} -gt 0 ]]; then
+		if [[ ${ISLIVE_YOUTUBE_BEFORE} -gt 0 ]]; then
 			(streamlink --loglevel trace -o "${DIR_LOCAL}/${FNAME}" "https://www.youtube.com/watch?v=${ID}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		else
 			(streamlink --loglevel trace --hls-live-restart -o "${DIR_LOCAL}/${FNAME}" "https://www.youtube.com/watch?v=${ID}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
