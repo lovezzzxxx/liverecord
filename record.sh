@@ -139,7 +139,7 @@ while true; do
 		
 		if [[ "${1}" == "streamlink" ]]; then
 			STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}")
-			if (echo "${STREAM_URL}" | grep -Eq ".m3u8|.flv|rtmp:"); then let LIVE_STATUS++; else LIVE_STATUS=0; fi
+			if (echo "${STREAM_URL}" | grep -Eq ".m3u8|.flv|rtmp:|The stream specified cannot be translated to a URL"); then let LIVE_STATUS++; else LIVE_STATUS=0; fi
 		fi
 		
 		if [[ "${1}" == "bilibili"* ]]; then
@@ -204,7 +204,7 @@ while true; do
 				if [[ "${EXCEPT_STREAM_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata ${EXCEPT_STREAM_FULL_URL}"
 					EXCEPT_STREAM_STREAM_URL=$(streamlink --stream-url "${EXCEPT_STREAM_FULL_URL}" "${FORMAT}")
-					(echo "${EXCEPT_STREAM_STREAM_URL}" | grep -Eq ".m3u8|.flv|rtmp:") && echo "${LOG_PREFIX} restream from ${EXCEPT_STREAM_FULL_URL}. retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
+					(echo "${EXCEPT_STREAM_STREAM_URL}" | grep -Eq ".m3u8|.flv|rtmp:|The stream specified cannot be translated to a URL") && echo "${LOG_PREFIX} restream from ${EXCEPT_STREAM_FULL_URL}. retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
 				fi
 				
 				let LIVE_STATUS++
