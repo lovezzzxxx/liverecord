@@ -18,7 +18,7 @@ export PATH=$PATH:/usr/local/go/bin
 sudo apt -y install git ; sudo apt -y install build-essential
 echo "此处可能需要较长时间，请耐心等待"
 go get github.com/gorilla/websocket ; go get golang.org/x/crypto/sha3 ; go get github.com/mattn/go-sqlite3 ; go get github.com/gin-gonic/gin #安装必要的go库
-git clone https://github.com/hanaonnao/livedl.git ; cd livedl ; go build src/livedl.go ; rm -r `ls | grep -v "^livedl$"` ; cd .. #编译安装livedl
+git clone https://github.com/railannad/livedl.git ; cd livedl ; go build src/livedl.go ; rm -r `ls | grep -v "^livedl$"` ; cd .. #编译安装livedl
 
 #下载文件并赋予权限
 mkdir record
