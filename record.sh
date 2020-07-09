@@ -115,9 +115,10 @@ while true; do
 		fi
 		if [[ "${1}" == "nicoch"* ]]; then
 			LIVE_URL=$(wget -q -O- "https://ch.nicovideo.jp/${PART_URL}/live" | awk 'BEGIN{RS="<section class=";FS="\n";ORS="\n";OFS="\t"} $1 ~ /sub now/ {LIVE_POS=match($0,"https://live.nicovideo.jp/watch/lv[0-9]*");LIVE=substr($0,LIVE_POS,RLENGTH);print LIVE}' | head -n 1)
-			if [[ -n "${LIVE_URL}" ]]; then let LIVE_STATUS++; else LIVE_STATUS=0; fi
-			LIVE_ID=$(wget -q -O- "https://ch.nicovideo.jp/${PART_URL}" | grep -o "data-live_id=\"[0-9]*\" data-live_status=\"onair\"" | head -n 1 | awk -F'"' '{print $2}') ; LIVE_URL="https://live.nicovideo.jp/watch/lv${LIVE_ID}"
-			if [[ -n "${LIVE_ID}" ]]; then let LIVE_STATUS++; else LIVE_STATUS=0; fi
+			if [[ -n "${LIVE_URL}" ]]; then let LIVE_STATUS++; else
+				LIVE_ID=$(wget -q -O- "https://ch.nicovideo.jp/${PART_URL}" | grep -o "data-live_id=\"[0-9]*\" data-live_status=\"onair\"" | head -n 1 | awk -F'"' '{print $2}') ; LIVE_URL="https://live.nicovideo.jp/watch/lv${LIVE_ID}"
+				if [[ -n "${LIVE_ID}" ]]; then let LIVE_STATUS++; else LIVE_STATUS=0; fi
+			fi
 		fi
 		
 		if [[ "${1}" == "mirrativ" ]]; then
