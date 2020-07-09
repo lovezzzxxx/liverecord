@@ -130,8 +130,8 @@ while true; do
 			if [[ -n "${STREAM_ID}" ]]; then let LIVE_STATUS++; else LIVE_STATUS=0; fi
 		fi
 		if [[ "${1}" == "17live" ]]; then
-			LIVE_STATUS=$(curl -s -X POST 'http://api-dsa.17app.co/api/v1/liveStreams/getLiveStreamInfo' --data "{\"liveStreamID\": ${PART_URL}}" | grep -o '\\"closeBy\\":\\"\\"')
-			if [[ -n "${LIVE_STATUS}" ]]; then let LIVE_STATUS++; else LIVE_STATUS=0; fi
+			STREAM_URL=$(curl -s -X POST "https://api-dsa.17app.co/api/v1/lives/${PART_URL}/viewers/alive" --data-raw "{\"liveStreamID\": \"${PART_URL}\"}" | grep -o '"webUrl":"[^"]*' | awk -F'\"' '{print $4}')
+			if [[ -n "${STREAM_URL}" ]]; then let LIVE_STATUS++; else LIVE_STATUS=0; fi
 		fi
 		if [[ "${1}" == "chaturbate" ]]; then
 			LIVE_URL=$(curl -s "https://chaturbate.com/${PART_URL}/" | grep -o "https://edge[0-9]*.stream.highwebmedia.com.*/playlist.m3u8" | sed 's/\\u002D/-/g')
@@ -195,8 +195,8 @@ while true; do
 				fi
 				if [[ "${EXCEPT_17LIVE_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata ${EXCEPT_17LIVE_FULL_URL}"
-					EXCEPT_17LIVE_LIVE_STATUS=$(curl -s -X POST 'http://api-dsa.17app.co/api/v1/liveStreams/getLiveStreamInfo' --data "{\"liveStreamID\": ${EXCEPT_17LIVE_PART_URL}}" | grep -o '\\"closeBy\\":\\"\\"')
-					[[ -n "${EXCEPT_17LIVE_LIVE_STATUS}" ]] && echo "${LOG_PREFIX} restream from ${EXCEPT_17LIVE_FULL_URL} retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
+					EXCEPT_17LIVE_STREAM_URL=$(curl -s -X POST "https://api-dsa.17app.co/api/v1/lives/${EXCEPT_17LIVE_PART_URL}/viewers/alive" --data-raw "{\"liveStreamID\": \"${EXCEPT_17LIVE_PART_URL}\"}" | grep -o '"webUrl":"[^"]*' | awk -F'\"' '{print $4}')
+					[[ -n "${EXCEPT_17LIVE_STREAM_URL}" ]] && echo "${LOG_PREFIX} restream from ${EXCEPT_17LIVE_FULL_URL} retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
 				fi
 				if [[ "${EXCEPT_CHATURBATE_PART_URL}" != "noexcept" ]]; then
 					EXCEPT_CHATURBATE_LIVE_URL=$(curl -s "https://chaturbate.com/${EXCEPT_CHATURBATE_PART_URL}/" | grep -o "https://edge[0-9]*.stream.highwebmedia.com.*/playlist.m3u8" | sed 's/\\u002D/-/g')
@@ -237,7 +237,7 @@ while true; do
 	
 	if [[ "${1}" == "mirrativ" ]]; then STREAM_URL=$(wget -q -O- "https://www.mirrativ.com/api/live/live?live_id=${LIVE_URL}" | grep -o '"streaming_url_hls":".*m3u8"' | awk -F'"' '{print $4}') ; FNAME="mirrativ_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "reality" ]]; then ID=$(echo ${STREAM_ID} | awk -F'"' '{print $8}') ; STREAM_URL=$(echo ${STREAM_ID} | awk -F'"' '{print $4}') ; FNAME="reality_${ID}_$(date +"%Y%m%d_%H%M%S").ts"; fi
-	if [[ "${1}" == "17live" ]]; then STREAM_URL=$(curl -s -X POST 'http://api-dsa.17app.co/api/v1/liveStreams/getLiveStreamInfo' --data "{\"liveStreamID\": ${PART_URL}}" | grep -o '\\"webUrl\\":\\"[^\\]*' | awk -F'\"' '{print $4}') ; FNAME="17live_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
+	if [[ "${1}" == "17live" ]]; then FNAME="17live_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "chaturbate" ]]; then STREAM_URL="${LIVE_URL/playlist.m3u8/}$(curl -s "${LIVE_URL}" | tail -n 1)" ; FNAME="chaturbate_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "streamlink" ]]; then FNAME="stream_$(date +"%Y%m%d_%H%M%S").ts"; fi
 
