@@ -289,8 +289,12 @@ while true; do
 		(you-get --debug --http-proxy "${STREAM_PROXY}" -O "${DIR_LOCAL}/${DLNAME}" "${FULL_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 	fi
 	
-	if [[ "${1}" == "youtubeffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "17live" || "${1}" == "chaturbate" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
+	if [[ "${1}" == "youtubeffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "chaturbate" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
 		(ffmpeg -user_agent "Mozilla/5.0" -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
+	fi
+	
+	if [[ "${1}" == "17live" ]]; then
+		(ffmpeg -headers "Referer: https://17.live/live/${PART_URL}" -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 	fi
 	
 	RECORD_PID=$! #录制进程PID
