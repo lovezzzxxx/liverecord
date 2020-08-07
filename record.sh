@@ -73,23 +73,23 @@ EXCEPT_STREAM_PART_URL="${19:-noexcept}"
 
 LIVE_STATUS=0
 ISLIVE_YOUTUBE=0
+ISLIVE_YOUTUBE_BEFORE=0
 while true; do
 	while true; do
 		LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata ${FULL_URL}"
 		if [[ "${1}" == "youtube"* ]]; then
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata islive_youtube=${ISLIVE_YOUTUBE}"
-			ISLIVE_YOUTUBE_BEFORE="${ISLIVE_YOUTUBE}"
 			if [[ ${ISLIVE_YOUTUBE} -gt 0 ]]; then
 				if (wget -q -O- "${FULL_URL}" | grep "ytplayer" | grep -q '\\"isLive\\":true'); then
 					let LIVE_STATUS++ ; ISLIVE_YOUTUBE=3 #qualityLabel开播早下播晚会在下播时多录，isLive开播晚下播早会在开播时晚录
 				else
-					LIVE_STATUS=0 ; let ISLIVE_YOUTUBE--
+					LIVE_STATUS=0 ; let ISLIVE_YOUTUBE-- ; let ISLIVE_YOUTUBE_BEFORE--
 				fi
 			else
 				if (wget -q -O- "${FULL_URL}" | grep -q '\\"qualityLabel\\":\\"[0-9]*p\\"'); then
 					let LIVE_STATUS++ ; ISLIVE_YOUTUBE=3
 				else
-					LIVE_STATUS=0
+					LIVE_STATUS=0 ; let ISLIVE_YOUTUBE-- ; let ISLIVE_YOUTUBE_BEFORE--
 				fi
 			fi
 			#(wget -q -O- "${FULL_URL}" | grep -q '\\"playabilityStatus\\":{\\"status\\":\\"OK\\"') && break
@@ -266,6 +266,7 @@ while true; do
 		else
 			(streamlink --loglevel trace --hls-live-restart -o "${DIR_LOCAL}/${FNAME}" "https://www.youtube.com/watch?v=${ID}" "${FORMAT}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 		fi
+		ISLIVE_YOUTUBE_BEFORE=3
 	fi
 	
 	if [[ "${1}" == "twitcast" ]]; then
