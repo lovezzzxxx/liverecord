@@ -52,6 +52,7 @@ EXCEPT_STREAM_PART_URL="${19:-noexcept}"
 [[ "${1}" == "reality" ]] && FULL_URL="reality_${PART_URL}"
 [[ "${1}" == "17live" ]] && FULL_URL="https://17.live/live/${PART_URL}"
 [[ "${1}" == "chaturbate" ]] && FULL_URL="https://chaturbate.com/${PART_URL}/"
+[[ "${1}" == "missevan" ]] && FULL_URL="https://fm.missevan.com/live/${PART_URL}"
 [[ "${1}" == "bilibili"* ]] && FULL_URL="https://live.bilibili.com/${PART_URL}"
 [[ "${1}" == "streamlink" ]] && FULL_URL="${PART_URL}"
 [[ "${1}" == "m3u8" ]] && FULL_URL="${PART_URL}"
@@ -67,6 +68,7 @@ EXCEPT_STREAM_PART_URL="${19:-noexcept}"
 [[ "${EXCEPT_REALITY_PART_URL}" == "noexcept" ]] || EXCEPT_REALITY_FULL_URL="reality_${PART_URL}"
 [[ "${EXCEPT_17LIVE_PART_URL}" == "noexcept" ]] || EXCEPT_17LIVE_FULL_URL="https://17.live/live/${EXCEPT_17LIVE_PART_URL}"
 [[ "${EXCEPT_CHATURBATE_PART_URL}" == "noexcept" ]] || EXCEPT_CHATURBATE_FULL_URL="https://chaturbate.com/${EXCEPT_CHATURBATE_PART_URL}/"
+[[ "${EXCEPT_MISSEVAN_PART_URL}" == "noexcept" ]] || EXCEPT_MISSEVAN_FULL_URL="https://fm.missevan.com/live/${EXCEPT_MISSEVAN_PART_URL}"
 [[ "${EXCEPT_STREAM_PART_URL}" == "noexcept" ]] || EXCEPT_STREAM_FULL_URL="${EXCEPT_STREAM_PART_URL}"
 
 
@@ -138,6 +140,10 @@ while true; do
 			LIVE_URL=$(curl -s "https://chaturbate.com/${PART_URL}/" | grep -o "https://edge[0-9]*.stream.highwebmedia.com.*/playlist.m3u8" | sed 's/\\u002D/-/g')
 			if [[ -n "${LIVE_URL}" ]]; then let LIVE_STATUS++; else LIVE_STATUS=0; fi
 		fi
+		if [[ "${1}" == "missevan" ]]; then
+			STREAM_URL=$(curl -s "https://fm.missevan.com/api/v2/live/${PART_URL}" | grep -o '"hls_pull_url":"http://ks-hls.fm.missevan.com/live-fm/[^"]*' | awk -F'\"' '{print $4}'  | sed 's/\\u0026/\&/g')
+			if [[ -n "${STREAM_URL}" ]]; then let LIVE_STATUS++; else LIVE_STATUS=0; fi
+		fi
 		
 		if [[ "${1}" == "streamlink" ]]; then
 			STREAM_URL=$(streamlink --stream-url "${FULL_URL}" "${FORMAT}")
@@ -203,6 +209,10 @@ while true; do
 					EXCEPT_CHATURBATE_LIVE_URL=$(curl -s "https://chaturbate.com/${EXCEPT_CHATURBATE_PART_URL}/" | grep -o "https://edge[0-9]*.stream.highwebmedia.com.*/playlist.m3u8" | sed 's/\\u002D/-/g')
 					[[ -n "${EXCEPT_CHATURBATE_LIVE_URL}" ]] && echo "${LOG_PREFIX} restream from ${EXCEPT_CHATURBATE_FULL_URL} retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
 				fi
+				if [[ "${EXCEPT_MISSEVAN_PART_URL}" != "noexcept" ]]; then
+					EXCEPT_MISSEVAN_STREAM_URL=$(curl -s "https://fm.missevan.com/api/v2/live/${EXCEPT_MISSEVAN_PART_URL}" | grep -o '"hls_pull_url":"http://ks-hls.fm.missevan.com/live-fm/[^"]*' | awk -F'\"' '{print $4}')
+					[[ -n "${EXCEPT_MISSEVAN_STREAM_URL}" ]] && echo "${LOG_PREFIX} restream from ${EXCEPT_MISSEVAN_FULL_URL} retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
+				fi
 				if [[ "${EXCEPT_STREAM_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata ${EXCEPT_STREAM_FULL_URL}"
 					EXCEPT_STREAM_STREAM_URL=$(streamlink --stream-url "${EXCEPT_STREAM_FULL_URL}" "${FORMAT}")
@@ -240,6 +250,7 @@ while true; do
 	if [[ "${1}" == "reality" ]]; then ID=$(echo ${STREAM_ID} | awk -F'"' '{print $8}') ; STREAM_URL=$(echo ${STREAM_ID} | awk -F'"' '{print $4}') ; FNAME="reality_${ID}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "17live" ]]; then FNAME="17live_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "chaturbate" ]]; then STREAM_URL="${LIVE_URL/playlist.m3u8/}$(curl -s "${LIVE_URL}" | tail -n 1)" ; FNAME="chaturbate_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
+	if [[ "${1}" == "missevan" ]]; then FNAME="missevan_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"; fi
 	if [[ "${1}" == "streamlink" ]]; then FNAME="stream_$(date +"%Y%m%d_%H%M%S").ts"; fi
 
 	if [[ "${1}" == "bilibili"* ]]; then DLNAME="bilibili_${PART_URL}_$(date +"%Y%m%d_%H%M%S")" ; FNAME="bilibili_${PART_URL}_$(date +"%Y%m%d_%H%M%S").flv"; fi
@@ -291,7 +302,7 @@ while true; do
 		(you-get --debug --http-proxy "${STREAM_PROXY}" -O "${DIR_LOCAL}/${DLNAME}" "${FULL_URL}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 	fi
 	
-	if [[ "${1}" == "youtubeffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "chaturbate" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
+	if [[ "${1}" == "youtubeffmpeg" || "${1}" == "twitcastffmpeg" || "${1}" == "twitch" || "${1}" == "openrec" || "${1}" == "mirrativ" || "${1}" == "reality" || "${1}" == "chaturbate" || "${1}" == "missevan" || "${1}" == "streamlink" || "${1}" == "m3u8" ]]; then
 		(ffmpeg -user_agent "Mozilla/5.0" -i "${STREAM_URL}" -codec copy -f mpegts "${DIR_LOCAL}/${FNAME}" > "${DIR_LOCAL}/${FNAME}.log" 2>&1) &
 	fi
 	
