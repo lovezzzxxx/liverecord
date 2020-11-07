@@ -14,12 +14,12 @@ if [[ ! -n "${1}" ]]; then
 	echo $'--nico-psw			nico密码'
 	echo $'--bili-proxy			bilibili录制代理'
 	echo $'--bili-proxy-url		bilibili录制代理获取链接'
-	echo $'-f|--format			清晰度'
-	echo $'-p|--part-time			分段时间'
-	echo $'-l|--loop-interval		检测间隔'
-	echo $'-ml|--min-loop-interval		最短录制间隔'
-	echo $'-ms|--min-status		开始录制前需要持续检测到开播时间'
-	echo $'-o|-d|--output|--dir		输出目录'
+	echo $'-f|--format			清晰度,默认为best'
+	echo $'-p|--part-time			分段时间,0为不分段,默认为0'
+	echo $'-l|--loop-interval		检测间隔,默认为60'
+	echo $'-ml|--min-loop-interval		最短录制间隔,默认为180'
+	echo $'-ms|--min-status		开始录制前需要持续检测到开播次数,默认为1'
+	echo $'-o|-d|--output|--dir		输出目录,默认为record_video/other'
 	echo $'-u|--upload			上传网盘,格式为网盘类型重试次数:盘符:路径,网盘类型支持rclone paidupcs onedrive,例如rclone3:vps:record'
 	echo $'-dt|--delete-type		删除本地录像需要成功上传的数量,默认为1,del为强制删除,keep为强制保留,all为需要全部上传成功'
 	echo $'-e|--except 频道类型 频道号码	排除转播,格式同录制频道'
@@ -444,8 +444,8 @@ fi
 NICO_ID_PSW=""; [[ -n $NICO_ID ]] && [[ -n $NICO_PSW ]] && NICO_ID_PSW="${NICO_ID},${NICO_PSW}"
 [[ ! -n $FORMAT ]] && FORMAT="best"
 [[ ! -n $PART_TIME ]] && PART_TIME=0
-[[ ! -n $LOOP_INTERVAL ]] && LOOP_INTERVAL=10
-[[ ! -n $MIN_INTERVAL ]] && MIN_INTERVAL=10
+[[ ! -n $LOOP_INTERVAL ]] && LOOP_INTERVAL=60
+[[ ! -n $MIN_INTERVAL ]] && MIN_INTERVAL=180
 [[ ! -n $MIN_STATUS ]] && MIN_STATUS=1
 [[ ! -n $DIR ]] && DIR="record_video/other"; mkdir -p "${DIR}"
 [[ ! -n $DELETE_TYPE ]] && DELETE_TYPE=1; [[ $DELETE_TYPE == "del" ]] && DELETE_TYPE=-1; [[ $DELETE_TYPE == "keep" ]] && DELETE_TYPE=0; [[ $DELETE_TYPE == "all" ]] && DELETE_TYPE=${#UPLOAD_TYPE_LIST[*]}
