@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#说明
+#使用说明
 if [[ ! -n "${1}" ]]; then
 	echo ""
 	echo ""
@@ -37,10 +37,12 @@ if [[ ! -n "${1}" ]]; then
 	exit 1
 fi
 
+#打印log
 function print(){
 	echo "$(date +"[%Y-%m-%d %H:%M:%S]") $1"
 }
 
+#转换完整链接
 function getfullurl(){
 	local TYPE=$1
 	local PART_URL=$2
@@ -59,7 +61,7 @@ function getfullurl(){
 	[[ $TYPE == "streamlink" ]] && echo "${PART_URL}"
 }
 
-#返回1为开播，返回0为未开播，在不为EXCEPT时保存PAGE
+#检测直播状态,返回1为开播,返回0为未开播,在不为EXCEPT时保存PAGE
 LIVE_STATUS_YOUTUBE=0
 LIVE_STATUS_YOUTUBE_BEFORE=0
 function getlivestatus(){
@@ -72,7 +74,7 @@ function getlivestatus(){
 	
 	if [[ $TYPE == "youtube"* ]]; then
 		LOCAL_PAGE=$(wget -q -O- "$FULL_URL")
-		#qualityLabel开播早下播晚会在下播时多录，isLive开播晚下播早会在开播时晚录
+		#qualityLabel开播早下播晚会在下播时多录,isLive开播晚下播早会在开播时晚录
 		#(echo $LOCAL_PAGE | grep -q '\\"playabilityStatus\\":{\\"status\\":\\"OK\\"') && break
 		if [[ $LIVE_STATUS_YOUTUBE -lt 1 ]] || [[ $EXCEPT == "except" ]]; then
 			if (echo $LOCAL_PAGE | grep -q '\\"qualityLabel\\":\\"[0-9]*p\\"'); then
@@ -147,7 +149,7 @@ function getlivestatus(){
 	return $STATUS
 }
 
-#直接从PAGE获取STREAM_ID STREAM_URL DLNAME FNAME，STREAM_PROXY也在此获取
+#从PAGE获取STREAM_ID STREAM_URL DLNAME FNAME,STREAM_PROXY也在此获取
 function prasepage(){
 	if [[ $TYPE == "youtube"* ]]; then
 		STREAM_ID=$(echo $PAGE | grep -o '\\"liveStreamabilityRenderer\\":{\\"videoId\\":\\".*\\"' | head -n 1 | sed 's/\\//g' | awk -F'"' '{print $6}')
@@ -214,7 +216,7 @@ function prasepage(){
 	fi
 }
 
-#返回录制进程id
+#开始录制,返回录制进程id
 function startrecord(){
 	if [[ $TYPE == "youtube" ]]; then
 		if [[ $LIVE_STATUS_YOUTUBE_BEFORE -lt 1 ]]; then
@@ -254,7 +256,7 @@ function startrecord(){
 	echo $!
 }
 
-#上传前
+#上传准备
 function up(){
 	if [[ $TYPE == "twitcast" ]]; then
 		print "remane livedl/${DLNAME} to ${DIR}/${FNAME}"
@@ -316,7 +318,7 @@ function upload(){
 	fi
 }
 
-#上传到
+#上传到,成功返回1,失败返回0
 function uploadto(){
 	local FILE=$1
 	local TYPE=$2
@@ -362,7 +364,7 @@ function uploadto(){
 
 
 
-#获取参数
+#解析传入参数
 while true; do
 	case "$1" in
 		--nico-id)
@@ -430,6 +432,14 @@ while true; do
 	esac
 done
 
+#环境检测
+if [[ $TYPE == "twitcast" || "${1}" == "nico"* ]]; then
+	[[ ! -f "livedl/livedl" ]] && echo "需要livedl,请将livedl文件放置于运行时目录的livedl文件夹内"
+fi
+if [[ $TYPE == "twitcastpy" ]]; then
+	[[ ! -f "record/record_twitcast.py" ]] && echo "需要record_twitcast.py,请将record_twitcast.py文件放置于运行时目录的record文件夹内"
+fi
+
 #初始化
 NICO_ID_PSW=""; [[ -n $NICO_ID ]] && [[ -n $NICO_PSW ]] && NICO_ID_PSW="${NICO_ID},${NICO_PSW}"
 [[ ! -n $FORMAT ]] && FORMAT="best"
@@ -448,14 +458,6 @@ for i in ${!EXCEPT_TYPE_LIST[*]}; do
 	EXCEPT_FULL_URL_LIST[$i]=$(getfullurl ${EXCEPT_TYPE_LIST[$i]} ${EXCEPT_PART_URL_LIST[$i]})
 done
 FULL_URL=$(getfullurl $TYPE $PART_URL)
-
-#环境检测
-if [[ $TYPE == "twitcast" || "${1}" == "nico"* ]]; then
-	[[ ! -f "livedl/livedl" ]] && echo "需要livedl，请将livedl文件放置于运行时目录的livedl文件夹内"
-fi
-if [[ $TYPE == "twitcastpy" ]]; then
-	[[ ! -f "record/record_twitcast.py" ]] && echo "需要record_twitcast.py，请将record_twitcast.py文件放置于运行时目录的record文件夹内"
-fi
 
 #检测与录制循环
 LIVE_STATUS=0
