@@ -344,6 +344,10 @@ function uploadto(){
 			LOG=$(OneDriveUploader -s "$FILE" -r "$DIR")
 			LOG=$?; [[ $LOG == 0 ]] && STATUS=1
 		fi
+		if [[ $TYPE == "onedrive" ]]; then
+			LOG=$(bypy upload "$FILE" "$DIR" | tail -n 1)
+			[[ $LOG == "" ]] && STATUS=1
+		fi
 		
 		if [[ $STATUS == 1 ]]; then
 			print "upload ${FILE} to ${TYPE} ${DISK}:${DIR} success"
