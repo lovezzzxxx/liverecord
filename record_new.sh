@@ -6,7 +6,7 @@ if [[ ! -n "${1}" ]]; then
 	echo ""
 	echo "基本用法:"
 	echo "${0} 频道类型 频道号码"
-	echo "频道类型支持youtube youtubeffmpeg twitcast twitcastffmpeg twitcastpy twitch openrec nicolv nicoco nicoch mirrativ reality 17live chaturbate bilibili streamlink"
+	echo "频道类型支持youtube youtubeffmpeg twitcast twitcastffmpeg twitcastpy twitch openrec nicolv nicoco nicoch mirrativ reality 17live chaturbate bilibili bilibilir streamlink"
 	echo ""
 	echo ""
 	echo "参数说明:"
