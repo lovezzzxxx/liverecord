@@ -1,20 +1,18 @@
 # 功能介绍
-  * record_new.sh为参数版本的自动录播脚本，调用更加直观。
-  
   * record.sh为自动录播脚本。支持youtube频道、twitcast频道、twitch频道、openrec频道、niconico生放送、niconico社区、niconico频道（支持登录niconico账号进行录制）、mirrativ频道、reality频道、17live频道、chaturbate频道、bilibili频道、streamlink支持的直播网址、ffmpeg支持的m3u8地址。bilibili录制支持在上述频道有直播时不进行录制，从而简单的排除转播的录制；支持使用代理录制bilibili直播。支持定时分段。支持rclone上传、onedrive上传(含世纪互联版)、百度云上传；支持可指定次数的上传出错重试；支持根据上传结果选择是否保留本地文件。
+  
+  * record_new.sh为参数版本的自动录播脚本，调用更加直观。
   
   * install.sh为一键安装脚本。目前仅在ubuntu18.04与19.10系统测试过，理论上较新的linux系统应该都可以使用(centos系统应该把apt替换为yum就行了)。
 
   * record_twitcast.py为可选，是一个可以录制websocket的精简脚本。因为twitcast分别提供了基于h5与websocket的流，但部分直播的最高清晰度仅能通过websocket获取，而ffmpeg并不能支持websocket，所以提供一个可以录制websocket的脚本。也可单独使用，方法为`python3 record_twitcast.py "ws或wss网址" "输出文件目录"`。  
-
-  * download.sh与录制功能无关，是一个完全独立的小脚本。本质是轮询检测youtube频道的直播和视频页第一页，产生一个youtube视频列表，并对列表中视频的录像、封面图、标题与简介进行备份。支持尝试在下播后立即下载直播录像，因为直播结束后到删档前仍有一段时间可以下载完整的录像，而且一旦开始下载则下载过程不受删档影响。支持设置触发下播后下载的最长直播时长，因为大于两个小时的直播需要等待压制下载的录像可能不全。支持在下载到未压制完成的录像的情况下等待压制完成后建立新的下载，确保下载到压制完成的未删档视频。具体用法可直接不加参数运行`./download.sh`查看。（另外由于脚本的工作状态完全取决于视频列表的内容，所以直接指定或修改视频列表大概会有奇怪的作用）
 
 感谢[live-stream-recorder](https://github.com/printempw/live-stream-recorder)、[GiGaFotress/Vtuber-recorder](https://github.com/GiGaFotress/Vtuber-recorder)  
 
 # 安装方法
 ### 一键安装
 `curl https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/install.sh | bash`  
-  * 一键脚本将会自动安装下列所有环境依赖， __同时会覆盖安装go环境并添加一些环境变量__ ，如果有需要可以注释掉相应的命令或者手动安装环境依赖。其中record.sh和record_twitcast.py会保存于运行时命令行所在目录的record文件夹下，livedl会保存于运行时命令行所在目录的livedl文件夹下  
+  * 一键脚本将会自动安装下列所有环境依赖， __同时会覆盖安装go环境并添加一些环境变量__ ，如果有需要可以注释掉相应的命令或者手动安装环境依赖。其中record.sh和record_twitcast.py会保存于运行时命令行所在目录的record文件夹下，livedl会保存于运行时命令行所在目录的livedl文件夹下， BilibiliLiveRecorder会解压到运行时命令行所在目录的BilibiliLiveRecorder文件夹下
   * __一键脚本安装后脚本调用方式应为`record/record.sh`而非下文示例中的`./record.sh`__  
   * 一键脚本运行结束后会提示仍需要手动进行的操作，如更新环境变量和登录网盘账号  
 
