@@ -1,5 +1,6 @@
 # 功能介绍
-  * record_new.sh为参数版本的自动录播脚本，调用更加直观，使用说明可以直接运行脚本查看。
+  * record_new.sh为参数版本的自动录播脚本，调用更加直观。
+  
   * record.sh为自动录播脚本。支持youtube频道、twitcast频道、twitch频道、openrec频道、niconico生放送、niconico社区、niconico频道（支持登录niconico账号进行录制）、mirrativ频道、reality频道、17live频道、chaturbate频道、bilibili频道、streamlink支持的直播网址、ffmpeg支持的m3u8地址。bilibili录制支持在上述频道有直播时不进行录制，从而简单的排除转播的录制；支持使用代理录制bilibili直播。支持定时分段。支持rclone上传、onedrive上传(含世纪互联版)、百度云上传；支持可指定次数的上传出错重试；支持根据上传结果选择是否保留本地文件。
   
   * install.sh为一键安装脚本。目前仅在ubuntu18.04与19.10系统测试过，理论上较新的linux系统应该都可以使用(centos系统应该把apt替换为yum就行了)。
@@ -31,9 +32,37 @@
   * [OneDriveUploader](https://github.com/MoeClub/OneList/tree/master/OneDriveUploader)(支持包括世纪互联版在内的各种onedrive网盘，需登录后使用)，安装和登录方法可以参考[Rat's Blog](https://www.moerats.com/archives/1006)。否则无法使用onedrive参数上传。
   * [BaiduPCS-Go](https://github.com/felixonmars/BaiduPCS-Go)(给予go，支持百度云网盘，需登录后使用，原项目[iikira/BaiduPCS-Go](https://github.com/iikira/BaiduPCS-Go)已失效)，安装和登录方法可以参考作者的说明。否则无法使用baidupan参数上传。
 
-# 使用方法
+# record_new.sh使用方法
 ### 方法
-`./record.sh youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitcastpy|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|chaturbate|bilibili|bilibiliproxy[,代理ip:代理端口]|streamlink|m3u8 频道号码 [best|其他清晰度] [loop|once|视频分段时间] [10,10,1|循环检测间隔,最短录制间隔,录制开始所需连续检测开播次数] [record_video/other|其他本地目录] [nobackup|rclone:网盘名称:|onedrive|baidupan[重试次数][keep|del]] [noexcept|排除转播的youtube频道号码] [noexcept|排除转播的twitcast频道号码] [noexcept|排除转播的twitch频道号码] [noexcept|排除转播的openrec频道号码] [noexcept|排除转播的nicolv频道号码] [noexcept|排除转播的nicoco频道号码] [noexcept|排除转播的nicoch频道号码] [noexcept|排除转播的mirrativ频道号码] [noexcept|排除转播的reality频道号码] [noexcept|排除转播的17live频道号码]  [noexcept|排除转播的chaturbate频道号码] [noexcept|排除转播的streamlink支持的频道网址]`
+`./record_new.sh [-参数 值] 频道类型 频道号码`
+
+### 示例
+  * 使用默认参数录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw  
+`./record_new.sh youtube "UCWCc8tO-uUl_7SJXIKJACMw"`  
+
+  * 使用ffmpeg录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw ，依次获取1080p 720p 480p 360p worst中第一个可用的清晰度，间隔30秒检测，录像保存于record_video/mea文件夹中并在录制完成后自动上传到rclone中名称为vps的网盘的record目录中如果出错重试3次 和百度云网盘用户lovezzzxxx的record_video目录中如果出错则重试两侧次，如果其中有1个上传成功则删除本地录像  
+`./record.sh youtubeffmpeg "UCWCc8tO-uUl_7SJXIKJACMw" -f 1080p,720p,480p,360p,worst -l 30 -o "record_video/mea" -u rclone3:vps:record -u baidupcs2:lovezzzxxx:record_video -dt 1`  
+
+### 参数说明
+参数|默认值|说明
+:---|:---|:---
+--nico-id|无|nico用户名
+--nico-psw|无|nico密码
+--bili-proxy|无|bilibili录制代理
+--bili-proxy-url|无|bilibili录制代理获取链接
+-f\|--format|best|清晰度
+-p\|--part-time|0|分段时间，0为不分段
+-l\|--loop-interval|60|检测间隔
+-ml\|--min-loop-interval|180|最短录制间隔
+-ms\|--min-status|1|开始录制前需要持续检测到开播次数
+-o\|-d\|--output\|--dir|record_video/other|输出目录
+-u\|--upload|无|上传网盘,格式为网盘类型重试次数:盘符:路径，网盘类型支持rclone paidupcs onedrive，例如rclone3:vps:record
+-dt\|--delete-type|1|删除本地录像需要成功上传的数量，默认为1，del为强制删除，keep为强制保留，all为需要全部上传成功
+-e\|--except|无|排除转播，格式同录制频道，如-e youtube "UCWCc8tO-uUl_7SJXIKJACMw
+
+# record.sh使用方法
+### 方法
+`./record.sh youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitcastpy|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|chaturbate|bilibili|bilibiliproxy[,代理ip:代理端口]|bilibilir|bilibiliproxyr[,代理ip:代理端口]|streamlink|m3u8 频道号码 [best|其他清晰度] [loop|once|视频分段时间] [10,10,1|循环检测间隔,最短录制间隔,录制开始所需连续检测开播次数] [record_video/other|其他本地目录] [nobackup|rclone:网盘名称:|onedrive|baidupan[重试次数][keep|del]] [noexcept|排除转播的youtube频道号码] [noexcept|排除转播的twitcast频道号码] [noexcept|排除转播的twitch频道号码] [noexcept|排除转播的openrec频道号码] [noexcept|排除转播的nicolv频道号码] [noexcept|排除转播的nicoco频道号码] [noexcept|排除转播的nicoch频道号码] [noexcept|排除转播的mirrativ频道号码] [noexcept|排除转播的reality频道号码] [noexcept|排除转播的17live频道号码]  [noexcept|排除转播的chaturbate频道号码] [noexcept|排除转播的streamlink支持的频道网址]`
 
 ### 示例
   * 使用默认参数录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw   
