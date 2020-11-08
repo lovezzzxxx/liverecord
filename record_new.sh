@@ -30,7 +30,7 @@ if [[ ! -n "${1}" ]]; then
 	echo ""
 	echo ""
 	echo "其他说明："
-	echo "必要模块为curl streamlink ffmpeg ,可选模块为livedl python3 you-get,请将livedl文件放置于运行时目录的livedl文件夹内 ,请将record_twitcast.py文件放置于运行时目录的record文件夹内。"
+	echo "必要模块为curl streamlink ffmpeg ,可选模块为livedl python3 you-get,请将livedl文件放置于运行时目录的livedl文件夹内 ,请将BilibiliLiveRecorder解压放置于运行时目录的BilibiliLiveRecorder文件夹内,请将record_twitcast.py文件放置于运行时目录的record文件夹内。"
 	echo "rclone上传基于\"https://github.com/rclone/rclone\"百度云上传基于\"https://github.com/iikira/BaiduPCS-Go\",onedrive上传基于\"https://github.com/MoeClub/OneList/tree/master/OneDriveUploader\",请登录后使用。"
 	echo ""
 	echo ""
@@ -251,9 +251,9 @@ function startrecord(){
 	fi
 	if [[ $TYPE == "bilibilir" ]]; then
 		if [[ -n $STREAM_PROXY ]]; then
-			(java -Dfile.encoding=utf-8 -jar BiliLiveRecorder.jar "debug=true&check=false&proxy=${STREAM_PROXY}&liver=bili&id=${PART_URL}&qn=-1&saveFolder=${DIR}&fileName=${DLNAME}" > "${DIR}/${FNAME}.log" 2>&1) &
+			(java -Dfile.encoding=utf-8 -jar BilibiliLiveRecorder/BiliLiveRecorder.jar "debug=true&check=false&proxy=${STREAM_PROXY}&liver=bili&id=${PART_URL}&qn=-1&saveFolder=${DIR}&fileName=${DLNAME}" > "${DIR}/${FNAME}.log" 2>&1) &
 		else
-			(java -Dfile.encoding=utf-8 -jar BiliLiveRecorder.jar "debug=true&check=false&liver=bili&id=${PART_URL}&qn=-1&saveFolder=${DIR}&fileName=${DLNAME}" > "${DIR}/${FNAME}.log" 2>&1) &
+			(java -Dfile.encoding=utf-8 -jar BilibiliLiveRecorder/BiliLiveRecorder.jar "debug=true&check=false&liver=bili&id=${PART_URL}&qn=-1&saveFolder=${DIR}&fileName=${DLNAME}" > "${DIR}/${FNAME}.log" 2>&1) &
 		fi
 	fi
 	if [[ $TYPE == "youtubeffmpeg" || $TYPE == "twitcastffmpeg" || $TYPE == "twitch" || $TYPE == "openrec" || $TYPE == "mirrativ" || $TYPE == "reality" || $TYPE == "chaturbate" || $TYPE == "streamlink" ]]; then
@@ -445,6 +445,9 @@ if [[ $TYPE == "twitcast" || "${1}" == "nico"* ]]; then
 fi
 if [[ $TYPE == "twitcastpy" ]]; then
 	[[ ! -f "record/record_twitcast.py" ]] && echo "需要record_twitcast.py,请将record_twitcast.py文件放置于运行时目录的record文件夹内"
+fi
+if [[ $TYPE == "bilibilir" ]]; then
+	[[ ! -f "BilibiliLiveRecorder/BiliLiveRecorder.jar" ]] && echo "需要BiliLiveRecorder.jar，请将BilibiliLiveRecorder解压放置于运行时目录的BilibiliLiveRecorder文件夹内"
 fi
 
 #初始化
