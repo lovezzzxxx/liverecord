@@ -20,16 +20,22 @@ echo "此处可能需要较长时间，请耐心等待"
 go get github.com/gorilla/websocket ; go get golang.org/x/crypto/sha3 ; go get github.com/mattn/go-sqlite3 ; go get github.com/gin-gonic/gin #安装必要的go库
 git clone https://github.com/railannad/livedl.git ; cd livedl ; go build src/livedl.go ; rm -r `ls | grep -v "^livedl$"` ; cd .. #编译安装livedl
 
+#安装java相关下载工具
+apt -y install default-jre
+apt -y install unzip
+mkdir BilibiliLiveRecorder ; cd BilibiliLiveRecorder ; wget https://github.com/nICEnnnnnnnLee/BilibiliLiveRecorder/releases/download/V2.13.0/BilibiliLiveRecord.v2.13.0.zip ; unzip BilibiliLiveRecord.v2.13.0.zip ; rm BilibiliLiveRecord.v2.13.0.zip ; cd ..
+
 #下载文件并赋予权限
 mkdir record
 wget -O "record/record.sh" "https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/record.sh" ; chmod +x record/record.sh
+wget -O "record/record.sh" "https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/record_new.sh" ; chmod +x record/record_new.sh
 wget -O "record/record_twitcast.py" "https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/record_twitcast.py" ; chmod +x "record/record_twitcast.py"
 
 #配置自动上传
 curl https://rclone.org/install.sh | bash #配置rclone自动上传
 sudo wget https://raw.githubusercontent.com/MoeClub/OneList/master/OneDriveUploader/amd64/linux/OneDriveUploader -P /usr/local/bin/ #配置onedrive自动上传
 sudo chmod +x /usr/local/bin/OneDriveUploader
-go get github.com/felixonmars/BaiduPCS-Go ; mv go/src/github.com/felixonmars/BaiduPCS-Go go/src/github.com/iikira/BaiduPCS-Go ; go build github.com/iikira/BaiduPCS-Go ; mkdir go/bin ; mv BaiduPCS-Go go/bin/ #配置百度云自动上传
+go get github.com/iikira/BaiduPCS-Go #配置百度云自动上传
 echo 'export PATH=$PATH:'`echo ~`'/go/bin'>>~/.bashrc #修改默认环境变量，如不希望可以注释掉
 source ~/.bashrc
 
