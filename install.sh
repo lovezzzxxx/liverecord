@@ -11,8 +11,9 @@ echo 'export PATH=$PATH:/usr/local/bin'>>~/.bashrc #修改默认环境变量，�
 export PATH=$PATH:/usr/local/bin
 
 #安装go相关下载工具
-wget https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz #覆盖安装go环境，如不希望可以注释掉
-sudo tar -C /usr/local -xzf go1.12.7.linux-amd64.tar.gz ; rm go1.12.7.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go #如果有已经安装的go环境，先卸载，新老版本会有冲突，如不希望可以注释掉
+wget https://dl.google.com/go/go1.15.4.linux-amd64.tar.gz #安装go环境，如不希望可以注释掉
+sudo tar -C /usr/local -xzf go1.15.4.linux-amd64.tar.gz ; rm go1.15.4.linux-amd64.tar.gz
 echo 'export PATH=$PATH:/usr/local/go/bin'>>~/.bashrc #修改默认环境变量，如不希望可以注释掉
 export PATH=$PATH:/usr/local/go/bin
 sudo apt -y install git ; sudo apt -y install build-essential
@@ -28,14 +29,14 @@ mkdir BilibiliLiveRecorder ; cd BilibiliLiveRecorder ; wget https://github.com/n
 #下载文件并赋予权限
 mkdir record
 wget -O "record/record.sh" "https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/record.sh" ; chmod +x record/record.sh
-wget -O "record/record.sh" "https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/record_new.sh" ; chmod +x record/record_new.sh
+wget -O "record/record_new.sh" "https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/record_new.sh" ; chmod +x record/record_new.sh
 wget -O "record/record_twitcast.py" "https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/record_twitcast.py" ; chmod +x "record/record_twitcast.py"
 
 #配置自动上传
 curl https://rclone.org/install.sh | bash #配置rclone自动上传
 sudo wget https://raw.githubusercontent.com/MoeClub/OneList/master/OneDriveUploader/amd64/linux/OneDriveUploader -P /usr/local/bin/ #配置onedrive自动上传
 sudo chmod +x /usr/local/bin/OneDriveUploader
-go get github.com/iikira/BaiduPCS-Go #配置百度云自动上传
+go get github.com/felixonmars/BaiduPCS-Go ; go build github.com/felixonmars/BaiduPCS-Go ; mkdir -p go/bin ; mv BaiduPCS-Go go/bin/ #配置百度云自动上传
 echo 'export PATH=$PATH:'`echo ~`'/go/bin'>>~/.bashrc #修改默认环境变量，如不希望可以注释掉
 source ~/.bashrc
 
