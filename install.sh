@@ -12,8 +12,8 @@ export PATH=$PATH:/usr/local/bin
 
 #安装go相关下载工具
 sudo rm -rf /usr/local/go #如果有已经安装的go环境，先卸载，新老版本会有冲突，如不希望可以注释掉
-wget https://dl.google.com/go/go1.15.4.linux-amd64.tar.gz #安装go环境，如不希望可以注释掉
-sudo tar -C /usr/local -xzf go1.15.4.linux-amd64.tar.gz ; rm go1.15.4.linux-amd64.tar.gz
+wget https://dl.google.com/go/go1.15.5.linux-amd64.tar.gz #安装go环境，如不希望可以注释掉
+sudo tar -C /usr/local -xzf go1.15.5.linux-amd64.tar.gz ; rm go1.15.5.linux-amd64.tar.gz
 echo 'export PATH=$PATH:/usr/local/go/bin'>>~/.bashrc #修改默认环境变量，如不希望可以注释掉
 export PATH=$PATH:/usr/local/go/bin
 sudo apt -y install git ; sudo apt -y install build-essential
