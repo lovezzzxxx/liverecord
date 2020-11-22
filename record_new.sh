@@ -12,6 +12,7 @@ if [[ ! -n "${1}" ]]; then
 	echo "参数说明:"
 	echo $'--nico-id			nico用户名'
 	echo $'--nico-psw			nico密码'
+	echo $'--bili-cookies		bilibili录制cookies文件,仅支持bilibili频道类型'
 	echo $'--bili-proxy			bilibili录制代理'
 	echo $'--bili-proxy-url		bilibili录制代理获取链接'
 	echo $'-f|--format			清晰度,默认为best'
@@ -244,9 +245,17 @@ function startrecord(){
 	fi
 	if [[ $TYPE == "bilibili" ]]; then
 		if [[ -n $STREAM_PROXY ]]; then
-			(you-get --debug --http-proxy "$STREAM_PROXY" -O "${DIR}/${DLNAME}" "$FULL_URL" > "${DIR}/${FNAME}.log" 2>&1) &
+			if [[ -n $BILI_COOKIES ]]; then
+				(you-get --debug -c "$BILI_COOKIES" --http-proxy "$STREAM_PROXY" -O "${DIR}/${DLNAME}" "$FULL_URL" > "${DIR}/${FNAME}.log" 2>&1) &
+			else
+				(you-get --debug --http-proxy "$STREAM_PROXY" -O "${DIR}/${DLNAME}" "$FULL_URL" > "${DIR}/${FNAME}.log" 2>&1) &
+			fi
 		else
-			(you-get --debug -O "${DIR}/${DLNAME}" "$FULL_URL" > "${DIR}/${FNAME}.log" 2>&1) &
+			if [[ -n $BILI_COOKIES ]]; then
+				(you-get --debug -c "$BILI_COOKIES" -O "${DIR}/${DLNAME}" "$FULL_URL" > "${DIR}/${FNAME}.log" 2>&1) &
+			else
+				(you-get --debug -O "${DIR}/${DLNAME}" "$FULL_URL" > "${DIR}/${FNAME}.log" 2>&1) &
+			fi
 		fi
 	fi
 	if [[ $TYPE == "bilibilir" ]]; then
@@ -380,6 +389,10 @@ while true; do
 			;;
 		--nico-psw)
 			NICO_PSW=$2
+			shift 2
+			;;
+		--bili-cookies)
+			BILI_COOKIES=$2
 			shift 2
 			;;
 		--bili-proxy)
