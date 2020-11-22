@@ -46,6 +46,7 @@
 :---|:---|:---
 --nico-id|无|nico用户名
 --nico-psw|无|nico密码
+--bili-cookies|无|bilibili录制cookies文件,仅支持bilibili频道类型
 --bili-proxy|无|bilibili录制代理
 --bili-proxy-url|无|bilibili录制代理获取链接
 -f\|--format|best|清晰度
@@ -57,6 +58,16 @@
 -u\|--upload|无|上传网盘,格式为网盘类型重试次数:盘符:路径，网盘类型支持rclone paidupcs onedrive，例如rclone3:vps:record
 -dt\|--delete-type|1|删除本地录像需要成功上传的数量，默认为1，del为强制删除，keep为强制保留，all为需要全部上传成功
 -e\|--except|无|排除转播，格式同录制频道，如-e youtube "UCWCc8tO-uUl_7SJXIKJACMw
+
+### bilibili录制cookies格式示例
+```
+.bilibili.com	TRUE	/	FALSE	1606047748	DedeUserID	aaaaaa
+.bilibili.com	TRUE	/	FALSE	1606047748	DedeUserID__ckMd5	aaaaaaaaaaaa
+.bilibili.com	TRUE	/	FALSE	1606047748	SESSDATA	aaaa%2Caaaaa
+.bilibili.com	TRUE	/	FALSE	1606047748	bili_jct	aaaaaaaa
+.bilibili.com	TRUE	/	FALSE	1606047748	sid	aaaaaa
+```
+* 浏览器中打开live.bilibili.com时按f12，打开"网络"中带有cookies的请求，复制请求头中的cookeis如`DedeUserID=aaaaaa; DedeUserID__ckMd5=aaaaaaaaaaaa; SESSDATA=aaaa%2Caaaaa; bili_jct=aaaaaaaa; sid=aaaaaa`到[cookies转换](http://tools.bugscaner.com/cookietocookiejar/)中并设置作用域为`.bilibili.com`，将结果保存到任意文本文档中并在参数中设置运行时相对路径即可
 
 # record.sh使用方法
 ### 方法
