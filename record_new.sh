@@ -76,16 +76,16 @@ function getlivestatus(){
 	if [[ $TYPE == "youtube"* ]]; then
 		LOCAL_PAGE=$(wget -q -O- "$FULL_URL")
 		#qualityLabel开播早下播晚会在下播时多录,isLive开播晚下播早会在开播时晚录
-		#(echo $LOCAL_PAGE | grep -q '\\"playabilityStatus\\":{\\"status\\":\\"OK\\"') && break
+		#(echo $LOCAL_PAGE | grep -q '\"playabilityStatus\":{\"status\":\"OK\"') && break
 		if [[ $LIVE_STATUS_YOUTUBE -lt 1 ]] || [[ $EXCEPT == "except" ]]; then
-			if (echo $LOCAL_PAGE | grep -q '\\"qualityLabel\\":\\"[0-9]*p\\"'); then
+			if (echo $LOCAL_PAGE | grep -q '\"qualityLabel\":\"[0-9]*p\"'); then
 				STATUS=1
 				[[ $EXCEPT != "except" ]] && LIVE_STATUS_YOUTUBE=3
 			else
 				[[ $EXCEPT != "except" ]] && let LIVE_STATUS_YOUTUBE-- && let LIVE_STATUS_YOUTUBE_BEFORE--
 			fi
 		else
-			if (echo $LOCAL_PAGE | grep "ytplayer" | grep -q '\\"isLive\\":true'); then
+			if (echo $LOCAL_PAGE | grep "ytplayer" | grep -q '\"isLive\":true'); then
 				STATUS=1
 				[[ $EXCEPT != "except" ]] && LIVE_STATUS_YOUTUBE=3
 			else
