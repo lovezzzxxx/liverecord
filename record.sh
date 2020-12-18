@@ -82,19 +82,19 @@ while true; do
 		if [[ "${1}" == "youtube"* ]]; then
 			LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata islive_youtube=${ISLIVE_YOUTUBE}"
 			if [[ ${ISLIVE_YOUTUBE} -gt 0 ]]; then
-				if (wget -q -O- "${FULL_URL}" | grep "ytplayer" | grep -q '\\"isLive\\":true'); then
+				if (wget -q -O- "${FULL_URL}" | grep "ytplayer" | grep -q '\"isLive\":true'); then
 					let LIVE_STATUS++ ; ISLIVE_YOUTUBE=3 #qualityLabel开播早下播晚会在下播时多录，isLive开播晚下播早会在开播时晚录
 				else
 					LIVE_STATUS=0 ; let ISLIVE_YOUTUBE--
 				fi
 			else
-				if (wget -q -O- "${FULL_URL}" | grep -q '\\"qualityLabel\\":\\"[0-9]*p\\"'); then
+				if (wget -q -O- "${FULL_URL}" | grep -q '\"qualityLabel\":\"[0-9]*p\"'); then
 					let LIVE_STATUS++ ; ISLIVE_YOUTUBE=3
 				else
 					LIVE_STATUS=0
 				fi
 			fi
-			#(wget -q -O- "${FULL_URL}" | grep -q '\\"playabilityStatus\\":{\\"status\\":\\"OK\\"') && break
+			#(wget -q -O- "${FULL_URL}" | grep -q '\"playabilityStatus\":{\"status\":\"OK\"') && break
 		fi
 		if [[ "${1}" == "twitcast"* ]]; then
 			if (wget -q -O- "https://twitcasting.tv/streamserver.php?target=${PART_URL}&mode=client" | grep -q '"live":true'); then let LIVE_STATUS++; else LIVE_STATUS=0; fi
@@ -150,7 +150,7 @@ while true; do
 			if (wget -q -O- "https://api.live.bilibili.com/room/v1/Room/get_info?room_id=${PART_URL}" | grep -q '"live_status":1'); then
 				if [[ "${EXCEPT_YOUTUBE_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata ${EXCEPT_YOUTUBE_FULL_URL}" #检测排除直播
-					(wget -q -O- "${EXCEPT_YOUTUBE_FULL_URL}" | grep -q '\\"qualityLabel\\":\\"[0-9]*p\\"') && echo "${LOG_PREFIX} restream from ${EXCEPT_YOUTUBE_FULL_URL} retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
+					(wget -q -O- "${EXCEPT_YOUTUBE_FULL_URL}" | grep -q '\"qualityLabel\":\"[0-9]*p\"') && echo "${LOG_PREFIX} restream from ${EXCEPT_YOUTUBE_FULL_URL} retry after ${LOOPINTERVAL} seconds..." && sleep ${LOOPINTERVAL} && continue
 				fi
 				if [[ "${EXCEPT_TWITCAST_PART_URL}" != "noexcept" ]]; then
 					LOG_PREFIX=$(date +"[%Y-%m-%d %H:%M:%S]") ; echo "${LOG_PREFIX} metadata ${EXCEPT_TWITCAST_FULL_URL}"
