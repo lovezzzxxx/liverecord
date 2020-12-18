@@ -153,7 +153,7 @@ function getlivestatus(){
 #从PAGE获取STREAM_ID STREAM_URL DLNAME FNAME,STREAM_PROXY也在此获取
 function prasepage(){
 	if [[ $TYPE == "youtube"* ]]; then
-		STREAM_ID=$(echo $PAGE | grep -o '\\"liveStreamabilityRenderer\\":{\\"videoId\\":\\".*\\"' | head -n 1 | sed 's/\\//g' | awk -F'"' '{print $6}')
+		STREAM_ID=$(echo $PAGE | grep -o '\"liveStreamabilityRenderer\":{\"videoId\":\".*\"' | head -n 1 | awk -F'"' '{print $6}')
 		FNAME="youtube_${PART_URL}_$(date +"%Y%m%d_%H%M%S")_${STREAM_ID}.ts"
 	fi
 	if [[ $TYPE == "youtubeffmpeg" ]]; then
