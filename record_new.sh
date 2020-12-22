@@ -12,8 +12,9 @@ if [[ ! -n "${1}" ]]; then
 	echo "参数说明:"
 	echo $'--nico-id			nico用户名'
 	echo $'--nico-psw			nico密码'
-	echo $'--you-cookies		youtube监测cookies文件,仅支持youtube频道类型'
-	echo $'--you-config|--bili-config			youtube或bilibili录制配置文件,仅支持youtube和bilibili频道类型'
+	echo $'--you-cookies		youtube监测cookies文件,需要配合--you-config参数使用'
+	echo $'--you-config			youtube录制配置文件,仅支持youtube频道类型'
+	echo $'--bili-config		bilibili录制配置文件,仅支持bilibili频道类型'
 	echo $'--bili-cookies		bilibili录制cookies文件,仅支持bilibiliy频道类型'
 	echo $'--bili-proxy			bilibili录制代理'
 	echo $'--bili-proxy-url		bilibili录制代理获取链接'
