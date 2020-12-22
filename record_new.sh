@@ -6,13 +6,15 @@ if [[ ! -n "${1}" ]]; then
 	echo ""
 	echo "基本用法:"
 	echo "${0} 频道类型 频道号码"
-	echo "频道类型支持youtube youtubeffmpeg twitcast twitcastffmpeg twitcastpy twitch openrec nicolv nicoco nicoch mirrativ reality 17live chaturbate bilibili bilibilir streamlink"
+	echo "频道类型支持youtube youtubeffmpeg twitcast twitcastffmpeg twitcastpy twitch openrec nicolv nicoco nicoch mirrativ reality 17live chaturbate bilibili bilibiliy bilibilir streamlink"
 	echo ""
 	echo ""
 	echo "参数说明:"
 	echo $'--nico-id			nico用户名'
 	echo $'--nico-psw			nico密码'
-	echo $'--bili-cookies		bilibili录制cookies文件,仅支持bilibili频道类型'
+	echo $'--you-cookies		youtube监测cookies文件,仅支持youtube频道类型'
+	echo $'--you-config|--bili-config			youtube或bilibili录制配置文件,仅支持youtube和bilibili频道类型'
+	echo $'--bili-cookies		bilibili录制cookies文件,仅支持bilibiliy频道类型'
 	echo $'--bili-proxy			bilibili录制代理'
 	echo $'--bili-proxy-url		bilibili录制代理获取链接'
 	echo $'-f|--format			清晰度,默认为best'
@@ -74,7 +76,11 @@ function getlivestatus(){
 	local LOCAL_PAGE=""
 	
 	if [[ $TYPE == "youtube"* ]]; then
-		LOCAL_PAGE=$(wget -q -O- "$FULL_URL")
+		if [[ -n $YOU_COOKIES ]]; then
+			LOCAL_PAGE=$(wget --load-cookies "$YOU_COOKIES" -q -O- "$FULL_URL")
+		else
+			LOCAL_PAGE=$(wget -q -O- "$FULL_URL")
+		fi
 		#qualityLabel开播早下播晚会在下播时多录,isLive开播晚下播早会在开播时晚录
 		#(echo $LOCAL_PAGE | grep -q '\"playabilityStatus\":{\"status\":\"OK\"') && break
 		if [[ $LIVE_STATUS_YOUTUBE -lt 1 ]] || [[ $EXCEPT == "except" ]]; then
@@ -221,9 +227,17 @@ function prasepage(){
 function startrecord(){
 	if [[ $TYPE == "youtube" ]]; then
 		if [[ $LIVE_STATUS_YOUTUBE_BEFORE -lt 1 ]]; then
-			(streamlink --loglevel trace --hls-live-restart -o "${DIR}/${FNAME}" "https://www.youtube.com/watch?v=${STREAM_ID}" "$FORMAT" > "${DIR}/${FNAME}.log" 2>&1) &
+			if [[ -n $STREAMLINK_CONFIG ]]; then
+				(streamlink --loglevel trace --hls-live-restart --config "$STREAMLINK_CONFIG" -o "${DIR}/${FNAME}" "https://www.youtube.com/watch?v=${STREAM_ID}" "$FORMAT" > "${DIR}/${FNAME}.log" 2>&1) &
+			else
+				(streamlink --loglevel trace --hls-live-restart -o "${DIR}/${FNAME}" "https://www.youtube.com/watch?v=${STREAM_ID}" "$FORMAT" > "${DIR}/${FNAME}.log" 2>&1) &
+			fi
 		else
-			(streamlink --loglevel trace -o "${DIR}/${FNAME}" "https://www.youtube.com/watch?v=${STREAM_ID}" "$FORMAT" > "${DIR}/${FNAME}.log" 2>&1) &
+			if  [[ -n $STREAMLINK_CONFIG ]]; then
+				(streamlink --loglevel trace --config "$STREAMLINK_CONFIG" -o "${DIR}/${FNAME}" "https://www.youtube.com/watch?v=${STREAM_ID}" "$FORMAT" > "${DIR}/${FNAME}.log" 2>&1) &
+			else
+				(streamlink --loglevel trace -o "${DIR}/${FNAME}" "https://www.youtube.com/watch?v=${STREAM_ID}" "$FORMAT" > "${DIR}/${FNAME}.log" 2>&1) &
+			fi
 		fi
 		LIVE_STATUS_YOUTUBE_BEFORE=3
 	fi
@@ -245,8 +259,23 @@ function startrecord(){
 	fi
 	if [[ $TYPE == "bilibili" ]]; then
 		if [[ -n $STREAM_PROXY ]]; then
+			if [[ -n $STREAMLINK_CONFIG ]]; then
+				(streamlink --loglevel trace --http-proxy "http://${STREAM_PROXY}/" --config "$STREAMLINK_CONFIG" -o "${DIR}/${FNAME}" "$FULL_URL" "$FORMAT" > "${DIR}/${FNAME}.log" 2>&1) &
+			else
+				(streamlink --loglevel trace --http-proxy "http://${STREAM_PROXY}/" -o "${DIR}/${FNAME}" "$FULL_URL" "$FORMAT" > "${DIR}/${FNAME}.log" 2>&1) &
+			fi
+		else
+			if [[ -n $STREAMLINK_CONFIG ]]; then
+				(streamlink --loglevel trace --config "$STREAMLINK_CONFIG" -o "${DIR}/${FNAME}" "$FULL_URL" "$FORMAT" > "${DIR}/${FNAME}.log" 2>&1) &
+			else
+				(streamlink --loglevel trace -o "${DIR}/${FNAME}" "$FULL_URL" "$FORMAT" > "${DIR}/${FNAME}.log" 2>&1) &
+			fi
+		fi
+	fi
+	if [[ $TYPE == "bilibiliy" ]]; then
+		if [[ -n $STREAM_PROXY ]]; then
 			if [[ -n $BILI_COOKIES ]]; then
-				(you-get --debug -c "$BILI_COOKIES" --http-proxy "$STREAM_PROXY" -O "${DIR}/${DLNAME}" "$FULL_URL" > "${DIR}/${FNAME}.log" 2>&1) &
+				(you-get --debug --http-proxy "$STREAM_PROXY" -c "$BILI_COOKIES" -O "${DIR}/${DLNAME}" "$FULL_URL" > "${DIR}/${FNAME}.log" 2>&1) &
 			else
 				(you-get --debug --http-proxy "$STREAM_PROXY" -O "${DIR}/${DLNAME}" "$FULL_URL" > "${DIR}/${FNAME}.log" 2>&1) &
 			fi
@@ -389,6 +418,14 @@ while true; do
 			;;
 		--nico-psw)
 			NICO_PSW=$2
+			shift 2
+			;;
+		--you-cookies)
+			YOU_COOKIES=$2
+			shift 2
+			;;
+		--you-config|--bili-config)
+			STREAMLINK_CONFIG=$2
 			shift 2
 			;;
 		--bili-cookies)
