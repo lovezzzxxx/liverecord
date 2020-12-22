@@ -46,8 +46,9 @@
 :---|:---|:---
 --nico-id|无|nico用户名
 --nico-psw|无|nico密码
---you-cookies|无|youtube监测cookies文件,仅支持youtube频道类型'
---you-config|--bili-config|无|youtube或bilibili录制配置文件,仅支持youtube和bilibili频道类型
+--you-cookies|无|youtube监测cookies文件,需要配合--you-config参数使用
+--you-config|无|youtube录制配置文件,仅支持youtube频道类型
+--bili-config|无|bilibili录制配置文件,仅bilibili频道类型
 --bili-cookies|无|bilibili录制cookies文件,仅支持bilibiliy频道类型
 --bili-proxy|无|bilibili录制代理
 --bili-proxy-url|无|bilibili录制代理获取链接
@@ -74,7 +75,7 @@
 ```
 * 浏览器中打开www.bilibili.com时按f12，打开"网络"中带有cookies的请求，复制请求头中的cookeis如`SID=aaaaaaaaaaaaaaaaaaaaaa.; HSID=aaaaaaaaaaaaaaa; SSID=aaaaaaaaaaaaaaaa; APISID=aaaaaaaaaaaaaa/aaaaaaaaaaaaaaa; SAPISID=aaaaaaaaaaaa/aaaaaaaaaaaaaaa`到[cookies转换](http://tools.bugscaner.com/cookietocookiejar/)中并设置作用域为`.youtube.com`，将结果保存到任意文本文档中并在参数中设置运行时相对路径即可，推荐在首行添加示例中的注释
 
-### --you-config|--bili-config格式示例
+### --you-config格式示例
 ```
 http-cookie=SID=aaaaaaaaaaaaaaaaaaaaaa.
 http-cookie=HSID=aaaaaaaaaaaaaaa
@@ -83,6 +84,15 @@ http-cookie=APISID=aaaaaaaaaaaaaa/aaaaaaaaaaaaaaa
 http-cookie=SAPISID=aaaaaaaaaaaa/aaaaaaaaaaaaaaa
 ```
 * 获取cookies方法同上，将结果修改为上述格式后保存到任意文本文档中并在参数中设置运行时相对路径即可
+
+### --bili-config格式示例
+```
+http-cookie=DedeUserID=aaaaaa
+http-cookie=DedeUserID__ckMd5=aaaaaaaaaaaa
+http-cookie=SESSDATA=aaaa%2Caaaaa
+http-cookie=bili_jct=aaaaaaaa
+http-cookie=sid=aaaaaa
+```
 
 ### --bili-cookies格式示例
 ```
