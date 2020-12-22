@@ -46,7 +46,9 @@
 :---|:---|:---
 --nico-id|无|nico用户名
 --nico-psw|无|nico密码
---bili-cookies|无|bilibili录制cookies文件,仅支持bilibili频道类型
+--you-cookies|无|youtube监测cookies文件,仅支持youtube频道类型'
+--you-config|--bili-config|无|youtube或bilibili录制配置文件,仅支持youtube和bilibili频道类型
+--bili-cookies|无|bilibili录制cookies文件,仅支持bilibiliy频道类型
 --bili-proxy|无|bilibili录制代理
 --bili-proxy-url|无|bilibili录制代理获取链接
 -f\|--format|best|清晰度
@@ -58,16 +60,39 @@
 -u\|--upload|无|上传网盘,格式为网盘类型重试次数:盘符:路径，网盘类型支持rclone paidupcs onedrive，例如rclone3:vps:record
 -dt\|--delete-type|1|删除本地录像需要成功上传的数量，默认为1，del为强制删除，keep为强制保留，all为需要全部上传成功
 -e\|--except|无|排除转播，格式同录制频道，如-e youtube "UCWCc8tO-uUl_7SJXIKJACMw
+* youtube会限需要--you-cookies(用于监测)与--you-config(用于录制)同时使用
+* bilibili会限需要--bili-config(使用bilibili频道类型时)或--bili-cookies(使用bilibiliy频道类型时)参数
 
-### bilibili录制cookies格式示例
+### --you-cookies格式示例
 ```
+# Netscape HTTP Cookie File
+.youtube.com	TRUE	/	FALSE	1669471182	SID	aaaaaaaaaaaaaaaaaaaaaa.
+.youtube.com	TRUE	/	FALSE	1648408153	HSID	aaaaaaaaaaaaaaa
+.youtube.com	TRUE	/	FALSE	1648408153	SSID	aaaaaaaaaaaaaaaa
+.youtube.com	TRUE	/	FALSE	1648408153	APISID	aaaaaaaaaaaaaa/aaaaaaaaaaaaaaa
+.youtube.com	TRUE	/	FALSE	1648408153	SAPISID	aaaaaaaaaaaa/aaaaaaaaaaaaaaa
+```
+* 浏览器中打开www.bilibili.com时按f12，打开"网络"中带有cookies的请求，复制请求头中的cookeis如`SID=aaaaaaaaaaaaaaaaaaaaaa.; HSID=aaaaaaaaaaaaaaa; SSID=aaaaaaaaaaaaaaaa; APISID=aaaaaaaaaaaaaa/aaaaaaaaaaaaaaa; SAPISID=aaaaaaaaaaaa/aaaaaaaaaaaaaaa`到[cookies转换](http://tools.bugscaner.com/cookietocookiejar/)中并设置作用域为`.youtube.com`，将结果保存到任意文本文档中并在参数中设置运行时相对路径即可，推荐在首行添加示例中的注释
+
+### --you-config|--bili-config格式示例
+```
+http-cookie=SID=aaaaaaaaaaaaaaaaaaaaaa.
+http-cookie=HSID=aaaaaaaaaaaaaaa
+http-cookie=SSID=aaaaaaaaaaaaaaaa
+http-cookie=APISID=aaaaaaaaaaaaaa/aaaaaaaaaaaaaaa
+http-cookie=SAPISID=aaaaaaaaaaaa/aaaaaaaaaaaaaaa
+```
+* 获取cookies方法同上，将结果修改为上述格式后保存到任意文本文档中并在参数中设置运行时相对路径即可
+
+### --bili-cookies格式示例
+```
+# Netscape HTTP Cookie File
 .bilibili.com	TRUE	/	FALSE	1606047748	DedeUserID	aaaaaa
 .bilibili.com	TRUE	/	FALSE	1606047748	DedeUserID__ckMd5	aaaaaaaaaaaa
 .bilibili.com	TRUE	/	FALSE	1606047748	SESSDATA	aaaa%2Caaaaa
 .bilibili.com	TRUE	/	FALSE	1606047748	bili_jct	aaaaaaaa
 .bilibili.com	TRUE	/	FALSE	1606047748	sid	aaaaaa
 ```
-* 浏览器中打开live.bilibili.com时按f12，打开"网络"中带有cookies的请求，复制请求头中的cookeis如`DedeUserID=aaaaaa; DedeUserID__ckMd5=aaaaaaaaaaaa; SESSDATA=aaaa%2Caaaaa; bili_jct=aaaaaaaa; sid=aaaaaa`到[cookies转换](http://tools.bugscaner.com/cookietocookiejar/)中并设置作用域为`.bilibili.com`，将结果保存到任意文本文档中并在参数中设置运行时相对路径即可
 
 # record.sh使用方法
 ### 方法
