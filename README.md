@@ -38,7 +38,7 @@ record_twitcast.py是录制twitcast的websocket流的精简脚本
 
 </details>
 
-## record_new.sh使用方法
+## 使用方法
 #### 方法
 `./record_new.sh [-参数 值] 频道类型 频道号码`
 
