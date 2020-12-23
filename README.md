@@ -1,47 +1,58 @@
-# 功能介绍
-  * record.sh为自动录播脚本。支持youtube频道、twitcast频道、twitch频道、openrec频道、niconico生放送、niconico社区、niconico频道（支持登录niconico账号进行录制）、mirrativ频道、reality频道、17live频道、chaturbate频道、bilibili频道、streamlink支持的直播网址、ffmpeg支持的m3u8地址。bilibili录制支持在上述频道有直播时不进行录制，从而简单的排除转播的录制；支持使用代理录制bilibili直播。支持定时分段。支持rclone上传、onedrive上传(含世纪互联版)、百度云上传；支持可指定次数的上传出错重试；支持根据上传结果选择是否保留本地文件。
-  
-  * record_new.sh为参数版本的自动录播脚本，调用更加直观。
-  
-  * install.sh为一键安装脚本。目前仅在ubuntu18.04与19.10系统测试过，理论上较新的linux系统应该都可以使用(centos系统应该把apt替换为yum就行了)。
+## 功能介绍
+record_new.sh为自动录播脚本  
+  * 支持youtube频道、twitcast频道、twitch频道、openrec频道、niconico生放送、niconico社区、niconico频道、mirrativ频道、reality频道、17live频道、chaturbate频道、bilibili频道、streamlink支持的直播网址、ffmpeg支持的m3u8地址
+  * 其中youtube支持cookies录制，niconico支持登录账号录制，bilibili支持cookies录制与代理
+  * 可以设置在其他频道直播时不进行录制避免转播与双推流
+  * 支持rclone、onedrive与baidupcs上传并根据上传情况清理本地文件  
 
-  * record_twitcast.py为可选，是一个可以录制websocket的精简脚本。因为twitcast分别提供了基于h5与websocket的流，但部分直播的最高清晰度仅能通过websocket获取，而ffmpeg并不能支持websocket，所以提供一个可以录制websocket的脚本。也可单独使用，方法为`python3 record_twitcast.py "ws或wss网址" "输出文件目录"`。  
+install.sh为一键安装脚本
+  * 目前仅在ubuntu18.04与19.10系统测试过，理论上较新的linux系统应该都可以使用(centos系统把apt替换为yum应该就行了)  
+
+record_twitcast.py是录制twitcast的websocket流的精简脚本
 
 感谢[live-stream-recorder](https://github.com/printempw/live-stream-recorder)、[GiGaFotress/Vtuber-recorder](https://github.com/GiGaFotress/Vtuber-recorder)  
 
-# 安装方法
-### 一键安装
+## 安装方法
+#### 一键安装
 `curl https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/install.sh | bash`  
-  * 一键脚本将会自动安装下列所有环境依赖， __同时会覆盖安装go环境并添加一些环境变量__ ，如果有需要可以注释掉相应的命令或者手动安装环境依赖。其中record.sh和record_twitcast.py会保存于运行时命令行所在目录的record文件夹下，livedl会保存于运行时命令行所在目录的livedl文件夹下， BilibiliLiveRecorder会解压到运行时命令行所在目录的BilibiliLiveRecorder文件夹下
-  * __一键脚本安装后脚本调用方式应为`record/record.sh`而非下文示例中的`./record.sh`__  
+  * __一键脚本安装后脚本调用方式应为`record/record_new.sh`而非下文示例中的`./record_new.sh`__
+  * 一键脚本将会自动安装下列所有环境依赖， __同时会覆盖安装go环境并添加一些环境变量__ ，如果有需要可以注释掉相应的命令或者手动安装环境依赖
+  * 其中record.sh、record_new.sh和record_twitcast.py会保存于运行时命令行所在目录的record文件夹下，livedl会保存于运行时命令行所在目录的livedl文件夹下， BilibiliLiveRecorder会解压到运行时命令行所在目录的BilibiliLiveRecorder文件夹下
   * 一键脚本运行结束后会提示仍需要手动进行的操作，如更新环境变量和登录网盘账号  
 
-### 环境依赖
-此处列举自动录播脚本运行所需的所有程序，如果一键脚本安装失败或希望手动安装环境可以参考  
-  * 自动录播脚本，安装方法为`mkdir record ; wget -O "record/record.sh" "https://github.com/lovezzzxxx/liverecord/raw/master/record.sh" ; chmod +x record/record.sh`
-  * [ffmpeg](https://github.com/FFmpeg/FFmpeg)，安装方法为`sudo apt install ffmpeg`。否则无法使用除了youtube、twitcast、twitcastpy、nicolv、nicoco、nicoch、bilibili、bilibiliproxy以外的参数。
-  * [streamlink](https://github.com/streamlink/streamlink)(基于python3)，安装方法为`pip3 install streamlink`。否则无法使用youtube、youtubeffmpeg、twitch、streamlink、17live参数。
+#### 手动安装
+
+<details>
+<summary>环境依赖</summary>
+
+  * 自动录播脚本，安装方法为`mkdir record ; wget -O "record/record_new.sh" "https://github.com/lovezzzxxx/liverecord/raw/master/record_new.sh" ; chmod +x record/record_new.sh`
+  * [ffmpeg](https://github.com/FFmpeg/FFmpeg)，安装方法为`sudo apt install ffmpeg`。
+  * [streamlink](https://github.com/streamlink/streamlink)(基于python3)，安装方法为`pip3 install streamlink`。
   * [livedl](https://github.com/railannad/livedl)(基于go，原项目[himananiito/livedl](https://github.com/himananiito/livedl)已失效)，具体编译安装方法可以参考作者的说明， __请将编译完成的livedl文件放置于运行时命令行所在目录的livedl/文件夹内__ 。否则无法使用twitcast、nicolv、nicoco、nicoch参数。
   * [record_twitcast.py文件](https://github.com/lovezzzxxx/liverecord/blob/master/record_twitcast.py)(基于python3 websocket库)，安装方法为`mkdir record ; wget -O "record/record_twitcast.py" "https://github.com/lovezzzxxx/liverecord/raw/master/record_twitcast.py" ; chmod +x "record/record_twitcast.py"`， __如果手动安装请将record_twitcast.py文件放置于运行时命令行所在目录的record/文件夹内并给予可执行权限即可__ 。否则无法使用twitcastpy参数。
-  * [you-get](https://github.com/soimort/you-get)(基于python3)，安装方法为`pip3 install you-get`。否则无法使用bilibili、bilibiliproxy参数。
- 安装方法为`pip3 install you-get`
+  * [you-get](https://github.com/soimort/you-get)(基于python3)，安装方法为`pip3 install you-get`。否则无法使用bilibiliy参数。
   * [BilibiliLiveRecorder](https://github.com/nICEnnnnnnnLee/BilibiliLiveRecorder)(基于java)，安装方法为`mkdir BilibiliLiveRecorder ; cd BilibiliLiveRecorder ; wget https://github.com/nICEnnnnnnnLee/BilibiliLiveRecorder/releases/download/V2.13.0/BilibiliLiveRecord.v2.13.0.zip ; unzip BilibiliLiveRecord.v2.13.0.zip ; rm BilibiliLiveRecord.v2.13.0.zip ; cd ..`。否则无法使用bilibilir参数。
-  * [rclone](https://github.com/rclone/rclone)(支持onedrive、dropbox、googledrive等多种网盘，需登录后使用)，安装方法为`curl https://rclone.org/install.sh | sudo bash`，配置方法为`rclone config`后根据说明进行。否则无法使用rclone参数上传。
-  * [OneDriveUploader](https://github.com/MoeClub/OneList/tree/master/OneDriveUploader)(支持包括世纪互联版在内的各种onedrive网盘，需登录后使用)，安装和登录方法可以参考[Rat's Blog](https://www.moerats.com/archives/1006)。否则无法使用onedrive参数上传。
-  * [BaiduPCS-Go](https://github.com/felixonmars/BaiduPCS-Go)(给予go，支持百度云网盘，需登录后使用，原项目[iikira/BaiduPCS-Go](https://github.com/iikira/BaiduPCS-Go)已失效)，安装和登录方法可以参考作者的说明。否则无法使用baidupan参数上传。
+  * [rclone](https://github.com/rclone/rclone)(支持onedrive、googledrive、dropbox等多种网盘，需登录后使用)，安装方法为`curl https://rclone.org/install.sh | sudo bash`，配置方法为`rclone config`后根据说明进行。否则无法使用rclone上传。
+  * [OneDriveUploader](https://github.com/MoeClub/OneList/tree/master/OneDriveUploader)(支持包括世纪互联版在内的各种onedrive网盘，需登录后使用)，安装和登录方法可以参考[Rat's Blog](https://www.moerats.com/archives/1006)。否则无法使用onedrive上传。
+  * [BaiduPCS-Go](https://github.com/felixonmars/BaiduPCS-Go)(给予go，支持百度云网盘，需登录后使用，原项目[iikira/BaiduPCS-Go](https://github.com/iikira/BaiduPCS-Go)已失效)，安装和登录方法可以参考作者的说明。否则无法使用baidupan上传。
 
-# record_new.sh使用方法
-### 方法
+</details>
+
+## record_new.sh使用方法
+#### 方法
 `./record_new.sh [-参数 值] 频道类型 频道号码`
 
-### 示例
+#### 示例
   * 使用默认参数录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw  
 `./record_new.sh youtube "UCWCc8tO-uUl_7SJXIKJACMw"`  
 
-  * 使用ffmpeg录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw ，依次获取1080p 720p 480p 360p worst中第一个可用的清晰度，间隔30秒检测，录像保存于record_video/mea文件夹中并在录制完成后自动上传到rclone中名称为vps的网盘的record目录中如果出错重试3次 和百度云网盘用户lovezzzxxx的record_video目录中如果出错则重试两侧次，如果其中有1个上传成功则删除本地录像  
-`./record.sh youtubeffmpeg "UCWCc8tO-uUl_7SJXIKJACMw" -f 1080p,720p,480p,360p,worst -l 30 -o "record_video/mea" -u rclone3:vps:record -u baidupcs2:lovezzzxxx:record_video -dt 1`  
+  * 使用ffmpeg录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw ，使用record/you-cookies.txt中的cookeis检测youtube直播 使用record/you-config.txt中的配置录制youtube直播，依次获取1080p 720p 480p 360p worst中第一个可用的清晰度，间隔30秒检测，录像保存于record_video/mea文件夹中并在录制完成后自动上传到rclone中名称为vps的网盘的record目录中如果出错重试3次 和百度云网盘用户lovezzzxxx的record_video目录中如果出错则重试2次，如果其中有1个上传成功则删除本地录像  
+`./record.sh youtubeffmpeg "UCWCc8tO-uUl_7SJXIKJACMw" --you-cookies "record/you-cookies.txt" --you-config "record/you-config.txt"  -f 1080p,720p,480p,360p,worst -l 30 -o "record_video/mea" -u rclone3:vps:record -u baidupcs2:lovezzzxxx:record_video -dt 1`  
 
-### 参数说明
+  * 将上述命令后台运行，并将输出打印到record_log/meaqua_mea_youtube.log文件中  
+`nohup ./record.sh youtubeffmpeg "UCWCc8tO-uUl_7SJXIKJACMw" --you-cookies "record/you-cookies.txt" --you-config "record/you-config.txt"  -f 1080p,720p,480p,360p,worst -l 30 -o "record_video/mea" -u rclone3:vps:record -u baidupcs2:lovezzzxxx:record_video -dt 1 > record_log/meaqua_mea_youtube.log &`
+
+#### 参数说明
 参数|默认值|说明
 :---|:---|:---
 --nico-id|无|nico用户名
@@ -64,7 +75,10 @@
 * youtube会限需要--you-cookies(用于监测)与--you-config(用于录制)同时使用
 * bilibili会限需要--bili-config(使用bilibili频道类型时)或--bili-cookies(使用bilibiliy频道类型时)参数
 
-### --you-cookies格式示例
+
+<details>
+<summary>--you-cookies格式示例</summary>
+
 ```
 # Netscape HTTP Cookie File
 .youtube.com	TRUE	/	FALSE	1669471182	SID	aaaaaaaaaaaaaaaaaaaaaa.
@@ -75,7 +89,12 @@
 ```
 * 浏览器中打开www.bilibili.com时按f12，打开"网络"中带有cookies的请求，复制请求头中的cookeis如`SID=aaaaaaaaaaaaaaaaaaaaaa.; HSID=aaaaaaaaaaaaaaa; SSID=aaaaaaaaaaaaaaaa; APISID=aaaaaaaaaaaaaa/aaaaaaaaaaaaaaa; SAPISID=aaaaaaaaaaaa/aaaaaaaaaaaaaaa`到[cookies转换](http://tools.bugscaner.com/cookietocookiejar/)中并设置作用域为`.youtube.com`，将结果保存到任意文本文档中并在参数中设置运行时相对路径即可，推荐在首行添加示例中的注释
 
-### --you-config格式示例
+</details>
+
+
+<details>
+<summary>--you-config格式示例</summary>
+
 ```
 http-cookie=SID=aaaaaaaaaaaaaaaaaaaaaa.
 http-cookie=HSID=aaaaaaaaaaaaaaa
@@ -85,7 +104,12 @@ http-cookie=SAPISID=aaaaaaaaaaaa/aaaaaaaaaaaaaaa
 ```
 * 获取cookies方法同上，将结果修改为上述格式后保存到任意文本文档中并在参数中设置运行时相对路径即可
 
-### --bili-config格式示例
+</details>
+
+
+<details>
+<summary>--bili-config格式示例</summary>
+
 ```
 http-cookie=DedeUserID=aaaaaa
 http-cookie=DedeUserID__ckMd5=aaaaaaaaaaaa
@@ -94,7 +118,12 @@ http-cookie=bili_jct=aaaaaaaa
 http-cookie=sid=aaaaaa
 ```
 
-### --bili-cookies格式示例
+</details>
+
+
+<details>
+<summary>--bili-cookies格式示例</summary>
+
 ```
 # Netscape HTTP Cookie File
 .bilibili.com	TRUE	/	FALSE	1606047748	DedeUserID	aaaaaa
@@ -104,11 +133,20 @@ http-cookie=sid=aaaaaa
 .bilibili.com	TRUE	/	FALSE	1606047748	sid	aaaaaa
 ```
 
-# record.sh使用方法
-### 方法
+</details>
+
+## 旧版record.sh使用方法
+
+<details>
+<summary>点击展开</summary>
+
+record.sh基本功能同上，但youtube与bilibili不支持cookies录制，仅bilibili支持排除转播，不支持任意多个网盘上传。
+
+## record.sh使用方法
+#### 方法
 `./record.sh youtube|youtubeffmpeg|twitcast|twitcastffmpeg|twitcastpy|twitch|openrec|nicolv[:用户名,密码]|nicoco[:用户名,密码]|nicoch[:用户名,密码]|mirrativ|reality|17live|chaturbate|bilibili|bilibiliproxy[,代理ip:代理端口]|bilibilir|bilibiliproxyr[,代理ip:代理端口]|streamlink|m3u8 频道号码 [best|其他清晰度] [loop|once|视频分段时间] [10,10,1|循环检测间隔,最短录制间隔,录制开始所需连续检测开播次数] [record_video/other|其他本地目录] [nobackup|rclone:网盘名称:|onedrive|baidupan[重试次数][keep|del]] [noexcept|排除转播的youtube频道号码] [noexcept|排除转播的twitcast频道号码] [noexcept|排除转播的twitch频道号码] [noexcept|排除转播的openrec频道号码] [noexcept|排除转播的nicolv频道号码] [noexcept|排除转播的nicoco频道号码] [noexcept|排除转播的nicoch频道号码] [noexcept|排除转播的mirrativ频道号码] [noexcept|排除转播的reality频道号码] [noexcept|排除转播的17live频道号码]  [noexcept|排除转播的chaturbate频道号码] [noexcept|排除转播的streamlink支持的频道网址]`
 
-### 示例
+#### 示例
   * 使用默认参数录制https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw   
 `./record.sh youtube "UCWCc8tO-uUl_7SJXIKJACMw"`  
 
@@ -118,8 +156,7 @@ http-cookie=sid=aaaaaa
   * 后台运行，使用代理服务器127.0.0.1:1080录制https://live.bilibili.com/12235923 ，最高清晰度，循环检测并在录制进行7200秒时分段，间隔30秒检测 每次录制从开始到结束最短间隔5秒，录像保存于record_video/mea文件夹中并在录制完成后自动上传到rclone中名称为vps的网盘和onedrive和百度云网盘的相同路径 如果出错则重试最多三次 上传完成后无论成功与否都保留本地录像，在https://www.youtube.com/channel/UCWCc8tO-uUl_7SJXIKJACMw https://twitcasting.tv/kaguramea_vov 有直播时不进行录制，log记录保存于mea_bilibili.log文件  
 `nohup ./record.sh bilibiliproxy,127.0.0.1:1080 "12235923" best 7200 30,5 "record_video/mea_bilibili" rclone:vps:onedrivebaidupan3keep "UCWCc8tO-uUl_7SJXIKJACMw" "kaguramea_vov" > mea_bilibili.log &`  
 
-
-### 参数说明
+#### 参数说明
 
   * 必选参数，选择录制方式与相应频道号码  
 
@@ -142,3 +179,5 @@ bilibili|`bilibili`、`bilibiliproxy`|`直播间网址中的ID部分`(如1223592
 第六个参数|本地录像存放目录|`record_video/other`|`本地目录`||
 第七个参数|是否自动备份|`nobackup`|`rclone:网盘名称:` + `onedrive` + `baidupan` + `重试次数` + `无/keep/del`，不需要空格直接连接在一起即可(如rclone1del或rclone:vps:onedrivebaidupan3keep)|其中前三项的rclone、onedrive、baidupan分别指上传rclone相应名称的网盘、OneDriveUploader登录的onedrive网盘、BaiduPCS-Go登录的百度云网盘。第四项为重试次数，如果不指定则默认为尝试一次。第五项为上传完成后是否保留本地文件，如果不指定则上传成功将删除本地文件，上传失败将保留本地文件，keep参数为不论结果始终保留本地文件，del参数为不论结果始终删除本地文件。如果因为偶发的检测异常导致没有直播时开始录制，进而产生没有相应录像文件的log文件，脚本将会自动删除这个没有对应录像文件的log文件
 第八至十四个参数|bilibili的录制需要排除的转播|`noexcept`|`相应频道号码`，具体同第二个参数，顺序分别为youtube、twitcast、twitch、openrec、nicolv、nicoco、nicoch、mirrativ、reality、17live、chaturbate、streamlink|仅bilibili录制有效，检测到相应频道正在直播时不进行bilibili的录制
+
+</details>
