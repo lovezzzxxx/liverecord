@@ -140,7 +140,7 @@ http-cookie=sid=aaaaaa
 <details>
 <summary>点击展开</summary>
 
-record.sh基本功能同上，但youtube与bilibili不支持cookies录制，仅bilibili支持排除转播，不支持任意多个网盘上传。
+record.sh基本功能同上，但使用方式有较大区别。另外youtube与bilibili不支持cookies录制，仅bilibili支持排除转播，不支持任意多个网盘上传。
 
 ## record.sh使用方法
 #### 方法
