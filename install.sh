@@ -36,7 +36,7 @@ wget -O "record/record_twitcast.py" "https://raw.githubusercontent.com/lovezzzxx
 curl https://rclone.org/install.sh | bash #配置rclone自动上传
 sudo wget https://raw.githubusercontent.com/MoeClub/OneList/master/OneDriveUploader/amd64/linux/OneDriveUploader -P /usr/local/bin/ #配置onedrive自动上传
 sudo chmod +x /usr/local/bin/OneDriveUploader
-go get github.com/felixonmars/BaiduPCS-Go ; go build github.com/felixonmars/BaiduPCS-Go ; mkdir -p go/bin ; mv BaiduPCS-Go go/bin/ #配置百度云自动上传
+go get github.com/qjfoidnh/BaiduPCS-Go ; go build github.com/qjfoidnh/BaiduPCS-Go ; mkdir -p go/bin ; mv BaiduPCS-Go go/bin/ #配置百度云自动上传
 echo 'export PATH=$PATH:'`echo ~`'/go/bin'>>~/.bashrc #修改默认环境变量，如不希望可以注释掉
 source ~/.bashrc
 
