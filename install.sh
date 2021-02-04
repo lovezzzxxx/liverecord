@@ -12,14 +12,14 @@ export PATH=$PATH:/usr/local/bin
 
 #安装go相关下载工具
 sudo rm -rf /usr/local/go #如果有已经安装的go环境，先卸载，新老版本会有冲突，如不希望可以注释掉
-wget https://dl.google.com/go/go1.15.5.linux-amd64.tar.gz #安装go环境，如不希望可以注释掉
-sudo tar -C /usr/local -xzf go1.15.5.linux-amd64.tar.gz ; rm go1.15.5.linux-amd64.tar.gz
+wget https://dl.google.com/go/go1.15.7.linux-amd64.tar.gz #安装go环境，如不希望可以注释掉
+sudo tar -C /usr/local -xzf go1.15.7.linux-amd64.tar.gz ; rm go1.15.7.linux-amd64.tar.gz
 echo 'export PATH=$PATH:/usr/local/go/bin'>>~/.bashrc #修改默认环境变量，如不希望可以注释掉
 export PATH=$PATH:/usr/local/go/bin
 sudo apt -y install git ; sudo apt -y install build-essential
 echo "此处可能需要较长时间，请耐心等待"
 go get github.com/gorilla/websocket ; go get golang.org/x/crypto/sha3 ; go get github.com/mattn/go-sqlite3 ; go get github.com/gin-gonic/gin #安装必要的go库
-git clone https://github.com/railannad/livedl.git ; cd livedl ; go build src/livedl.go ; rm -r `ls | grep -v "^livedl$"` ; cd .. #编译安装livedl
+git clone https://github.com/nnn-revo2012/livedl.git ; cd livedl ; go build src/livedl.go ; rm -r `ls | grep -v "^livedl$"` ; cd .. #编译安装livedl
 
 #安装java相关下载工具
 apt -y install default-jre
@@ -36,7 +36,7 @@ wget -O "record/record_twitcast.py" "https://raw.githubusercontent.com/lovezzzxx
 curl https://rclone.org/install.sh | bash #配置rclone自动上传
 sudo wget https://raw.githubusercontent.com/MoeClub/OneList/master/OneDriveUploader/amd64/linux/OneDriveUploader -P /usr/local/bin/ #配置onedrive自动上传
 sudo chmod +x /usr/local/bin/OneDriveUploader
-go get github.com/felixonmars/BaiduPCS-Go ; go build github.com/felixonmars/BaiduPCS-Go ; mkdir -p go/bin ; mv BaiduPCS-Go go/bin/ #配置百度云自动上传
+go get github.com/qjfoidnh/BaiduPCS-Go ; go build github.com/qjfoidnh/BaiduPCS-Go ; mkdir -p go/bin ; mv BaiduPCS-Go go/bin/ #配置百度云自动上传
 echo 'export PATH=$PATH:'`echo ~`'/go/bin'>>~/.bashrc #修改默认环境变量，如不希望可以注释掉
 source ~/.bashrc
 
