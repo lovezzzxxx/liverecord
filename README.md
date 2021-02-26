@@ -28,7 +28,7 @@ record_twitcast.py是录制twitcast的websocket流的精简脚本
   * 自动录播脚本，安装方法为`mkdir record ; wget -O "record/record_new.sh" "https://github.com/lovezzzxxx/liverecord/raw/master/record_new.sh" ; chmod +x record/record_new.sh`
   * [ffmpeg](https://github.com/FFmpeg/FFmpeg)，安装方法为`sudo apt install ffmpeg`。
   * [streamlink](https://github.com/streamlink/streamlink)(基于python3)，安装方法为`pip3 install streamlink`。
-  * [livedl](https://github.com/railannad/livedl)(基于go，原项目[himananiito/livedl](https://github.com/himananiito/livedl)已失效)，具体编译安装方法可以参考作者的说明， __请将编译完成的livedl文件放置于运行时命令行所在目录的livedl/文件夹内__ 。否则无法使用twitcast、nicolv、nicoco、nicoch参数。
+  * [livedl](https://github.com/qjfoidnh/livedl)(基于go，原项目[himananiito/livedl](https://github.com/himananiito/livedl)已失效)，具体编译安装方法可以参考作者的说明， __请将编译完成的livedl文件放置于运行时命令行所在目录的livedl/文件夹内__ 。否则无法使用twitcast、nicolv、nicoco、nicoch参数。
   * [record_twitcast.py文件](https://github.com/lovezzzxxx/liverecord/blob/master/record_twitcast.py)(基于python3 websocket库)，安装方法为`mkdir record ; wget -O "record/record_twitcast.py" "https://github.com/lovezzzxxx/liverecord/raw/master/record_twitcast.py" ; chmod +x "record/record_twitcast.py"`， __如果手动安装请将record_twitcast.py文件放置于运行时命令行所在目录的record/文件夹内并给予可执行权限即可__ 。否则无法使用twitcastpy参数。
   * [you-get](https://github.com/soimort/you-get)(基于python3)，安装方法为`pip3 install you-get`。否则无法使用bilibiliy参数。
   * [BilibiliLiveRecorder](https://github.com/nICEnnnnnnnLee/BilibiliLiveRecorder)(基于java)，安装方法为`mkdir BilibiliLiveRecorder ; cd BilibiliLiveRecorder ; wget https://github.com/nICEnnnnnnnLee/BilibiliLiveRecorder/releases/download/V2.13.0/BilibiliLiveRecord.v2.13.0.zip ; unzip BilibiliLiveRecord.v2.13.0.zip ; rm BilibiliLiveRecord.v2.13.0.zip ; cd ..`。否则无法使用bilibilir参数。
