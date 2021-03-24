@@ -23,7 +23,7 @@ git clone -b module https://github.com/nnn-revo2012/livedl.git ; cd livedl/src ;
 #安装java相关下载工具
 apt -y install default-jre
 apt -y install unzip
-mkdir BilibiliLiveRecorder ; cd BilibiliLiveRecorder ; wget https://github.com/nICEnnnnnnnLee/BilibiliLiveRecorder/releases/download/V2.13.0/BilibiliLiveRecord.v2.13.0.zip ; unzip BilibiliLiveRecord.v2.13.0.zip ; rm BilibiliLiveRecord.v2.13.0.zip ; cd ..
+mkdir BilibiliLiveRecorder ; cd BilibiliLiveRecorder ; wget https://github.com/nICEnnnnnnnLee/BilibiliLiveRecorder/releases/download/V2.14.0/BilibiliLiveRecord.v2.14.0.zip ; unzip BilibiliLiveRecord.v2.14.0.zip ; rm BilibiliLiveRecord.v2.14.0.zip ; cd ..
 
 #下载文件并赋予权限
 mkdir record
