@@ -178,7 +178,7 @@ function prasepage(){
 		STREAM_URL="wss://$(echo $PAGE | grep -o '"fmp4":{"host":"[^"]*"' | awk -F'"' '{print $6}')/ws.app/stream/${STREAM_ID}/fmp4/bd/1/1500?mode=source"
 	fi
 	if [[ $TYPE == "twitch" ]]; then
-		STREAM_URL=$LOCAL_PAGE
+		STREAM_URL=$PAGE
 		FNAME="twitch_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"
 	fi
 	if [[ $TYPE == "openrec" ]]; then
@@ -200,7 +200,7 @@ function prasepage(){
 		FNAME="reality_${STREAM_ID}_$(date +"%Y%m%d_%H%M%S").ts"
 	fi
 	if [[ $TYPE == "17live" ]]; then
-		STREAM_URL=$LOCAL_PAGE
+		STREAM_URL=$PAGE
 		FNAME="17live_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"
 	fi
 	if [[ $TYPE == "chaturbate" ]]; then
@@ -208,7 +208,7 @@ function prasepage(){
 		FNAME="chaturbate_${PART_URL}_$(date +"%Y%m%d_%H%M%S").ts"
 	fi
 	if [[ $TYPE == "streamlink" ]]; then
-		STREAM_URL=$LOCAL_PAGE
+		STREAM_URL=$PAGE
 		FNAME="stream_$(date +"%Y%m%d_%H%M%S").ts"
 	fi
 	if [[ $TYPE == "bilibili"* ]]; then
