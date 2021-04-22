@@ -18,7 +18,7 @@ echo 'export PATH=$PATH:/usr/local/go/bin'>>~/.bashrc #修改默认环境变量�
 export PATH=$PATH:/usr/local/go/bin
 sudo apt -y install git ; sudo apt -y install build-essential
 echo "此处可能需要较长时间，请耐心等待"
-git clone -b module https://github.com/nnn-revo2012/livedl.git ; cd livedl/src ; go build -o livedl livedl.go ; rm -r `ls | grep -v "^livedl$"` ; cd ../.. #编译安装livedl
+git clone -b module https://github.com/nnn-revo2012/livedl.git ; cd livedl/src ; go build -o livedl livedl.go ; rm -r `ls | grep -v "^livedl$"` ; cd ../../ #编译安装livedl
 
 #安装java相关下载工具
 apt -y install default-jre
