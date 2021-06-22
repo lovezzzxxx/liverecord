@@ -14,7 +14,7 @@ def main(url, file):
     f = open(file, "wb")
     ws = websocket.WebSocketApp(url, on_message=on_message, on_close=on_close)
     print("[" + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + "] websocket connect")
-    websocket.enableTrace(True)
+    # websocket.enableTrace(True) 现在调试模式会将所有通信都写出故暂时关闭
     ws.run_forever(origin="https://twitcasting.tv/")
     print("[" + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + "] close " + file)
     f.close()
