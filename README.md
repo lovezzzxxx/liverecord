@@ -13,14 +13,7 @@ record_twitcast.py是录制twitcast的websocket流的精简脚本
 感谢[live-stream-recorder](https://github.com/printempw/live-stream-recorder)、[GiGaFotress/Vtuber-recorder](https://github.com/GiGaFotress/Vtuber-recorder)  
 
 ## 安装方法
-#### 一键安装
-`curl https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/install.sh | bash`  
-  * __一键脚本安装后脚本调用方式应为`record/record_new.sh`而非下文示例中的`./record_new.sh`__
-  * 一键脚本将会自动安装下列所有环境依赖， __同时会覆盖安装go环境并添加一些环境变量__ ，如果有需要可以注释掉相应的命令或者手动安装环境依赖
-  * 其中record.sh、record_new.sh和record_twitcast.py会保存于运行时命令行所在目录的record文件夹下，livedl会保存于运行时命令行所在目录的livedl文件夹下， BilibiliLiveRecorder会解压到运行时命令行所在目录的BilibiliLiveRecorder文件夹下
-  * 一键脚本运行结束后会提示仍需要手动进行的操作，如更新环境变量和登录网盘账号  
-
-#### 手动安装
+#### 手动安装(推荐)
 
 <details>
 <summary>环境依赖</summary>
@@ -37,6 +30,14 @@ record_twitcast.py是录制twitcast的websocket流的精简脚本
   * [BaiduPCS-Go](https://github.com/qjfoidnh/BaiduPCS-Go)(给予go，支持百度云网盘，需登录后使用，原项目[iikira/BaiduPCS-Go](https://github.com/iikira/BaiduPCS-Go)已失效)，安装和登录方法可以参考作者的说明。否则无法使用baidupan上传。
 
 </details>
+
+#### 一键安装(谨慎使用)
+
+`curl https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/install.sh | bash`  
+  * __一键脚本安装后脚本调用方式应为`record/record_new.sh`而非下文示例中的`./record_new.sh`__
+  * 一键脚本将会自动安装下列所有环境依赖， __同时会覆盖安装go环境并添加一些环境变量__ ，如果有需要可以注释掉相应的命令或者手动安装环境依赖
+  * 其中record.sh、record_new.sh和record_twitcast.py会保存于运行时命令行所在目录的record文件夹下，livedl会保存于运行时命令行所在目录的livedl文件夹下， BilibiliLiveRecorder会解压到运行时命令行所在目录的BilibiliLiveRecorder文件夹下
+  * 一键脚本运行结束后会提示仍需要手动进行的操作，如更新环境变量和登录网盘账号  
 
 ## 使用方法
 #### 方法
