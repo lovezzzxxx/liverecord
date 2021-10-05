@@ -70,7 +70,7 @@ record_twitcast.py是录制twitcast的websocket流的精简脚本
 -ml\|--min-loop-interval|180|最短录制间隔
 -ms\|--min-status|1|开始录制前需要持续检测到开播次数
 -o\|-d\|--output\|--dir|record_video/other|输出目录
--u\|--upload|无|上传网盘,格式为网盘类型重试次数:盘符:路径，网盘类型支持rclone paidupcs onedrive，例如rclone3:vps:record
+-u\|--upload|无|上传网盘,格式为网盘类型重试次数:盘符:路径，网盘类型支持rclone baidupcs onedrive，例如rclone3:vps:record
 -dt\|--delete-type|1|删除本地录像需要成功上传的数量，默认为1，del为强制删除，keep为强制保留，all为需要全部上传成功
 -e\|--except|无|排除转播，格式同录制频道，如-e youtube "UCWCc8tO-uUl_7SJXIKJACMw
 * youtube会限需要--you-cookies(用于监测)与--you-config(用于录制)同时使用
