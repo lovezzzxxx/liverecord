@@ -31,7 +31,7 @@ record_twitcast.py是录制twitcast的websocket流的精简脚本
 
 </details>
 
-#### 一键安装(谨慎使用)
+#### 一键安装(谨慎使用)【不建议使用root用户安装】
 
 `curl https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/install.sh | bash`  
   * __一键脚本安装后脚本调用方式应为`record/record_new.sh`而非下文示例中的`./record_new.sh`__
