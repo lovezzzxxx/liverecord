@@ -1,5 +1,5 @@
 
-mkdir liverecord #新建liverecord的安装目录
+mkdir -p liverecord ; cd liverecord #新建liverecord的安装目录
 
 cur_dir="$(pwd)" #定义当前路径
 
@@ -39,13 +39,13 @@ fi
 
 #安装BilibiliLiveRecorder
 cd ${cur_dir}
-mkdir BilibiliLiveRecorder ; cd BilibiliLiveRecorder ; 
-curl -OJL https://github.com/nICEnnnnnnnLee/BilibiliLiveRecorder/releases/download/V2.15.0/BilibiliLiveRecord.v2.15.0.zip ; unzip BilibiliLiveRecord.v2.15.0.zip
+mkdir -p BilibiliLiveRecorder ; cd BilibiliLiveRecorder ; 
+curl -OJL https://github.com/nICEnnnnnnnLee/BilibiliLiveRecorder/releases/download/V2.16.0/BilibiliLiveRecord.v2.16.0.zip ; unzip BilibiliLiveRecord.v2.16.0.zip
 rm BilibiliLiveRecord.v2.15.0.zip
 
 #下载录制脚本并赋予权限
 cd ${cur_dir}
-mkdir record
+mkdir -p record
 curl https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/record.sh > record/record.sh ; chmod +x record/record.sh
 curl https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/record_new.sh > record/record_new.sh ; chmod +x record/record_new.sh
 curl https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/record_twitcast.py > record/record_twitcast.py; chmod +x record/record_twitcast.py
