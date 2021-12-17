@@ -1,5 +1,6 @@
 
-mkdir -p liverecord ; cd liverecord #新建liverecord的安装目录
+
+cd $home ; mkdir -p liverecord ; cd liverecord #新建liverecord的安装目录
 
 cur_dir="$(pwd)" #定义当前路径
 
