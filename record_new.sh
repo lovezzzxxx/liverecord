@@ -35,7 +35,7 @@ if [[ ! -n "${1}" ]]; then
 	echo ""
 	echo "其他说明："
 	echo "必要模块为curl streamlink ffmpeg ,可选模块为livedl python3 you-get,请将livedl文件放置于运行时目录的livedl文件夹内 ,请将BilibiliLiveRecorder解压放置于运行时目录的BilibiliLiveRecorder文件夹内,请将record_twitcast.py文件放置于运行时目录的record文件夹内。"
-	echo "rclone上传基于\"https://github.com/rclone/rclone\"百度云上传基于\"https://github.com/iikira/BaiduPCS-Go\",onedrive上传基于\"https://github.com/MoeClub/OneList/tree/master/OneDriveUploader\",请登录后使用。"
+	echo "rclone上传基于\"https://github.com/rclone/rclone\"百度云上传基于\"https://github.com/qjfoidnh/BaiduPCS-Go\",onedrive上传基于\"https://github.com/MoeClub/OneList/tree/master/OneDriveUploader\",请登录后使用。"
 	echo ""
 	echo ""
 	exit 1
