@@ -1,5 +1,6 @@
 
-mkdir liverecord #新建liverecord的安装目录
+
+cd $home ; mkdir -p liverecord ; cd liverecord #新建liverecord的安装目录
 
 cur_dir="$(pwd)" #定义当前路径
 
@@ -21,8 +22,8 @@ source ~/.bashrc
 
 #安装go语言环境
 sudo rm -rf $(go env GOROOT) #如果有已经安装的go环境，先卸载，新老版本会有冲突，如不希望可以注释掉
-curl -OJL https://golang.org/dl/go1.17.5.linux-amd64.tar.gz #安装go环境，如不希望可以注释掉
-sudo tar -C /usr/local -xzf go1.17.5.linux-amd64.tar.gz ; rm go1.17.5.linux-amd64.tar.gz
+curl -OJL https://go.dev/dl/go1.19.linux-amd64.tar.gz #安装go环境，如不希望可以注释掉
+sudo tar -C /usr/local -xzf go1.19.linux-amd64.tar.gz ; rm go1.19.linux-amd64.tar.gz
 echo 'export PATH=$PATH:/usr/local/go/bin'>>~/.bashrc #修改默认环境变量，如不希望可以注释掉
 export PATH=$PATH:/usr/local/go/bin
 
@@ -39,13 +40,13 @@ fi
 
 #安装BilibiliLiveRecorder
 cd ${cur_dir}
-mkdir BilibiliLiveRecorder ; cd BilibiliLiveRecorder ; 
-curl -OJL https://github.com/nICEnnnnnnnLee/BilibiliLiveRecorder/releases/download/V2.15.0/BilibiliLiveRecord.v2.15.0.zip ; unzip BilibiliLiveRecord.v2.15.0.zip
-rm BilibiliLiveRecord.v2.15.0.zip
+mkdir -p BilibiliLiveRecorder ; cd BilibiliLiveRecorder ; 
+curl -OJL https://github.com/nICEnnnnnnnLee/BilibiliLiveRecorder/releases/download/V2.18.0/BilibiliLiveRecord.v2.18.0.zip ; unzip BilibiliLiveRecord.v2.18.0.zip
+rm BilibiliLiveRecord.v2.18.0.zip
 
 #下载录制脚本并赋予权限
 cd ${cur_dir}
-mkdir record
+mkdir -p record
 curl https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/record.sh > record/record.sh ; chmod +x record/record.sh
 curl https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/record_new.sh > record/record_new.sh ; chmod +x record/record_new.sh
 curl https://raw.githubusercontent.com/lovezzzxxx/liverecord/master/record_twitcast.py > record/record_twitcast.py; chmod +x record/record_twitcast.py
