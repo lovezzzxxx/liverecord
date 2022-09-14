@@ -137,6 +137,7 @@ function getlivestatus(){
 	fi
 	if [[ $TYPE == "17live" ]]; then
 		local LOCAL_PAGE=$(curl -s -X POST "https://api-dsa.17app.co/api/v1/lives/${PART_URL}/viewers/alive" --data-raw "{\"liveStreamID\": \"${PART_URL}\"}" | grep -o '"webUrl":"[^"]*' | awk -F'\"' '{print $4}')
+		LOCAL_PAGE=${LOCAL_PAGE%%flv*}flv
 		if [[ -n "${LOCAL_PAGE}" ]]; then STATUS=1; fi
 	fi
 	if [[ $TYPE == "chaturbate" ]]; then
